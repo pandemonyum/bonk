@@ -1,0 +1,26 @@
+# Evocatore (player), placeholder S0, vista frontale.
+# Mantello teal con cappuccio e fermaglio d'oro: colori "alleato" dell'ART_BIBLE.
+out: sprites/summoner.png
+mirror: true
+---
+........
+....kkkk
+...kclll
+..kcclll
+..kcckkk
+..kcksss
+..kcksks
+..kckSss
+..kcckss
+.kccckkk
+.kCccclg
+kCccccll
+kCccccll
+kCCcccll
+kCCccccl
+kCCccccc
+.kCCcccc
+.kkCCccc
+..kkkkkk
+...kDDk.
+...kkkk.

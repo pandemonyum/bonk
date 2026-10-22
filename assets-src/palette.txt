@@ -1,0 +1,31 @@
+# Palette "Germoglio" v0 — originale del progetto. Un carattere = un colore.
+# Formato: <carattere> <hex RGB> <ruolo>. '.' è sempre trasparente.
+# Regola colori per ruolo (vedi docs/ART_BIBLE.md): alleati teal/oro, nemici viola/rosso,
+# gemme XP blu, ambiente verdi/terra a saturazione più bassa.
+k 1b1428 contorno
+K 3a2f4f ombra-neutra
+w f4f1e8 bianco
+s f2c29b pelle
+S c98e6c pelle-ombra
+c 2f8f9d alleato-teal
+C 1f5a6b alleato-teal-ombra
+l 6cc7c2 alleato-teal-luce
+g f2c94c oro
+G b8862e oro-ombra
+p 8e5bc8 nemico-viola
+P 5b3a8c nemico-viola-ombra
+q c79bf0 nemico-viola-luce
+r e2574c rosso-pericolo
+R a8323a rosso-pericolo-ombra
+a 5fae4e erba
+A 3f8a43 erba-ombra
+b 8fd16a erba-luce
+B 2c6b3a siepe
+y ffd65c fiore-giallo
+m f28ab8 fiore-rosa
+d b9875a terra
+D 8a5d3b terra-ombra
+t 9aa0a8 pietra
+T 5f6670 pietra-ombra
+u 4fa4e0 xp-blu
+U 2f6fb0 xp-blu-ombra

@@ -1,0 +1,17 @@
+# Nemico base "gelatina viola", placeholder S0. Occhi rivolti al centro: legge come "ti guarda".
+out: sprites/blob_enemy.png
+mirror: true
+---
+........
+.....kkk
+...kkqqq
+..kqqppp
+.kqppppp
+.kpppppp
+kppwkppp
+kppwkppp
+kPpppppp
+kPPppppp
+.kPPPppp
+..kkPPPP
+....kkkk

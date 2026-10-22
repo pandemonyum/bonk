@@ -1,0 +1,8 @@
+# Toolchain bloccata: Bevy 0.20 richiede Rust >= 1.97.1 (rust-version in bevy/Cargo.toml).
+# Aggiornamento deliberato: cambia `channel`, poi `cargo update -p bevy --precise <ver>` se serve,
+# e riesegui scripts/check.ps1 (o .sh). Registra il cambio in docs/DECISIONS.md.
+[toolchain]
+channel = "1.99.1"
+profile = "minimal"
+components = ["rustfmt", "clippy"]
+targets = ["wasm32-unknown-unknown"]

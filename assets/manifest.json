@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "path": "sprites/blob_enemy.png",
+      "kind": "sprite",
+      "size": [
+        16,
+        13
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/blob_enemy.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/summoner.png",
+      "kind": "sprite",
+      "size": [
+        16,
+        21
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/summoner.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "tiles/meadow_tileset.png",
+      "kind": "tileset",
+      "size": [
+        16,
+        112
+      ],
+      "tile_size": 16,
+      "tiles": [
+        "grass_a",
+        "grass_b",
+        "grass_tuft",
+        "flowers_white",
+        "flowers_pink",
+        "dirt",
+        "hedge"
+      ],
+      "source": "scripts/build-assets.py (procedural, seed 20261022)",
+      "license": "original, project-owned (generated from assets-src)"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+[package]
+name = "pixel-monster-survivor"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97.1"
+description = "Survivor roguelite 2D in pixel art con compagni mostriciattolo originali (prototipo)."
+license = "UNLICENSED"
+publish = false
+
+[dependencies]
+# Bevy bloccata alla serie 0.20.x. Solo i profili 2D + UI: niente 3D/PBR, compilazione piu' rapida.
+# `2d` include gia' default_platform (winit, webgl2, gilrs, default_font, multi_threaded).
+bevy = { version = "0.20.0", default-features = false, features = ["2d", "ui"] }
+
+[features]
+# Sviluppo: hot reload asset (file_watcher) e strumenti di debug di Bevy. Non usare nelle release.
+dev = ["bevy/dev"]
+
+[lints.clippy]
+# I sistemi Bevy hanno per natura molti parametri e query con tipi lunghi.
+too_many_arguments = "allow"
+type_complexity = "allow"
+
+# Compilazione dev: il nostro codice leggermente ottimizzato, le dipendenze (Bevy) ottimizzate al massimo.
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+
+# Profilo per la build web (P1): dimensione del .wasm prima della velocita'.
+[profile.wasm-release]
+inherits = "release"
+opt-level = "s"
+lto = "fat"
+strip = "debuginfo"
