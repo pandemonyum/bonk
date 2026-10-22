@@ -7,6 +7,7 @@ pub mod generation;
 pub mod obstacles;
 pub mod render;
 pub mod tiles;
+pub mod view;
 
 use bevy::prelude::*;
 
@@ -66,12 +67,17 @@ impl ArenaBounds {
     }
 }
 
+/// Set di `OnEnter(AppState::InRun)` che prepara il mondo (ostacoli): chi ne ha bisogno, come
+/// lo spawn director per non far nascere nemici dentro una roccia, va messo `.after(WorldSetup)`.
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct WorldSetup;
+
 pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ArenaBounds>()
-            .add_systems(OnEnter(AppState::InRun), spawn_obstacles);
+            .add_systems(OnEnter(AppState::InRun), spawn_obstacles.in_set(WorldSetup));
     }
 }
 

@@ -5,6 +5,7 @@ use bevy::prelude::*;
 
 use crate::LaunchOptions;
 use crate::app::{RunPhase, RunSeed};
+use crate::data::{DataId, GameConfig};
 use crate::gameplay::combat::{Projectile, RunStats};
 use crate::gameplay::enemies::Enemy;
 use crate::gameplay::kinematics::Position;
@@ -64,10 +65,11 @@ fn refresh_overlay(
     seed: Res<RunSeed>,
     phase: Option<Res<State<RunPhase>>>,
     stats: Res<RunStats>,
-    enemies: Query<(), With<Enemy>>,
+    enemies: Query<&DataId, With<Enemy>>,
     projectiles: Query<(), With<Projectile>>,
     entities: Query<()>,
     player: Query<&Position, With<Player>>,
+    config: Option<Res<GameConfig>>,
     overlay: Single<(&mut Text, &Visibility), With<OverlayText>>,
 ) {
     *since_refresh += time.delta_secs();
@@ -86,9 +88,21 @@ fn refresh_overlay(
     let player = player
         .single()
         .map_or("-".to_string(), |p| format!("{:.0},{:.0}", p.x, p.y));
+    // Vivi per archetipo, nell'ordine di enemies.ron.
+    let by_kind = config.map_or(String::new(), |config| {
+        config
+            .enemies
+            .iter()
+            .map(|kind| {
+                let alive = enemies.iter().filter(|id| id.0 == kind.id).count();
+                format!("{} {alive}", kind.id)
+            })
+            .collect::<Vec<_>>()
+            .join("  ")
+    });
     text.0 = format!(
-        "FPS {:.0}  frame {:.2} ms\nnemici {}  proiettili {}  entita {}\n\
-         sconfitti {}  sparati {}\nplayer {}  fase {}\nseed {}",
+        "FPS {:.0}  frame {:.2} ms\nnemici {}  proiettili {}  entita {}\n{by_kind}\n\
+         sconfitti {}  sparati {}  danni subiti {:.0}\nplayer {}  fase {}\nseed {}",
         smoothed(&FrameTimeDiagnosticsPlugin::FPS),
         smoothed(&FrameTimeDiagnosticsPlugin::FRAME_TIME),
         enemies.iter().count(),
@@ -96,6 +110,7 @@ fn refresh_overlay(
         entities.iter().count(),
         stats.defeated,
         stats.projectiles_fired,
+        stats.damage_taken,
         player,
         phase,
         seed.0,

@@ -20,6 +20,7 @@ use bevy::window::WindowResolution;
 
 use app::AppState;
 use data::{DataStatus, GameConfig};
+use gameplay::damage::GodMode;
 pub use options::LaunchOptions;
 
 /// App completa per desktop e web. I dati arrivano da `game-data/` tramite l'AssetServer.
@@ -55,6 +56,11 @@ pub fn client_app(options: LaunchOptions) -> App {
         presentation::PresentationPlugin,
         diagnostics::DiagnosticsPlugin,
     ))
+    .insert_resource(GodMode(options.god));
+    let time_scale = options.time_scale;
+    app.add_systems(Startup, move |mut time: ResMut<Time<Virtual>>| {
+        time.set_relative_speed(time_scale);
+    })
     .insert_resource(options);
     app
 }

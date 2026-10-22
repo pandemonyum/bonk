@@ -23,6 +23,9 @@ pub enum RunPhase {
     #[default]
     Playing,
     Paused,
+    /// Il player è a 0 HP: la run è ferma finché non si ricomincia (schermata risultati
+    /// completa e vittoria con la P0.6).
+    Defeated,
 }
 
 /// Seed della run: mondo e spawn derivano da qui, quindi stesso seed = stessa partita.

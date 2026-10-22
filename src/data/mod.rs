@@ -146,10 +146,16 @@ impl GameConfig {
             .expect("riferimento validato in GameConfig::parse")
     }
 
-    /// Nemico dello stage (esiste: verificato dalla validazione).
-    pub fn stage_enemy(&self) -> &EnemyData {
-        self.enemy(&self.stage.enemy)
+    /// Nemico di un'ondata dello stage (esiste: verificato dalla validazione).
+    pub fn wave_enemy(&self, wave: &WaveData) -> &EnemyData {
+        self.enemy(&wave.enemy)
             .expect("riferimento validato in GameConfig::parse")
+    }
+
+    /// Nemico della prima ondata: quello dell'`initial_burst` (la validazione garantisce che
+    /// esista almeno un'ondata).
+    pub fn first_wave_enemy(&self) -> &EnemyData {
+        self.wave_enemy(&self.stage.spawns.waves[0])
     }
 }
 
@@ -181,7 +187,9 @@ mod tests {
             config.companion_attack(config.starting_companion()).id,
             "ember_bolt"
         );
-        assert_eq!(config.stage_enemy().id, "blob");
+        assert_eq!(config.first_wave_enemy().id, "blob");
+        let ids: Vec<&str> = config.enemies.iter().map(|e| e.id.as_str()).collect();
+        assert_eq!(ids, ["blob", "swarm", "armored"]);
     }
 
     #[test]
@@ -222,14 +230,16 @@ mod tests {
 
     #[test]
     fn unsupported_versions_are_rejected() {
-        let future = EMBEDDED.attacks.replace("version: 1", "version: 2");
+        let future = EMBEDDED
+            .attacks
+            .replace(&format!("version: {SCHEMA_VERSION}"), "version: 99");
         let errors = GameConfig::parse(&DataSources {
             attacks: &future,
             ..EMBEDDED
         })
         .unwrap_err();
         assert!(
-            errors.iter().any(|e| e.contains("attacks.ron: version 2")),
+            errors.iter().any(|e| e.contains("attacks.ron: version 99")),
             "{errors:?}"
         );
     }

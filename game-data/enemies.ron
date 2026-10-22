@@ -1,6 +1,8 @@
-// Archetipi nemici. P0.3 aggiungerà sciame veloce, corazzato, élite e boss.
+// Archetipi nemici. Tre ruoli distinti per forma, velocità e resistenza:
+// gelatina = base, sciame = veloce e fragile, corazzato = lento e resistente.
+// Élite e boss arrivano con la P0.6.
 (
-    version: 1,
+    version: 2,
     enemies: [
         (
             id: "blob",
@@ -18,6 +20,34 @@
             contact_distance: 10.0,
             // distanza minima tra due nemici
             separation_radius: 14.0,
+            contact_damage: 3.0,
+        ),
+        (
+            id: "swarm",
+            display_name: "Sciame",
+            sprite: "sprites/swarm_enemy.png",
+            // un colpo solo, ma arrivano in tanti
+            max_hp: 12.0,
+            // quasi quanto il player: non si semina, va abbattuto
+            speed: 68.0,
+            hurtbox: (radius: 5.0, center_offset: 4.0),
+            footprint_radius: 4.0,
+            contact_distance: 8.0,
+            separation_radius: 10.0,
+            contact_damage: 2.0,
+        ),
+        (
+            id: "armored",
+            display_name: "Corazzato",
+            sprite: "sprites/armored_enemy.png",
+            // 10 colpi: blocca la strada mentre gli altri arrivano
+            max_hp: 120.0,
+            speed: 28.0,
+            hurtbox: (radius: 9.0, center_offset: 7.0),
+            footprint_radius: 8.0,
+            contact_distance: 13.0,
+            separation_radius: 18.0,
+            contact_damage: 6.0,
         ),
     ],
 )

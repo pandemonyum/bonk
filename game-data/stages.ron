@@ -1,19 +1,26 @@
-// Stage (mappe). La prima voce è quella giocata. Curve di difficoltà e boss: P0.3/P0.6.
+// Stage (mappe). La prima voce è quella giocata. Élite, boss e fine run: P0.6.
 (
-    version: 1,
+    version: 2,
     stages: [
         (
             id: "meadow",
             display_name: "Prateria dei Germogli",
             starting_companion: "ember",
-            enemy: "blob",
-            initial_enemies: 10,
-            // nemici in campo al massimo; i sconfitti vengono rimpiazzati
-            population_cap: 10,
-            // anello (min, max) in px attorno al player: in parte visibile all'inizio
-            initial_ring: (170.0, 240.0),
-            // rimpiazzi oltre la mezza diagonale dello schermo (~275 px)
-            respawn_ring: (290.0, 340.0),
+            spawns: (
+                // anello (min, max) in px attorno al player; i punti in vista vengono scartati
+                // (mezza diagonale dello schermo ~275 px)
+                ring: (290.0, 360.0),
+                // obiettivo di prestazioni P0: 200 nemici a 60 FPS
+                max_alive: 220,
+                // gelatine all'avvio, per non partire da un campo vuoto
+                initial_burst: 5,
+                waves: [
+                    // ritmo = rate_per_min + rate_growth_per_min × minuti da start_s
+                    (enemy: "blob", start_s: 0.0, rate_per_min: 24.0, rate_growth_per_min: 12.0, max_alive: 90),
+                    (enemy: "swarm", start_s: 60.0, rate_per_min: 20.0, rate_growth_per_min: 15.0, max_alive: 110),
+                    (enemy: "armored", start_s: 150.0, rate_per_min: 4.0, rate_growth_per_min: 2.0, max_alive: 25),
+                ],
+            ),
             obstacles: (
                 // ~650 tra rocce e alberi su 256x256 tile (mai adiacenti: varchi sempre aperti)
                 density: 0.012,

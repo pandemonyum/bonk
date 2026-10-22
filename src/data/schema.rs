@@ -1,10 +1,13 @@
-//! Schema dei file in `game-data/` (versione 1). `deny_unknown_fields`: un refuso nel nome di
-//! un campo è un errore, non un valore ignorato in silenzio.
+//! Schema dei file in `game-data/`. `deny_unknown_fields`: un refuso nel nome di un campo è un
+//! errore, non un valore ignorato in silenzio.
+//!
+//! Versioni: 1 (P0.0) → 2 (P0.3: ondate dello spawn director negli stage, HP e invulnerabilità
+//! del player, danno da contatto dei nemici).
 
 use serde::Deserialize;
 
 /// Versione dello schema supportata da questo codice.
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -13,6 +16,9 @@ pub struct PlayerFile {
     pub sprite: String,
     pub speed: f32,
     pub footprint_radius: f32,
+    pub max_hp: f32,
+    /// Secondi di invulnerabilità dopo un colpo subito.
+    pub invulnerability_s: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
@@ -92,6 +98,8 @@ pub struct EnemyData {
     pub footprint_radius: f32,
     pub contact_distance: f32,
     pub separation_radius: f32,
+    /// Danno inflitto al player a contatto (una volta per finestra di invulnerabilità).
+    pub contact_damage: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -113,17 +121,43 @@ pub struct ObstacleParams {
     pub tree_chance: f32,
 }
 
+/// Un'ondata dello spawn director: un archetipo che entra in scena da `start_s` con un ritmo
+/// che cresce linearmente nel tempo.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WaveData {
+    /// Id in `enemies.ron`.
+    pub enemy: String,
+    /// Secondo della run da cui l'ondata è attiva.
+    pub start_s: f32,
+    /// Nemici al minuto all'inizio dell'ondata.
+    pub rate_per_min: f32,
+    /// Nemici al minuto in più per ogni minuto trascorso da `start_s`.
+    pub rate_growth_per_min: f32,
+    /// Nemici di questo archetipo vivi al massimo nello stesso momento.
+    pub max_alive: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SpawnPlan {
+    /// Anello (min, max) in px attorno al player in cui nascono i nemici; i punti dentro la
+    /// vista della camera, fuori dall'arena o dentro un ostacolo vengono scartati.
+    pub ring: (f32, f32),
+    /// Nemici vivi al massimo in totale.
+    pub max_alive: u32,
+    /// Nemici della prima ondata creati all'avvio della run.
+    pub initial_burst: u32,
+    pub waves: Vec<WaveData>,
+}
+
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct StageData {
     pub id: String,
     pub display_name: String,
     pub starting_companion: String,
-    pub enemy: String,
-    pub initial_enemies: u32,
-    pub population_cap: u32,
-    pub initial_ring: (f32, f32),
-    pub respawn_ring: (f32, f32),
+    pub spawns: SpawnPlan,
     pub obstacles: ObstacleParams,
 }
 

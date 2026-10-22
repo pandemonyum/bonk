@@ -5,6 +5,7 @@ use std::collections::HashSet;
 use super::GameConfig;
 use crate::gameplay::SIM_HZ;
 use crate::world::obstacles::{MIN_FOOTPRINT_RADIUS, MIN_OBSTACLE_GAP};
+use crate::world::view::VIEW_HALF_DIAGONAL;
 
 /// Il corpo più largo che passa sempre tra due ostacoli (vedi `world::obstacles`).
 const MAX_FOOTPRINT_RADIUS: f32 = MIN_OBSTACLE_GAP / 2.0;
@@ -96,6 +97,8 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
     r.positive("player.ron: speed", p.speed);
     r.footprint("player.ron: footprint_radius", p.footprint_radius);
     r.body_speed("player.ron: speed", p.speed, p.footprint_radius);
+    r.positive("player.ron: max_hp", p.max_hp);
+    r.non_negative("player.ron: invulnerability_s", p.invulnerability_s);
     r.sprite("player.ron: sprite", &p.sprite);
 
     r.unique_ids("companions.ron", config.companions.iter().map(|c| &c.id));
@@ -162,6 +165,7 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
         r.body_speed(&at("speed"), e.speed, e.footprint_radius);
         r.non_negative(&at("contact_distance"), e.contact_distance);
         r.non_negative(&at("separation_radius"), e.separation_radius);
+        r.non_negative(&at("contact_damage"), e.contact_damage);
         r.sprite(&at("sprite"), &e.sprite);
     }
 
@@ -174,21 +178,42 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
         companion_exists,
         "companions.ron",
     );
-    let enemy_exists = config.enemy(&s.enemy).is_some();
-    r.reference(&at("enemy"), &s.enemy, enemy_exists, "enemies.ron");
-    if s.population_cap == 0 {
-        r.0.push(format!("{} deve essere >= 1", at("population_cap")));
-    }
-    if s.initial_enemies > s.population_cap {
+    let plan = &s.spawns;
+    r.ring(&at("spawns.ring"), plan.ring);
+    if plan.ring.1 <= VIEW_HALF_DIAGONAL {
         r.0.push(format!(
-            "{} = {} supera population_cap = {}",
-            at("initial_enemies"),
-            s.initial_enemies,
-            s.population_cap
+            "{} = {:?}: con max {} ogni punto dell'anello è dentro la vista (mezza diagonale \
+             {VIEW_HALF_DIAGONAL:.0} px), i nemici non nascerebbero mai",
+            at("spawns.ring"),
+            plan.ring,
+            plan.ring.1
         ));
     }
-    r.ring(&at("initial_ring"), s.initial_ring);
-    r.ring(&at("respawn_ring"), s.respawn_ring);
+    if plan.max_alive == 0 {
+        r.0.push(format!("{} deve essere >= 1", at("spawns.max_alive")));
+    }
+    if plan.initial_burst > plan.max_alive {
+        r.0.push(format!(
+            "{} = {} supera spawns.max_alive = {}",
+            at("spawns.initial_burst"),
+            plan.initial_burst,
+            plan.max_alive
+        ));
+    }
+    if plan.waves.is_empty() {
+        r.0.push(format!("{}: serve almeno un'ondata", at("spawns.waves")));
+    }
+    for (i, wave) in plan.waves.iter().enumerate() {
+        let at = |field: &str| format!("stages.ron: {}.spawns.waves[{i}].{field}", s.id);
+        let exists = config.enemy(&wave.enemy).is_some();
+        r.reference(&at("enemy"), &wave.enemy, exists, "enemies.ron");
+        r.non_negative(&at("start_s"), wave.start_s);
+        r.non_negative(&at("rate_per_min"), wave.rate_per_min);
+        r.non_negative(&at("rate_growth_per_min"), wave.rate_growth_per_min);
+        if wave.max_alive == 0 {
+            r.0.push(format!("{} deve essere >= 1", at("max_alive")));
+        }
+    }
     r.probability(&at("obstacles.density"), s.obstacles.density);
     r.non_negative(&at("obstacles.safe_radius"), s.obstacles.safe_radius);
     r.probability(&at("obstacles.tree_chance"), s.obstacles.tree_chance);
@@ -244,8 +269,8 @@ mod tests {
             "companions.ron: ember.attack = \"missing\": non esiste in attacks.ron",
         );
         assert_error(
-            |c| c.stage.enemy = "dragon".into(),
-            "stages.ron: meadow.enemy = \"dragon\"",
+            |c| c.stage.spawns.waves[1].enemy = "dragon".into(),
+            "stages.ron: meadow.spawns.waves[1].enemy = \"dragon\": non esiste in enemies.ron",
         );
         assert_error(
             |c| c.stage.starting_companion = "x".into(),
@@ -265,8 +290,12 @@ mod tests {
             |c| c.attacks[0].projectile_speed = 2000.0,
             "attraversa i nemici",
         );
-        assert_error(|c| c.stage.initial_ring = (240.0, 170.0), "0 < min < max");
-        assert_error(|c| c.stage.initial_enemies = 99, "supera population_cap");
+        assert_error(|c| c.stage.spawns.ring = (360.0, 290.0), "0 < min < max");
+        // anello tutto dentro la vista: nessun nemico nascerebbe mai
+        assert_error(
+            |c| c.stage.spawns.ring = (100.0, 200.0),
+            "i nemici non nascerebbero mai",
+        );
         // corpi abbastanza veloci da saltare oltre un tronco (4 + 5 px per passo = 540 px/s)
         assert_error(
             |c| c.player.speed = 600.0,
@@ -278,6 +307,35 @@ mod tests {
         assert_error(
             |c| c.attacks[0].projectile_lifetime_s = 0.5,
             "il proiettile percorre 110 px, meno della gittata 150 px",
+        );
+    }
+
+    #[test]
+    fn spawn_plan_and_combat_values_are_checked() {
+        assert_error(
+            |c| c.stage.spawns.initial_burst = 999,
+            "spawns.initial_burst = 999 supera spawns.max_alive",
+        );
+        assert_error(
+            |c| c.stage.spawns.max_alive = 0,
+            "spawns.max_alive deve essere >= 1",
+        );
+        assert_error(|c| c.stage.spawns.waves.clear(), "serve almeno un'ondata");
+        assert_error(
+            |c| c.stage.spawns.waves[0].rate_per_min = -1.0,
+            "spawns.waves[0].rate_per_min deve essere >= 0",
+        );
+        assert_error(
+            |c| c.stage.spawns.waves[2].max_alive = 0,
+            "spawns.waves[2].max_alive deve essere >= 1",
+        );
+        assert_error(
+            |c| c.player.max_hp = 0.0,
+            "player.ron: max_hp deve essere > 0",
+        );
+        assert_error(
+            |c| c.enemies[1].contact_damage = -2.0,
+            "enemies.ron: swarm.contact_damage deve essere >= 0",
         );
     }
 

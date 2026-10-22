@@ -24,8 +24,15 @@ impl Plugin for PlayerControlsPlugin {
     }
 }
 
-fn restart_on_f5(keys: Res<ButtonInput<KeyCode>>, mut next: ResMut<NextState<AppState>>) {
-    if keys.just_pressed(KeyCode::F5) {
+/// F5 in qualunque momento della run; da sconfitti anche Invio o Spazio.
+fn restart_on_f5(
+    keys: Res<ButtonInput<KeyCode>>,
+    phase: Option<Res<State<RunPhase>>>,
+    mut next: ResMut<NextState<AppState>>,
+) {
+    let defeated = phase.is_some_and(|p| *p.get() == RunPhase::Defeated);
+    let confirm = keys.any_just_pressed([KeyCode::Enter, KeyCode::NumpadEnter, KeyCode::Space]);
+    if keys.just_pressed(KeyCode::F5) || (defeated && confirm) {
         restart_run(&mut next);
     }
 }
@@ -51,10 +58,11 @@ fn toggle_pause(
 ) {
     let Some(phase) = phase else { return };
     if keys.just_pressed(KeyCode::Escape) || keys.just_pressed(KeyCode::KeyP) {
-        next.set(match phase.get() {
-            RunPhase::Playing => RunPhase::Paused,
-            RunPhase::Paused => RunPhase::Playing,
-        });
+        match phase.get() {
+            RunPhase::Playing => next.set(RunPhase::Paused),
+            RunPhase::Paused => next.set(RunPhase::Playing),
+            RunPhase::Defeated => {} // da sconfitti si può solo ricominciare
+        }
     }
 }
 

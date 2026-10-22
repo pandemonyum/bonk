@@ -10,10 +10,7 @@ use bevy::window::PrimaryWindow;
 
 use super::sprites::SyncTransforms;
 use crate::gameplay::player::Player;
-use crate::world::ARENA_HALF_EXTENT;
-
-pub const VIRTUAL_WIDTH: u32 = 480;
-pub const VIRTUAL_HEIGHT: u32 = 270;
+use crate::world::view::{VIEW_HEIGHT as VIRTUAL_HEIGHT, VIEW_WIDTH as VIRTUAL_WIDTH, view_center};
 
 /// Il mondo (layer 0, default di tutte le entità) va sulla texture a bassa risoluzione.
 const WORLD_LAYER: RenderLayers = RenderLayers::layer(0);
@@ -74,13 +71,6 @@ pub fn canvas_offset(physical: UVec2, scale: f32) -> Vec2 {
     Vec2::new(odd(physical.x), odd(physical.y))
 }
 
-/// Centro camera ristretto in modo che la vista non esca dall'arena.
-pub fn clamp_camera(center: Vec2) -> Vec2 {
-    let half_view = Vec2::new(VIRTUAL_WIDTH as f32, VIRTUAL_HEIGHT as f32) / 2.0;
-    let limit = Vec2::splat(ARENA_HALF_EXTENT) - half_view;
-    center.clamp(-limit, limit)
-}
-
 fn spawn_cameras(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let canvas = Image::new_target_texture(
         VIRTUAL_WIDTH,
@@ -124,7 +114,7 @@ fn follow_player(
     player: Single<&Transform, (With<Player>, Without<WorldCamera>)>,
     mut camera: Single<&mut Transform, With<WorldCamera>>,
 ) {
-    let center = clamp_camera(player.translation.truncate()).round();
+    let center = view_center(player.translation.truncate()).round();
     camera.translation.x = center.x;
     camera.translation.y = center.y;
 }
@@ -186,12 +176,5 @@ mod tests {
     fn tiny_or_minimized_windows() {
         assert_eq!(canvas_scale(UVec2::new(240, 135)), Some(0.5));
         assert_eq!(canvas_scale(UVec2::new(0, 0)), None);
-    }
-
-    #[test]
-    fn camera_never_shows_outside_the_arena() {
-        assert_eq!(clamp_camera(Vec2::ZERO), Vec2::ZERO);
-        let edge = clamp_camera(Vec2::splat(5000.0));
-        assert_eq!(edge, Vec2::new(2048.0 - 240.0, 2048.0 - 135.0));
     }
 }

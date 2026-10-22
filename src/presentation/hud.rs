@@ -1,27 +1,113 @@
-//! HUD minimo: promemoria comandi, schermata di pausa, stato dei dati (caricamento ed errori).
-//! L'HUD di gioco completo arriva con la P0.7.
+//! HUD minimo: HP e tempo, promemoria comandi, pausa, sconfitta, stato dei dati (caricamento
+//! ed errori). L'HUD di gioco completo (barre, compagni, abilità, XP) arriva con la P0.7.
 
 use bevy::prelude::*;
 
 use crate::app::RunPhase;
 use crate::data::DataStatus;
+use crate::gameplay::combat::{Health, RunStats};
+use crate::gameplay::player::Player;
+use crate::gameplay::run::RunClock;
 
 const HINT: &str = "WASD/frecce muovi   Esc pausa   F5 ricomincia   F3 debug   F12 screenshot";
 
 #[derive(Component)]
 struct DataStatusPanel;
 
+#[derive(Component)]
+struct VitalsText;
+
 pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (spawn_hint, spawn_data_status_panel))
+        app.add_systems(Startup, (spawn_hint, spawn_vitals, spawn_data_status_panel))
             .add_systems(OnEnter(RunPhase::Paused), spawn_pause_banner)
+            .add_systems(OnEnter(RunPhase::Defeated), spawn_defeat_banner)
             .add_systems(
                 Update,
-                show_data_status.run_if(resource_changed::<DataStatus>),
+                (
+                    show_vitals,
+                    show_data_status.run_if(resource_changed::<DataStatus>),
+                ),
             );
     }
+}
+
+/// Riga in alto a sinistra: "HP 85/100   02:31   sconfitti 57".
+pub fn vitals_text(health: Option<&Health>, clock: &RunClock, stats: &RunStats) -> String {
+    let hp = health.map_or("-".to_string(), |h| {
+        format!("{:.0}/{:.0}", h.current.max(0.0), h.max)
+    });
+    format!("HP {hp}   {}   sconfitti {}", clock.label(), stats.defeated)
+}
+
+fn spawn_vitals(mut commands: Commands) {
+    commands.spawn((
+        Name::new("Vitals"),
+        VitalsText,
+        Text::new(""),
+        TextFont::from_font_size(14.0),
+        TextColor(Color::WHITE),
+        BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.45)),
+        Node {
+            position_type: PositionType::Absolute,
+            top: px(6),
+            left: px(8),
+            padding: UiRect::axes(px(6), px(2)),
+            ..default()
+        },
+    ));
+}
+
+fn show_vitals(
+    clock: Res<RunClock>,
+    stats: Res<RunStats>,
+    player: Query<&Health, With<Player>>,
+    mut text: Single<&mut Text, With<VitalsText>>,
+) {
+    let line = vitals_text(player.single().ok(), &clock, &stats);
+    if text.0 != line {
+        text.0 = line;
+    }
+}
+
+fn spawn_defeat_banner(mut commands: Commands, clock: Res<RunClock>, stats: Res<RunStats>) {
+    commands.spawn((
+        Name::new("DefeatBanner"),
+        Node {
+            width: percent(100),
+            height: percent(100),
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            row_gap: px(10),
+            ..default()
+        },
+        BackgroundColor(Color::srgba(0.15, 0.0, 0.0, 0.65)),
+        DespawnOnExit(RunPhase::Defeated),
+        children![
+            (
+                Text::new("SCONFITTO"),
+                TextFont::from_font_size(32.0),
+                TextColor(Color::WHITE),
+            ),
+            (
+                Text::new(format!(
+                    "Resistito {}   Nemici sconfitti {}",
+                    clock.label(),
+                    stats.defeated
+                )),
+                TextFont::from_font_size(16.0),
+                TextColor(Color::WHITE),
+            ),
+            (
+                Text::new("Invio o F5 per ricominciare"),
+                TextFont::from_font_size(14.0),
+                TextColor(Color::srgba(1.0, 1.0, 1.0, 0.8)),
+            ),
+        ],
+    ));
 }
 
 /// Testo per lo stato dei dati; `None` quando non c'è nulla da mostrare.
@@ -114,6 +200,29 @@ fn spawn_pause_banner(mut commands: Commands) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn vitals_line() {
+        let health = Health {
+            current: 84.6,
+            max: 100.0,
+        };
+        let stats = RunStats {
+            defeated: 57,
+            ..default()
+        };
+        let clock = RunClock { elapsed: 151.0 };
+        assert_eq!(
+            vitals_text(Some(&health), &clock, &stats),
+            "HP 85/100   02:31   sconfitti 57"
+        );
+        let dead = Health {
+            current: -7.0,
+            max: 100.0,
+        };
+        assert!(vitals_text(Some(&dead), &clock, &stats).starts_with("HP 0/100"));
+        assert!(vitals_text(None, &clock, &stats).starts_with("HP -"));
+    }
 
     #[test]
     fn status_messages() {

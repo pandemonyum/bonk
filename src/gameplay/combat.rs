@@ -1,13 +1,13 @@
-//! Combattimento: attacchi automatici, proiettili, danni, morte, feedback di colpo.
+//! Combattimento: attacchi automatici, proiettili, danni ai nemici, morte, feedback di colpo.
 //!
-//! Tutto in `FixedUpdate`; nessuna dipendenza dalla grafica. Le collisioni proiettile→nemico
-//! sono O(proiettili × nemici): va bene per le decine di entità della P0.2, la griglia
-//! spaziale arriva con lo spawn director (P0.3).
+//! Tutto in `FixedUpdate`; nessuna dipendenza dalla grafica. Mira e colpi interrogano la
+//! griglia spaziale (`spatial::EnemyGrid`): solo i nemici vicini, non tutti.
 
 use bevy::prelude::*;
 
 use super::enemies::Enemy;
 use super::kinematics::{Position, body};
+use super::spatial::EnemyGrid;
 use super::{SIM_HZ, SimSet};
 use crate::app::AppState;
 use crate::data::DataId;
@@ -134,7 +134,13 @@ pub struct RunStats {
     pub projectiles_fired: u32,
     /// Colpi andati a segno (un proiettile perforante può contarne più d'uno).
     pub hits: u32,
+    /// Danni subiti dal player.
+    pub damage_taken: f32,
 }
+
+/// La catena del combattimento in `SimSet::Combat` (spari → colpi → morti → scadenze).
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct CombatSteps;
 
 /// Il bersaglio più vicino a `origin` entro `range`. A parità di distanza vince il primo.
 pub fn nearest_target(
@@ -181,6 +187,7 @@ impl Plugin for CombatPlugin {
                     fade_hit_flash,
                 )
                     .chain()
+                    .in_set(CombatSteps)
                     .in_set(SimSet::Combat),
             );
     }
@@ -200,9 +207,10 @@ fn move_projectiles(time: Res<Time>, mut projectiles: Query<(&Projectile, &mut P
 fn fire_auto_attacks(
     mut commands: Commands,
     time: Res<Time>,
+    grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
     mut shooters: Query<(&Position, &mut AutoAttack)>,
-    enemies: Query<(Entity, &Position, &Hurtbox, &Health), With<Enemy>>,
+    enemies: Query<(&Position, &Hurtbox, &Health), With<Enemy>>,
 ) {
     let dt = time.delta_secs();
     for (position, mut attack) in &mut shooters {
@@ -211,10 +219,10 @@ fn fire_auto_attacks(
             continue;
         }
         let origin = position.0 + Vec2::Y * attack.muzzle_height;
-        let alive = enemies
-            .iter()
-            .filter(|(_, _, _, health)| !health.is_dead())
-            .map(|(entity, feet, hurtbox, _)| (entity, hurtbox.center(feet.0)));
+        let alive = grid.candidates(origin, attack.range).filter_map(|entry| {
+            let (feet, hurtbox, health) = enemies.get(entry.entity).ok()?;
+            (!health.is_dead()).then(|| (entry.entity, hurtbox.center(feet.0)))
+        });
         let target = nearest_target(origin, alive, attack.range);
         let (charge, fire) = attack_tick(attack.charge, attack.interval, dt, target.is_some());
         attack.charge = charge;
@@ -245,15 +253,20 @@ fn fire_auto_attacks(
 
 fn projectile_hits(
     mut commands: Commands,
+    grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
     mut projectiles: Query<(Entity, &Position, &mut Projectile)>,
-    mut enemies: Query<(Entity, &Position, &Hurtbox, &mut Health), With<Enemy>>,
+    mut enemies: Query<(&Position, &Hurtbox, &mut Health), With<Enemy>>,
 ) {
     for (projectile_entity, at, mut projectile) in &mut projectiles {
-        for (enemy, feet, hurtbox, mut health) in &mut enemies {
+        for entry in grid.candidates(at.0, projectile.radius) {
             if projectile.hits_left == 0 {
                 break;
             }
+            let enemy = entry.entity;
+            let Ok((feet, hurtbox, mut health)) = enemies.get_mut(enemy) else {
+                continue;
+            };
             if health.is_dead() || projectile.already_hit.contains(&enemy) {
                 continue;
             }

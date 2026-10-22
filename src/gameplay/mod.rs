@@ -3,10 +3,14 @@
 pub mod collision;
 pub mod combat;
 pub mod companions;
+pub mod damage;
 pub mod enemies;
 pub mod input;
 pub mod kinematics;
 pub mod player;
+pub mod run;
+pub mod spatial;
+pub mod spawning;
 
 use bevy::prelude::*;
 
@@ -23,11 +27,13 @@ pub enum SimSet {
     Player,
     /// Tutte le altre entità si spostano (inseguimento, compagni, proiettili).
     Movement,
-    /// Correzioni dopo il movimento: separazione delle orde, limiti dell'arena.
+    /// Correzioni dopo il movimento: separazione delle orde, ostacoli, limiti dell'arena.
     Resolve,
-    /// Attacchi, colpi, danni e morti, sulle posizioni già corrette.
+    /// Attacchi, colpi, danni ai nemici e morti, sulle posizioni già corrette.
     Combat,
-    /// Nuove entità della run (rimpiazzo dei nemici; spawn director in P0.3).
+    /// Danni al player dai nemici rimasti vivi dopo il combattimento.
+    Damage,
+    /// Nuovi nemici dello spawn director.
     Spawn,
 }
 
@@ -43,6 +49,7 @@ impl Plugin for GameplayPlugin {
                     SimSet::Movement,
                     SimSet::Resolve,
                     SimSet::Combat,
+                    SimSet::Damage,
                     SimSet::Spawn,
                 )
                     .chain()
@@ -50,10 +57,14 @@ impl Plugin for GameplayPlugin {
             )
             .add_plugins((
                 kinematics::KinematicsPlugin,
+                run::RunPlugin,
+                spatial::SpatialPlugin,
                 player::PlayerPlugin,
                 companions::CompanionsPlugin,
                 enemies::EnemyPlugin,
+                spawning::SpawningPlugin,
                 combat::CombatPlugin,
+                damage::DamagePlugin,
             ));
     }
 }

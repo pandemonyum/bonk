@@ -168,7 +168,10 @@ fn attach_obstacle_sprite(
         .insert(actor_sprite(image.clone()));
 }
 
-fn tint_hit_enemies(mut enemies: Query<(&mut Sprite, Has<HitFlash>), With<Enemy>>) {
+/// Tinta di colpo su nemici e player (stesso segnale: "questo ha appena preso danno").
+fn tint_hit_enemies(
+    mut enemies: Query<(&mut Sprite, Has<HitFlash>), Or<(With<Enemy>, With<Player>)>>,
+) {
     for (mut sprite, flashing) in &mut enemies {
         let wanted = if flashing { HIT_TINT } else { Color::WHITE };
         if sprite.color != wanted {

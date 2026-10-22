@@ -320,14 +320,18 @@ mod tests {
             .resource_mut::<NextState<AppState>>()
             .set(AppState::InRun);
         app.update();
-        let more = EMBEDDED
-            .stages
-            .replace("initial_enemies: 10", "initial_enemies: 20")
-            .replace("population_cap: 10", "population_cap: 20");
+        // Valore nuovo ricavato da quello attuale: il test non dipende dai numeri in stages.ron.
+        let current = GameConfig::embedded().stage.spawns.initial_burst;
+        let wanted = current + 3;
+        let more = EMBEDDED.stages.replace(
+            &format!("initial_burst: {current},"),
+            &format!("initial_burst: {wanted},"),
+        );
+        assert_ne!(more, EMBEDDED.stages, "la modifica deve cambiare il file");
         dir.write("stages.ron", more);
         reload(&mut app, "stages.ron");
         update_until(&mut app, |w| {
-            w.resource::<GameConfig>().stage.initial_enemies == 20
+            w.resource::<GameConfig>().stage.spawns.initial_burst == wanted
         });
         app.update(); // applica la transizione chiesta da update_config
         assert_eq!(

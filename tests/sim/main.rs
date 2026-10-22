@@ -6,5 +6,7 @@
 mod balance;
 mod combat;
 mod common;
+mod damage;
 mod movement;
+mod spawning;
 mod world;

@@ -1,17 +1,20 @@
 //! Simulazione completa senza finestra né GPU: ogni `app.update()` = un passo fisso da 1/60 s.
 //! Movimento, inseguimento, limiti, pausa, restart, valori dai dati. Il combattimento è in
-//! `combat.rs`, gli ostacoli in `world.rs`.
+//! `combat.rs`, gli ostacoli in `world.rs`, lo spawn director in `spawning.rs`, i danni al
+//! player in `damage.rs`. Qui le run sono "tranquille" (`quiet_app`): niente nemici nuovi
+//! dopo l'ondata iniziale e player invulnerabile, salvo dove serve il contrario.
 
 use crate::common::{
-    config, count, despawn_all, enemy_positions, mean_distance, player_position, run_steps,
+    config, count, despawn_all, enemy_positions, god, mean_distance, player_position, quiet_app,
+    quiet_config, run_steps,
 };
 use bevy::prelude::*;
 use pixel_monster_survivor::app::{AppState, RunPhase, restart_run};
-use pixel_monster_survivor::data::GameConfig;
 use pixel_monster_survivor::gameplay::combat::{Projectile, RunStats};
 use pixel_monster_survivor::gameplay::companions::Companion;
 use pixel_monster_survivor::gameplay::enemies::Enemy;
 use pixel_monster_survivor::gameplay::player::{MoveIntent, Player};
+use pixel_monster_survivor::gameplay::spawning::SpawnDirector;
 use pixel_monster_survivor::world::ArenaBounds;
 use pixel_monster_survivor::world::obstacles::Obstacle;
 use pixel_monster_survivor::{headless_app, headless_app_with};
@@ -21,13 +24,13 @@ fn run_spawns_one_player_and_initial_wave() {
     let mut app = headless_app(1);
     app.update();
     assert_eq!(player_position(&mut app), Vec2::ZERO);
-    let initial = config(&app).stage.initial_enemies as usize;
+    let initial = config(&app).stage.spawns.initial_burst as usize;
     assert_eq!(enemy_positions(&mut app).len(), initial);
 }
 
 #[test]
 fn player_moves_at_the_speed_in_the_data() {
-    let mut app = headless_app(1);
+    let mut app = quiet_app(1);
     app.update();
     let speed = config(&app).player.speed;
     app.insert_resource(MoveIntent(Vec2::X));
@@ -42,9 +45,9 @@ fn player_moves_at_the_speed_in_the_data() {
 
 #[test]
 fn changing_the_data_changes_the_game() {
-    let mut fast = GameConfig::embedded();
+    let mut fast = quiet_config();
     fast.player.speed *= 2.0;
-    fast.stage.initial_enemies = 3;
+    fast.stage.spawns.initial_burst = 3;
     let mut app = headless_app_with(1, fast.clone());
     app.update();
     assert_eq!(count::<Enemy>(&mut app), 3);
@@ -56,7 +59,7 @@ fn changing_the_data_changes_the_game() {
 
 #[test]
 fn player_never_leaves_the_arena() {
-    let mut app = headless_app(1);
+    let mut app = quiet_app(1);
     app.update();
     let arena = *app.world().resource::<ArenaBounds>();
     app.insert_resource(MoveIntent(Vec2::new(-1.0, 1.0).normalize()));
@@ -72,10 +75,10 @@ fn player_never_leaves_the_arena() {
 
 #[test]
 fn enemies_never_enter_the_player_against_a_wall() {
-    let mut app = headless_app(3);
+    let mut app = quiet_app(3);
     app.update();
     let arena = *app.world().resource::<ArenaBounds>();
-    let contact = config(&app).stage_enemy().contact_distance;
+    let contact = config(&app).first_wave_enemy().contact_distance;
     // Il player corre fino al muro est (~27 s) e ci resta: i nemici lo schiacciano contro.
     app.insert_resource(MoveIntent(Vec2::X));
     run_steps(&mut app, 60 * 45);
@@ -94,12 +97,12 @@ fn enemies_never_enter_the_player_against_a_wall() {
 
 #[test]
 fn enemies_chase_the_player_and_do_not_stack() {
-    let mut app = headless_app(7);
+    let mut app = quiet_app(7);
     app.update();
-    let enemy = config(&app).stage_enemy().clone();
-    despawn_all::<Companion>(&mut app); // solo movimento: nessun nemico sconfitto e rimpiazzato
+    let enemy = config(&app).first_wave_enemy().clone();
+    despawn_all::<Companion>(&mut app); // solo movimento: nessun nemico sconfitto
     let before = mean_distance(&enemy_positions(&mut app), Vec2::ZERO);
-    run_steps(&mut app, 60 * 8);
+    run_steps(&mut app, 60 * 10);
     let enemies = enemy_positions(&mut app);
     let after = mean_distance(&enemies, player_position(&mut app));
     assert!(after < before * 0.25, "prima {before}, dopo {after}");
@@ -122,24 +125,32 @@ fn enemies_chase_the_player_and_do_not_stack() {
     }
 }
 
+/// Con lo spawn director, i danni e il combattimento attivi: due run con lo stesso seed sono
+/// identiche passo per passo.
 #[test]
 fn same_seed_same_simulation() {
     let simulate = |seed| {
         let mut app = headless_app(seed);
         app.update();
         app.insert_resource(MoveIntent(Vec2::new(0.6, 0.8)));
-        run_steps(&mut app, 300);
+        run_steps(&mut app, 60 * 40);
         let mut enemies = enemy_positions(&mut app);
         enemies.sort_by(|a, b| a.x.total_cmp(&b.x).then(a.y.total_cmp(&b.y)));
-        (player_position(&mut app), enemies)
+        let stats = app.world().resource::<RunStats>().clone();
+        (player_position(&mut app), enemies, stats)
     };
-    assert_eq!(simulate(42), simulate(42));
-    assert_ne!(simulate(42).1, simulate(43).1);
+    let first = simulate(42);
+    assert!(
+        first.1.len() > 8,
+        "il director deve aver fatto nascere nemici"
+    );
+    assert_eq!(first, simulate(42));
+    assert_ne!(first.1, simulate(43).1);
 }
 
 #[test]
 fn pause_freezes_the_simulation() {
-    let mut app = headless_app(1);
+    let mut app = quiet_app(1);
     app.update();
     let speed = config(&app).player.speed;
     app.insert_resource(MoveIntent(Vec2::Y));
@@ -169,7 +180,8 @@ fn pause_freezes_the_simulation() {
 }
 
 /// Snapshot delle entità della run: dopo un restart deve tornare identico a una run nuova.
-fn run_census(app: &mut App) -> (usize, usize, usize, usize, usize, Vec2) {
+fn run_census(app: &mut App) -> (usize, usize, usize, usize, usize, Vec2, u32) {
+    let spawned = app.world().resource::<SpawnDirector>().spawned;
     (
         count::<Player>(app),
         count::<Companion>(app),
@@ -177,6 +189,7 @@ fn run_census(app: &mut App) -> (usize, usize, usize, usize, usize, Vec2) {
         count::<Obstacle>(app),
         count::<Projectile>(app),
         player_position(app),
+        spawned,
     )
 }
 
@@ -187,10 +200,14 @@ fn restart_rebuilds_a_clean_run_without_leftovers() {
     let expected = run_census(&mut fresh);
 
     let mut app = headless_app(4);
+    god(&mut app);
     app.update();
-    app.insert_resource(MoveIntent(Vec2::new(1.0, 0.3).normalize()));
-    run_steps(&mut app, 60 * 12);
+    // Fermo e invulnerabile: i nemici arrivano, il compagno ne sconfigge, il director ne crea.
+    run_steps(&mut app, 60 * 30);
     assert!(app.world().resource::<RunStats>().defeated > 0);
+    assert!(app.world().resource::<SpawnDirector>().spawned > expected.6);
+    app.insert_resource(MoveIntent(Vec2::new(1.0, 0.3).normalize()));
+    run_steps(&mut app, 60);
     app.insert_resource(MoveIntent(Vec2::ZERO));
 
     // Anche da in pausa: il restart deve far ripartire il tempo.
@@ -200,7 +217,7 @@ fn restart_rebuilds_a_clean_run_without_leftovers() {
     app.update();
     restart_run(&mut app.world_mut().resource_mut::<NextState<AppState>>());
     // Loading → (configurazione presente) → InRun: due frame di transizione.
-    run_steps(&mut app, 3);
+    run_steps(&mut app, 2);
     assert_eq!(
         *app.world().resource::<State<AppState>>().get(),
         AppState::InRun

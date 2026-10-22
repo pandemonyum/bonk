@@ -18,6 +18,8 @@ Uso: pixel-monster-survivor [opzioni]
   --exit-after <s>         chiude il gioco dopo s secondi (attende gli screenshot)
   --window <LxA>           dimensione iniziale della finestra (default 960x540)
   --scale-factor <f>       forza il fattore DPI (es. 1.25 per simulare uno schermo al 125%)
+  --god                    il player non subisce danni (prove e screenshot di run lunghe)
+  --time-scale <f>         velocità del tempo di gioco (es. 4 = 4 minuti di gioco al minuto)
   --watch / --no-watch     ricarica a caldo di assets/ e game-data/ (default: attiva nella
                            build di sviluppo, spenta in release; non disponibile sul web)
   -h, --help               mostra questo aiuto";
@@ -36,6 +38,10 @@ pub struct LaunchOptions {
     pub window_size: (u32, u32),
     /// `None` = DPI del sistema.
     pub scale_factor: Option<f32>,
+    /// Il player non subisce danni.
+    pub god: bool,
+    /// Moltiplicatore del tempo di gioco (1 = tempo reale).
+    pub time_scale: f32,
     /// Ricarica a caldo; `None` = default della build (vedi [`LaunchOptions::watch_files`]).
     pub watch: Option<bool>,
 }
@@ -52,6 +58,8 @@ impl Default for LaunchOptions {
             exit_after_secs: None,
             window_size: (960, 540),
             scale_factor: None,
+            god: false,
+            time_scale: 1.0,
             watch: None,
         }
     }
@@ -105,6 +113,11 @@ impl LaunchOptions {
                 "--scale-factor" => match value::<f32>(&mut args, &flag)? {
                     f if f > 0.0 && f.is_finite() => options.scale_factor = Some(f),
                     f => return Err(format!("--scale-factor deve essere > 0, trovato {f}")),
+                },
+                "--god" => options.god = true,
+                "--time-scale" => match value::<f32>(&mut args, &flag)? {
+                    f if f > 0.0 && f <= 20.0 => options.time_scale = f,
+                    f => return Err(format!("--time-scale: da 0 (escluso) a 20, trovato {f}")),
                 },
                 "--watch" => options.watch = Some(true),
                 "--no-watch" => options.watch = Some(false),
@@ -193,6 +206,16 @@ mod tests {
         assert_eq!(default.watch_files(), cfg!(debug_assertions));
         assert!(parse(&["--watch"]).unwrap().unwrap().watch_files());
         assert!(!parse(&["--no-watch"]).unwrap().unwrap().watch_files());
+    }
+
+    #[test]
+    fn parses_god_mode_and_time_scale() {
+        let o = parse(&["--god", "--time-scale", "4"]).unwrap().unwrap();
+        assert!(o.god);
+        assert_eq!(o.time_scale, 4.0);
+        assert_eq!(parse(&[]).unwrap().unwrap().time_scale, 1.0);
+        assert!(parse(&["--time-scale", "0"]).is_err());
+        assert!(parse(&["--time-scale", "50"]).is_err());
     }
 
     #[test]

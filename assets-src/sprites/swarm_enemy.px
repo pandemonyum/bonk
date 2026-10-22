@@ -1,0 +1,13 @@
+# Nemico "sciame", placeholder P0.3, 12x8: piccolo e alato. Silhouette larga e bassa con ali
+# appuntite, diversa dalla gelatina (tonda) e dal corazzato (cupola alta); viola = nemico.
+out: sprites/swarm_enemy.png
+mirror: true
+---
+k.....
+kq....
+kqk.kk
+.kqkpp
+..kpwk
+..kppp
+...kPP
+....kk

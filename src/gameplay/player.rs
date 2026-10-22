@@ -4,6 +4,8 @@ use bevy::prelude::*;
 
 use super::SimSet;
 use super::collision::{Footprint, resolve_against_obstacles};
+use super::combat::Health;
+use super::damage::Invulnerability;
 use super::kinematics::{Position, body};
 use crate::app::AppState;
 use crate::data::GameConfig;
@@ -40,12 +42,16 @@ impl Plugin for PlayerPlugin {
 }
 
 fn spawn_player(mut commands: Commands, config: Res<GameConfig>) {
+    let data = &config.player;
     commands.spawn((
         Name::new("Evocatore"),
-        Player {
-            speed: config.player.speed,
+        Player { speed: data.speed },
+        Health::full(data.max_hp),
+        Invulnerability {
+            remaining: 0.0,
+            duration: data.invulnerability_s,
         },
-        Footprint(config.player.footprint_radius),
+        Footprint(data.footprint_radius),
         body(PLAYER_SPAWN),
         DespawnOnExit(AppState::InRun),
     ));
