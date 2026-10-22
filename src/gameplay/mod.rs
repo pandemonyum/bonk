@@ -1,5 +1,6 @@
 //! Simulazione di gioco: gira in `FixedUpdate` a 60 Hz e non dipende dal rendering.
 
+pub mod attacks;
 pub mod collision;
 pub mod combat;
 pub mod companions;
@@ -15,9 +16,22 @@ pub mod spawning;
 use bevy::prelude::*;
 
 use crate::app::RunPhase;
+use combat::Health;
+use player::Player;
 
 /// Frequenza della logica di gioco.
 pub const SIM_HZ: f64 = 60.0;
+
+/// La simulazione avanza: run in corso, non in pausa, player vivo. Il passo in cui il player
+/// muore è l'ultimo anche se il fotogramma ne prevede altri (tempo accelerato): orologio,
+/// colpi e spawn si fermano lì, e le statistiche della sconfitta non dipendono dagli FPS.
+pub fn simulation_running(
+    phase: Option<Res<State<RunPhase>>>,
+    player: Query<&Health, With<Player>>,
+) -> bool {
+    phase.is_some_and(|phase| *phase.get() == RunPhase::Playing)
+        && player.iter().all(|health| !health.is_dead())
+}
 
 /// Ordine dei sistemi di simulazione dentro `FixedUpdate` (in catena, solo in `Playing`).
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
@@ -53,7 +67,7 @@ impl Plugin for GameplayPlugin {
                     SimSet::Spawn,
                 )
                     .chain()
-                    .run_if(in_state(RunPhase::Playing)),
+                    .run_if(simulation_running),
             )
             .add_plugins((
                 kinematics::KinematicsPlugin,

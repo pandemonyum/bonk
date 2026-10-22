@@ -3,7 +3,7 @@
 
 use bevy::prelude::*;
 
-use crate::app::RunPhase;
+use super::simulation_running;
 
 /// Posizione in pixel di mondo (1 unità = 1 pixel della risoluzione virtuale), y verso l'alto.
 #[derive(Component, Debug, Clone, Copy, PartialEq, Default, Deref, DerefMut)]
@@ -24,7 +24,7 @@ impl Plugin for KinematicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             FixedPreUpdate,
-            store_previous_positions.run_if(in_state(RunPhase::Playing)),
+            store_previous_positions.run_if(simulation_running),
         );
     }
 }

@@ -5,12 +5,42 @@ Stato corrente, ultimo aggiornamento: **2026-10-22**.
 | Fase | Stato |
 |---|---|
 | S0 — bootstrap e ambiente | **DONE** (gate S0 superato, prove sotto) |
-| P0 — core giocabile desktop | in corso: P0.2, P0.1, P0.0 DONE (ordine deciso dall'utente) |
+| P0 — core giocabile desktop | in corso: P0.0–P0.3 DONE |
 | P1 — web | non iniziata |
 | P2 / P3 | non iniziate |
 
-Prossimo task eseguibile: **P0.3** (spawn director, danni al player, griglia spaziale), vedi
+Prossimo task eseguibile: **P0.4** (gemme XP, livelli, draft di 3 carte, upgrade), vedi
 `docs/BACKLOG.md`.
+
+## Report tranche P0.3 (2026-10-22)
+
+```text
+Task: P0.3 - Spawn director, 3 archetipi, danni al player, griglia spaziale
+Owner: gameplay-engineer + game-designer (valori) + pixel-art-director (sprite) (sequenziale)
+Stato: DONE (commit 654770e; code review: 7 rilievi corretti nel commit successivo, dettaglio
+       in docs/QA_REPORT.md; dopo le correzioni 122 test)
+File: src/gameplay/{spawning,spatial,damage,run}.rs, src/world/view.rs (nuovi),
+       src/gameplay/{mod,enemies,combat,player,input}.rs, src/data/{schema,validate,mod,loader}.rs,
+       src/presentation/{camera,hud,sprites}.rs, src/diagnostics/overlay.rs, src/{app,lib,options}.rs,
+       game-data/*.ron (schema v2), assets-src/sprites/{swarm,armored}_enemy.px,
+       tests/sim/{spawning,damage}.rs (nuovi), tests/sim/{common,movement,combat,world,balance}.rs
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1                       OK: 115 test (84 unit + 31 integrazione), 3 sonde
+  sonda costo per passo                     0,45 / 0,49 / 0,62 ms con 50 / 200 / 500 nemici
+  sonda sopravvivenza (5 seed)              fermi 0:13, autoplay 1:06-1:16 (dopo taratura)
+  cargo run -- --autoplay --god --time-scale 4/8 --overlay   135 e 220 nemici, 59 FPS / 16,9 ms
+  sconfitta reale + Invio da tastiera        run nuova, statistiche azzerate
+Comportamento verificato:
+  - controprova: con il director che ignora la vista i test di spawn falliscono ("nato in vista")
+  - ritmo di nascita = integrale esatto delle rette di stages.ron (minuto 1 e 3)
+  - nell'angolo nord-est (camera non centrata) gli spawn continuano, tutti validi
+  - danno sommato, finestra di invulnerabilità, god mode, sconfitta che ferma orologio e mondo
+Problemi trovati e risolti: prima taratura troppo dura (fermi 0:10); tre test con valori di
+  gioco scritti a mano (contro AGENTS.md) resi dipendenti dalla configurazione; un test di
+  spawn che verificava il director con la sua stessa funzione, riscritto con controlli propri.
+Rischi noti: player poco visibile dentro orde da 200+; senza upgrade la run dura ~1 minuto.
+Prossimo task: P0.4
+```
 
 ## Report tranche "code review P0" (2026-10-22)
 

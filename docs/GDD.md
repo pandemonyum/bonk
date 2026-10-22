@@ -1,6 +1,7 @@
 # GDD — Pixel Monster Survivor (MVP)
 
-Documento pratico del game-designer. Fonte dei requisiti: handoff §1 e §7.
+Documento pratico del game-designer. Fonte dei requisiti: handoff §1 e §7. I valori vivono in
+`game-data/*.ron`; questo documento ne spiega il perché e registra le misure.
 
 ## Fantasia e loop
 
@@ -11,30 +12,53 @@ restart immediato.
 
 ## Comandi
 
-WASD/frecce: movimento 8 direzioni. Esc o P: pausa. F3: overlay debug. F12: screenshot.
-Nessun tasto d'attacco: gli attacchi sono automatici.
+WASD/frecce: movimento 8 direzioni. Esc o P: pausa. F5 (o Invio da sconfitti): ricomincia.
+F3: overlay debug. F12: screenshot. Nessun tasto d'attacco: gli attacchi sono automatici.
 
-## Valori attuali (in `game-data/*.ron` dalla P0.0; questa tabella ne spiega il perché)
+## Valori attuali
 
 | Parametro | Valore | Motivo |
 |---|---|---|
-| Velocità evocatore | 75 px/s | attraversa lo schermo (480 px) in ~6 s: lettura comoda delle orde |
-| Velocità nemico base | 40 px/s | ~53% del player: si possono distanziare, non ignorare |
-| Ondata iniziale | 10 nemici | primo risultato utile dell'handoff |
-| Anello di spawn | 170–240 px dal player | appena fuori dalla mezza altezza dello schermo (135 px) |
-| Distanza di contatto | 10 px | dove partiranno i danni da contatto (P0.3) |
-| Separazione nemici | 14 px | sprite da 16 px quasi a contatto senza sovrapporsi |
+| Evocatore | 75 px/s, 100 HP, 0,6 s di invulnerabilità dopo un colpo | attraversa lo schermo in ~6 s; il tempo di uscire dalla calca |
 | Arena | 4096×4096 px, bordo di siepe | ~55 s per attraversarla: spazio per fuggire senza perdersi |
 | Simulazione | 60 Hz fissi | riproducibile con seed |
-| HP gelatina | 30 | 3 colpi del compagno di fuoco |
-| Compagno di fuoco | 12 danni, 1 colpo ogni 1,1 s, gittata 150 px, proiettile 220 px/s per 0,85 s (~187 px) | valori dell'handoff §7; il volo oltre la gittata raggiunge chi si sposta |
+| Compagno di fuoco | 12 danni, 1 colpo ogni 1,1 s, gittata 150 px, proiettile 220 px/s per 0,85 s | valori dell'handoff §7 |
+| Compagno: scia | 18 px dietro il player, max 120 px/s | non intralcia la lettura del player |
 | Ostacoli | densità 1,2%, zona libera 128 px, 60% alberi sull'erba | ~650 per arena, mai un vicolo cieco |
-| Compagno: distanza di scia | 18 px dietro il player, max 120 px/s | non intralcia la lettura del player |
-| Popolazione nemici | 10, rimpiazzati a 290–340 px (fuori schermo) | finché non c'è lo spawn director (P0.3) |
 
-**Misurato (P0.2, `tests/balance_probe.rs`, 60 s, 5 seed):** 54–55 colpi, 100% a segno,
-18 nemici sconfitti al minuto da fermo, 14–16 in movimento (alcuni nemici restano fuori
-gittata alle spalle). La mira predittiva non serve con queste velocità.
+**Nemici (`enemies.ron`)**
+
+| Archetipo | HP | Velocità | Danno a contatto | Ruolo |
+|---|---|---|---|---|
+| Gelatina | 30 (3 colpi) | 40 px/s | 3 | base, arriva in gruppo |
+| Sciame | 12 (1 colpo) | 68 px/s | 2 | quasi veloce come il player: non si semina, va abbattuto |
+| Corazzato | 120 (10 colpi) | 28 px/s | 6 | lento, blocca la strada mentre gli altri arrivano |
+
+**Danni al player:** a ogni finestra di invulnerabilità si somma il danno di tutti i nemici a
+contatto. Essere circondati costa caro, uscirne in tempo no: muoversi è la difesa principale.
+
+**Ondate (`stages.ron`, ritmo = base + crescita × minuti dall'inizio dell'ondata)**
+
+| Ondata | Da | Base/min | Crescita/min² | Max vivi |
+|---|---|---|---|---|
+| Gelatina | 0:00 | 24 | 12 | 90 |
+| Sciame | 1:00 | 20 | 15 | 110 |
+| Corazzato | 2:30 | 4 | 2 | 25 |
+
+5 gelatine all'avvio; al massimo 220 nemici insieme (obiettivo prestazioni P0); nascita
+nell'anello 290–360 px dal player, sempre fuori vista.
+
+## Misure
+
+- **P0.2, colpi (`tests/sim/balance.rs`, 60 s, 5 seed):** 100% a segno, 14–18 nemici sconfitti
+  al minuto con un compagno. La mira predittiva non serve.
+- **P0.3, sopravvivenza senza upgrade (5 seed):** prima taratura (danni 5/3/10, invulnerabilità
+  0,5 s, 8 nemici iniziali) troppo dura: fermi 0:10, autoplay 0:28–0:43. Dopo la taratura
+  attuale: **fermi 0:13**, **autoplay 1:06–1:16**. L'autoplay è un movimento cieco (curva di
+  Lissajous): un giocatore che schiva dura di più. La run completa di 10 minuti richiede gli
+  upgrade della P0.4.
+- **P0.3, carico:** 220 nemici a 59 FPS / 16,9 ms nel gioco (build dev, vsync); simulazione
+  0,45–0,62 ms per passo con 50–500 nemici.
 
 ## Contenuti MVP (bozza, da bilanciare in P0)
 
@@ -46,17 +70,17 @@ gittata alle spalle). La mira predittiva non serve con queste velocità.
 | Gocci | acqua | onda in area attorno al player | danno, cadenza, raggio, rallentamento |
 | Frond | natura | foglie orbitanti | danno, n. foglie, raggio orbita, velocità |
 
-**Nemici:** gelatina (base, lenta, in gruppo), sciame veloce (poca vita), corazzato (lento, molta
-vita); 1 élite (versione grande con telegraph di carica); 1 boss al minuto 10 con attacco
-telegrafato in rosso.
+**Nemici ancora da fare:** 1 élite (versione grande con telegraph di carica); 1 boss al minuto
+10 con attacco telegrafato in rosso (P0.6).
 
-**Upgrade (~10, tutti con effetto runtime testabile):** danno +15%, cadenza −10%, proiettili +1,
-area +20%, raggio raccolta +25%, velocità +10%, HP massimi +20, rigenerazione, perforazione +1,
-nuovo slot compagno. Ogni upgrade: ID, rarità, prerequisiti, max stack, formula, testo UI.
+**Upgrade (~10, tutti con effetto runtime testabile, P0.4):** danno +15%, cadenza −10%,
+proiettili +1, area +20%, raggio raccolta +25%, velocità +10%, HP massimi +20, rigenerazione,
+perforazione +1, nuovo slot compagno. Ogni upgrade: ID, rarità, prerequisiti, max stack,
+formula, testo UI.
 
-## Obiettivi di bilanciamento (test case da scrivere in P0.4–P0.7)
+## Obiettivi di bilanciamento
 
-- Senza upgrade, il giocatore che resta fermo muore entro 90 s (non invincibile).
-- Il primo level-up arriva entro 30–45 s (progressione percepibile).
+- Senza upgrade, il giocatore che resta fermo muore entro 90 s (non invincibile). **Oggi: 13 s.**
+- Il primo level-up arriva entro 30–45 s (progressione percepibile). Da misurare in P0.4.
 - A metà run almeno due build elementali diverse sono praticabili (scelte significative).
 - Il boss è sconfiggibile da una build media in 60–120 s.

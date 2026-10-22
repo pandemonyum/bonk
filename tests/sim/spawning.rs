@@ -6,6 +6,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::common::{config, god, player_position, quiet_config};
 use bevy::prelude::*;
+use pixel_monster_survivor::data::schema::WaveData;
 use pixel_monster_survivor::data::{DataId, GameConfig};
 use pixel_monster_survivor::diagnostics::automation::autoplay_direction;
 use pixel_monster_survivor::gameplay::collision::Footprint;
@@ -171,6 +172,39 @@ fn the_spawn_rate_follows_the_stage_curves() {
         );
     }
     assert!(third_minute > first_minute * 2, "il ritmo deve crescere");
+}
+
+/// Rilievo del code review P0.3: con due ondate dello stesso archetipo la seconda non vedeva i
+/// nati della prima nello stesso passo e superava il limite.
+#[test]
+fn two_waves_of_the_same_enemy_share_its_cap() {
+    let mut config = GameConfig::embedded();
+    let enemy = config.stage.spawns.waves[0].enemy.clone();
+    let wave = |max_alive| WaveData {
+        enemy: enemy.clone(),
+        start_s: 0.0,
+        rate_per_min: 6000.0, // ~1,7 nati per passo e per ondata
+        rate_growth_per_min: 0.0,
+        max_alive,
+    };
+    config.stage.spawns.waves = vec![wave(5), wave(5)];
+    config.stage.spawns.initial_burst = 0;
+    config.stage.spawns.max_alive = 1000;
+    let mut app = headless_app_with(15, config);
+    god(&mut app);
+    let alive = |app: &mut App| {
+        let world = app.world_mut();
+        world
+            .query_filtered::<&DataId, With<Enemy>>()
+            .iter(world)
+            .filter(|id| id.0 == enemy)
+            .count()
+    };
+    for _ in 0..120 {
+        app.update();
+        assert!(alive(&mut app) <= 5, "{} vivi", alive(&mut app));
+    }
+    assert_eq!(alive(&mut app), 5);
 }
 
 #[test]

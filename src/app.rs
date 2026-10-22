@@ -49,10 +49,13 @@ impl Plugin for SimulationPlugin {
                 Update,
                 start_run_when_ready.run_if(in_state(AppState::Loading)),
             )
-            // In pausa si ferma il tempo virtuale: il passo fisso non avanza e
-            // l'interpolazione del rendering resta ferma.
+            // In pausa e da sconfitti si ferma il tempo virtuale: il passo fisso non avanza e
+            // l'interpolazione del rendering resta ferma (senza, gli sprite tremerebbero di un
+            // pixel tra le ultime due posizioni dietro la schermata).
             .add_systems(OnEnter(RunPhase::Paused), pause_time)
-            .add_systems(OnExit(RunPhase::Paused), resume_time);
+            .add_systems(OnExit(RunPhase::Paused), resume_time)
+            .add_systems(OnEnter(RunPhase::Defeated), pause_time)
+            .add_systems(OnExit(RunPhase::Defeated), resume_time);
     }
 }
 

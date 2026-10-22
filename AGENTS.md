@@ -27,12 +27,15 @@ compagni mostriciattolo **originali** in pixel art. Rust + Bevy 0.20, nativo Win
 | Rigenera placeholder pixel art | `python scripts/build-assets.py` | idem |
 | Valida asset | `python scripts/validate-assets.py` | idem |
 | Prova automatica con screenshot | `cargo run -- --autoplay --screenshot screenshots/s.png --screenshot-after 4 --exit-after 5` | idem |
+| Minuti di gioco in pochi secondi | `cargo run -- --autoplay --god --time-scale 4 --overlay` | idem |
+| Sonde di bilanciamento e prestazioni | `cargo test --test sim balance -- --ignored --nocapture --test-threads 1` | idem |
 
 Opzioni CLI del gioco: `--seed <u64>`, `--autoplay`, `--overlay`, `--screenshot <file>`,
-`--screenshot-after <s>`, `--exit-after <s>`, `--window <LxA>`, `--scale-factor <f>`
-(`cargo run -- --help`). Tasti: WASD/frecce movimento, Esc/P pausa, F3 overlay debug,
-F12 screenshot in `screenshots/`. Verifica nearest-neighbor su uno screenshot:
-`python scripts/check-pixel-grid.py <png>` (finestra con bande nere, senza overlay).
+`--screenshot-after <s>`, `--screenshot-burst <n>`, `--exit-after <s>`, `--window <LxA>`,
+`--scale-factor <f>`, `--god`, `--time-scale <f>`, `--watch`/`--no-watch`
+(`cargo run -- --help`). Tasti: WASD/frecce movimento, Esc/P pausa, F5 ricomincia (Invio da
+sconfitti), F3 overlay debug, F12 screenshot in `screenshots/`. Verifica nearest-neighbor su
+uno screenshot: `python scripts/check-pixel-grid.py <png>` (finestra con bande nere, senza overlay).
 
 ## Ownership dei file (nessuna sovrapposizione)
 

@@ -21,7 +21,7 @@ seguenti (handoff §10: il companion che attacca è il primo elemento ludico dif
 | ~~P0.2~~ **DONE** | Primo companion (fuoco) che segue il player e attacca in automatico il nemico più vicino nel raggio con un proiettile mirato; HP dei nemici, danno, morte una sola volta, hit feedback; popolazione mantenuta a 10 nemici finché non arriva lo spawn director | gameplay-engineer + pixel-art-director (sprite) | test: targeting nemico più vicino, cooldown, danno, una sola morte per nemico, nessun input richiesto, popolazione mai oltre 10; screenshot con proiettili |
 | ~~P0.1~~ **DONE** | Ostacoli procedurali (rocce/alberi) con collisione semplice per player e nemici; zona centrale libera | world-generation + gameplay-engineer | test: centro libero, flood fill raggiunge i bordi, player non attraversa ostacoli; screenshot |
 | ~~P0.0~~ **DONE** | Loader `game-data/*.ron` via AssetServer (funziona anche su WASM) + validazione all'avvio con messaggio d'errore; spostare in RON i valori oggi costanti (velocità, raggi, n. nemici, attacco) | gameplay-engineer | test di parsing e di validazione (dato errato → errore leggibile); `cargo run` (ricarica a caldo) applica i valori salvati |
-| P0.3 | Spawn director: 3 archetipi nemici da dati, curva per minuto, cap per archetipo, spawn fuori camera e mai sul player; HP, danno al player, morte, hit feedback, despawn; griglia spaziale al posto della separazione O(n²) | gameplay-engineer + game-designer (valori) | test: nessuno spawn dentro la camera/il player, cap rispettato, restart non accumula entità; overlay con conteggi |
+| ~~P0.3~~ **DONE** | Spawn director: 3 archetipi nemici da dati, curva per minuto, cap per archetipo, spawn fuori camera e mai sul player; HP, danno al player, morte, hit feedback, despawn; griglia spaziale al posto della separazione O(n²) | gameplay-engineer + game-designer (valori) | test: nessuno spawn dentro la camera/il player, cap rispettato, restart non accumula entità; overlay con conteggi |
 | P0.4 | Gemme XP (drop una sola volta), raccolta per prossimità, livelli, draft di 3 carte con pausa, effetti applicati a caldo | gameplay-engineer + game-designer | test: +1 proiettile cambia i proiettili visibili, +danno cambia il danno effettivo; screenshot del draft |
 | P0.5 | Secondo e terzo companion (onda in area, foglie orbitanti), slot da dati | gameplay-engineer | test per ciascun pattern di attacco; screenshot |
 | P0.6 | Timer 10 min, scala difficoltà, élite, boss con telegraph, stati MainMenu/GameOver/Victory, restart | gameplay-engineer | test headless: run completa a seed fisso con autoplay arriva a fine senza panic; restart pulisce lo stato |
@@ -50,7 +50,11 @@ opzioni, browser, release candidate).
 - Radure di terra con bordi a gradini: servono tile di transizione erba/terra (P2, pixel-art-director).
 - Testo HUD/overlay con FiraMono a risoluzione nativa: sostituire con font pixel OFL o
   bitmap originale e decidere se l'HUD va nel canvas 480×270 (P0.7/P2).
-- Separazione nemici O(n²): sostituire con griglia spaziale in P0.3 (prima dei 200 nemici).
+- ~~Separazione nemici O(n²)~~: sostituita dalla griglia spaziale in P0.3.
+- Il player si perde dentro l'orda a 200+ nemici: contorno/ombra più marcati o un indicatore
+  sotto i piedi (P2, pixel-art-director); HP visibili anche vicino al player (P0.7).
+- Bilanciamento: sopravvivenza senza upgrade 1:06–1:16 in autoplay; riverificare con gli
+  upgrade (P0.4) che una run di 10 minuti sia possibile ma non scontata.
 - Replay identici tra nativo e WASM: valutare la feature `libm` di Bevy/glam per `sin`/`cos`
   deterministici e misurarne il costo (serve solo se si vogliono seed condivisi tra piattaforme).
 - Valutare `rust-lld` come linker su Windows per accorciare i link incrementali (misurare prima/dopo).

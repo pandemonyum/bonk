@@ -11,7 +11,7 @@ Moodboard `references/pixel_art_concept.png`: non presente al 2026-10-22.
 | Risoluzione virtuale | 480×270 | upscaling intero nearest, letterbox |
 | Tile | 16×16 | tileset a colonna (array texture) |
 | Evocatore (player) | 16×21 | ancora in basso al centro |
-| Nemici comuni | 16×~13–16 | silhouette bassa e larga (gelatina) |
+| Nemici comuni | gelatina 16×13, sciame 12×8, corazzato 20×15 | la taglia dice il ruolo: piccolo = veloce e fragile, grande = lento e resistente; silhouette diverse (tonda, alata, a cupola) |
 | Compagni | 16×17 (fuoco) | silhouette verticale/appuntita: mai la stessa forma dei nemici |
 | Proiettili | 6×6 | ancora al centro, nucleo chiaro, disegnati sopra gli attori |
 | Roccia | 16×10 | luce in alto a sinistra; impronta r=7 |
@@ -39,6 +39,11 @@ L'ambiente resta su verdi/terra a contrasto medio; gli attori hanno contorno e c
 saturi per staccarsi dal fondo. Il fuoco dei compagni è arancio, distinto dal rosso che resta
 riservato a pericoli e danni. Feedback di colpo: il nemico viene moltiplicato per
 (1, 0.45, 0.45) per 0,12 s.
+
+Osservato in P0.3 con 220 nemici (`docs/evidence/p03-220-nemici-59fps.png`): l'orda si
+stratifica da sola, sciami al centro e corazzati sul bordo, e le tre sagome restano
+distinguibili anche in massa. Da migliorare in P2: il player si perde dentro l'orda (serve un
+contorno o un'ombra più marcata) e le gelatine ammassate formano una macchia uniforme.
 
 Lezione P0.2: la prima versione del compagno aveva la stessa sagoma della gelatina e si
 distingueva solo per il colore; ridisegnato a goccia di fiamma. Regola: alleati e nemici

@@ -6,9 +6,8 @@ use crate::common::{
     companion_position, config, count, despawn_all, player_position, quiet_app, run_steps,
 };
 use bevy::prelude::*;
-use pixel_monster_survivor::gameplay::combat::{
-    AutoAttack, Health, HitFlash, Hurtbox, Projectile, RunStats,
-};
+use pixel_monster_survivor::gameplay::attacks::AutoAttack;
+use pixel_monster_survivor::gameplay::combat::{Health, HitFlash, Hurtbox, Projectile, RunStats};
 use pixel_monster_survivor::gameplay::companions::Companion;
 use pixel_monster_survivor::gameplay::enemies::Enemy;
 use pixel_monster_survivor::gameplay::kinematics::{Position, PreviousPosition, body};

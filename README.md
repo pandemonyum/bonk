@@ -3,11 +3,12 @@
 Survivor roguelite top-down 2D in pixel art: un evocatore e i suoi compagni mostriciattolo
 originali contro orde di creature. Rust + Bevy 0.20, desktop Windows ora, web (WASM) dalla P1.
 
-**Stato:** Phase S0 completata. Arena procedurale, movimento 8 direzioni, camera
-pixel-perfect, 10 nemici che inseguono. Prossimo passo: P0 (compagni, attacchi, XP, boss).
-Dettagli in [docs/PROGRESS.md](docs/PROGRESS.md).
+**Stato:** P0 in corso (P0.0–P0.3 fatte). Arena procedurale con ostacoli, compagno di fuoco
+che attacca da solo, tre tipi di nemici guidati da uno spawn director (fino a 220 insieme),
+danni al player e sconfitta, tutti i valori in `game-data/`. Mancano XP e upgrade (P0.4),
+altri compagni, boss e fine run a 10 minuti. Dettagli in [docs/PROGRESS.md](docs/PROGRESS.md).
 
-![S0](docs/evidence/s0-autoplay-960x540.png)
+![P0.3](docs/evidence/p03-orda-135-nemici.png)
 
 ## Requisiti (Windows)
 
@@ -49,7 +50,7 @@ Se un valore non è valido il gioco mostra l'elenco degli errori con file e camp
 |---|---|
 | WASD / frecce | movimento |
 | Esc / P | pausa |
-| F5 | ricomincia la run |
+| F5 | ricomincia la run (da sconfitti anche Invio) |
 | F3 | overlay debug (FPS, entità, posizione, seed) |
 | F12 | screenshot in `screenshots/` |
 

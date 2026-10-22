@@ -4,7 +4,7 @@
 use bevy::prelude::*;
 
 use super::SimSet;
-use super::combat::AutoAttack;
+use super::attacks::AutoAttack;
 use super::kinematics::{Position, body};
 use super::player::{MoveIntent, PLAYER_SPAWN, Player};
 use crate::app::AppState;

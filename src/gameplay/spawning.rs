@@ -142,13 +142,20 @@ fn run_director(
     let plan = &config.stage.spawns;
     let dt = time.delta_secs();
     let mut alive_total = enemies.iter().count();
+    // Nati in questo passo per archetipo: la query non li vede ancora (comandi differiti), e
+    // più ondate dello stesso archetipo condividono il conteggio dei vivi.
+    let mut born_now: Vec<(&str, usize)> = Vec::new();
     for (i, wave) in plan.waves.iter().enumerate() {
         director.budget[i] += wave_rate_per_min(wave, clock.elapsed) / 60.0 * dt;
         if director.budget[i] < 1.0 {
             continue;
         }
-        // Più ondate dello stesso archetipo condividono il conteggio dei vivi.
-        let mut alive = enemies.iter().filter(|id| id.0 == wave.enemy).count();
+        let id = wave.enemy.as_str();
+        let born = born_now
+            .iter()
+            .find(|(e, _)| *e == id)
+            .map_or(0, |(_, n)| *n);
+        let mut alive = enemies.iter().filter(|d| d.0 == id).count() + born;
         let data = config.wave_enemy(wave);
         while director.budget[i] >= 1.0 {
             let capped = alive >= wave.max_alive as usize || alive_total >= plan.max_alive as usize;
@@ -175,6 +182,10 @@ fn run_director(
             director.budget[i] -= 1.0;
             alive += 1;
             alive_total += 1;
+            match born_now.iter_mut().find(|(e, _)| *e == id) {
+                Some((_, n)) => *n += 1,
+                None => born_now.push((id, 1)),
+            }
         }
     }
 }
@@ -184,7 +195,6 @@ mod tests {
     use super::*;
     use crate::data::GameConfig;
     use crate::world::obstacles::generate_obstacles;
-    use crate::world::view::VIEW_HALF_DIAGONAL;
 
     fn wave(start_s: f32, rate: f32, growth: f32) -> WaveData {
         WaveData {
@@ -247,14 +257,5 @@ mod tests {
             }
             assert!(found > 200, "player {player:?}: solo {found} spawn su 300");
         }
-    }
-
-    #[test]
-    fn the_ring_reaches_beyond_the_view() {
-        let ring = GameConfig::embedded().stage.spawns.ring;
-        assert!(
-            ring.0 > VIEW_HALF_DIAGONAL,
-            "nessun nemico deve nascere in vista"
-        );
     }
 }

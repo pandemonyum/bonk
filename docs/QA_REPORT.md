@@ -1,5 +1,42 @@
 # QA REPORT
 
+## 2026-10-22 — P0.3 (spawn director, danni al player, griglia spaziale)
+
+### Automatici
+
+| Controllo | Esito |
+|---|---|
+| `./scripts/check.ps1` | OK: 122 test (85 unitari + 34 integrazione) + 3 sonde ignorate, 9 PNG, 6 sprite citati dai dati |
+| Sonda costo per passo (build dev, headless) | 0,45 ms (50 nemici) / 0,49 ms (200) / 0,62 ms (500) |
+| Sonda sopravvivenza senza upgrade (5 seed) | fermi 0:13; autoplay 1:06–1:16 |
+
+Controprove: un director che ignora la vista fa fallire i test di spawn ("nato in vista");
+la vecchia logica della sconfitta fa fallire `a_pause_on_the_killing_frame_does_not_cancel_the_defeat`
+e `no_simulation_step_runs_after_the_killing_one`.
+
+### Prove sul gioco reale
+
+| Prova | Osservato | Prova |
+|---|---|---|
+| 3 min di gioco a ×4 (`--god`) | 135 nemici dei 3 archetipi, 59 FPS / 16,8 ms | `docs/evidence/p03-orda-135-nemici.png` |
+| ~7 min di gioco a ×8 (`--god`) | 220 nemici (tetto), 59 FPS / 16,9 ms, 8 passi di simulazione per fotogramma | `docs/evidence/p03-220-nemici-59fps.png` |
+| Run vera fino alla sconfitta | 01:06, schermata con tempo e sconfitti, mondo fermo | `docs/evidence/p03-sconfitta.png` |
+| Invio da tastiera reale da sconfitti | run nuova, statistiche azzerate | `docs/evidence/p03-riavvio-con-invio.png` |
+
+### Code review P0.3
+
+Verdetto CHANGES REQUESTED, 7 rilievi, tutti corretti:
+
+| # | Rilievo | Correzione | Verifica |
+|---|---|---|---|
+| 1 | Una pausa (Esc o perdita di focus) nel fotogramma del colpo mortale cancellava la sconfitta: player a 0 HP immortale; col tempo accelerato la simulazione continuava dopo la morte | `simulation_running` (Playing e player vivo) per tutti i sistemi del passo fisso; `declare_defeat` in `PostUpdate` dagli HP | 2 test nuovi, falliscono con la vecchia logica |
+| 2 | Da sconfitti gli sprite tremavano di 1 px (interpolazione con tempo che scorre) | tempo virtuale fermo anche in `Defeated` | asserzione nel test di sconfitta e di restart |
+| 3 | Due ondate dello stesso nemico superavano il limite nello stesso passo | conteggio dei nati nel passo condiviso tra ondate | test `two_waves_of_the_same_enemy_share_its_cap` |
+| 4 | L'ondata iniziale ignorava limite e inizio della prima ondata | validazione: `initial_burst` ≤ `waves[0].max_alive` e `waves[0].start_s` = 0 | test di validazione |
+| 5 | Test legati ai valori dei dati (id, indici, HP fissi) | id, indici e numeri ricavati da `GameConfig`; nemici dei test di danno creati dal test | gate verde con gli stessi dati; non dipendono più dai numeri |
+| 6 | Anello di spawn tutto fuori dall'arena accettato (run vuota senza errori) | validazione dell'anello rispetto al raggio utile dell'arena | test di validazione |
+| 7 | `combat.rs` oltre 400 righe | attacchi spostati in `gameplay/attacks.rs`; test di validazione in `data/validate/tests.rs` | tutti i file sotto 400 righe |
+
 ## 2026-10-22 — P0.2, P0.1, P0.0 e riduzione dello spazio su disco
 
 Stessa macchina della S0. Build `dev` con il nuovo profilo (dipendenze senza simboli di debug).

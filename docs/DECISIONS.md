@@ -137,6 +137,31 @@ con soli numeri di riga (`[profile.dev]`), un solo eseguibile per i test d'integ
 toolchain `stable` duplicata rimossa (default rustup = 1.99.1), `scripts/clean-stale.*` per
 ripulire le copie vecchie del nostro crate. Costo: backtrace senza dettagli dentro Bevy.
 
+## D-028 Spawn director a budget con rette per ondata
+Ogni ondata ha ritmo = base + crescita × minuti (due numeri leggibili dal designer) e un budget
+che matura a ogni passo; il budget non si accumula oltre 1 quando si è al limite o manca un punto
+valido, così non partono raffiche. Punti scartati se in vista (con 32 px di margine), fuori
+dall'arena o in un ostacolo: si usa la stessa geometria della camera (`world::view`), quindi
+anche negli angoli, dove la camera non è centrata sul player, nessun nemico compare a schermo.
+Due ondate con lo stesso archetipo condividono il conteggio dei vivi.
+
+## D-029 Danno da contatto sommato per finestra di invulnerabilità
+Alternative valutate: solo il nemico più forte (la folla non conta), somma con rendimenti
+decrescenti (più regole da spiegare). Scelta: somma semplice, con valori bassi (3/2/6) e 0,6 s
+di finestra, tarati con la sonda di sopravvivenza. Stare fermi in mezzo all'orda è letale, come
+nel genere; muoversi è la difesa. La sconfitta è `RunPhase::Defeated` (minima); risultati
+completi e vittoria arrivano con la P0.6. Dopo il code review P0.3 la sconfitta si decide
+dagli HP in `PostUpdate` (vince su una pausa chiesta nello stesso fotogramma) e tutto il passo
+fisso gira solo con il player vivo (`simulation_running`): il passo della morte è l'ultimo
+anche col tempo accelerato.
+
+## D-030 Griglia spaziale ordinata per cella, ricostruita due volte per passo
+Ordinamento stabile per indice di cella + indice d'inizio per cella: niente hash, allocazioni
+riutilizzate, celle di una riga contigue, ordine deterministico. Ricostruita prima della
+separazione e prima del combattimento (posizioni aggiornate per mira e colpi): O(n) ciascuna,
+misurato 0,45–0,62 ms per passo completo con 50–500 nemici in build dev. Separazione in stile
+Jacobi (tutte le spinte calcolate sulla stessa fotografia) per non dipendere dall'ordine di visita.
+
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale
 come seconda build separata dopo la P1.

@@ -3,7 +3,8 @@
 
 use bevy::prelude::*;
 
-use crate::app::{AppState, RunPhase};
+use super::simulation_running;
+use crate::app::AppState;
 
 /// Secondi di gioco trascorsi nella run (tempo simulato, non reale).
 #[derive(Resource, Debug, Clone, Copy, PartialEq, Default)]
@@ -25,10 +26,7 @@ impl Plugin for RunPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<RunClock>()
             .add_systems(OnEnter(AppState::InRun), reset_clock)
-            .add_systems(
-                FixedPreUpdate,
-                tick_clock.run_if(in_state(RunPhase::Playing)),
-            );
+            .add_systems(FixedPreUpdate, tick_clock.run_if(simulation_running));
     }
 }
 

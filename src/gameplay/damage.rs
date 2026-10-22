@@ -1,6 +1,7 @@
 //! Danni al player: i nemici a contatto infliggono il loro `contact_damage`, sommato, una volta
 //! per finestra di invulnerabilità (`player.ron: invulnerability_s`). Essere circondati costa
-//! caro; uscirne in tempo no. A 0 HP la run passa a `RunPhase::Defeated`.
+//! caro; uscirne in tempo no. A 0 HP la simulazione si ferma subito (`simulation_running`) e
+//! la run passa a `RunPhase::Defeated`.
 
 use bevy::prelude::*;
 
@@ -41,7 +42,24 @@ pub struct DamagePlugin;
 impl Plugin for DamagePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<GodMode>()
-            .add_systems(FixedUpdate, hurt_player.in_set(SimSet::Damage));
+            .add_systems(FixedUpdate, hurt_player.in_set(SimSet::Damage))
+            .add_systems(PostUpdate, declare_defeat);
+    }
+}
+
+/// La sconfitta si decide dagli HP, non da una richiesta fatta al momento del colpo: gira in
+/// `PostUpdate`, dopo l'input, quindi vince su una pausa chiesta nello stesso fotogramma (Esc
+/// o perdita di focus) e viene ripetuta finché la fase non è davvero `Defeated`.
+fn declare_defeat(
+    phase: Option<Res<State<RunPhase>>>,
+    next: Option<ResMut<NextState<RunPhase>>>,
+    player: Query<&Health, With<Player>>,
+) {
+    let (Some(phase), Some(mut next)) = (phase, next) else {
+        return;
+    };
+    if *phase.get() != RunPhase::Defeated && player.iter().any(Health::is_dead) {
+        next.set(RunPhase::Defeated);
     }
 }
 
@@ -53,7 +71,6 @@ fn hurt_player(
     mut stats: ResMut<RunStats>,
     enemies: Query<(&Enemy, &Health), Without<Player>>,
     player: Single<(Entity, &Position, &mut Health, &mut Invulnerability), With<Player>>,
-    mut next: ResMut<NextState<RunPhase>>,
 ) {
     let (entity, position, mut health, mut invulnerability) = player.into_inner();
     invulnerability.remaining = (invulnerability.remaining - time.delta_secs()).max(0.0);
@@ -76,9 +93,6 @@ fn hurt_player(
     stats.damage_taken += damage;
     invulnerability.remaining = invulnerability.duration;
     commands.entity(entity).try_insert(HitFlash(HIT_FLASH_SECS));
-    if health.is_dead() {
-        next.set(RunPhase::Defeated);
-    }
 }
 
 #[cfg(test)]

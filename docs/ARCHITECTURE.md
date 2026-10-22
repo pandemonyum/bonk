@@ -21,11 +21,17 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `rng` | PCG32, SplitMix64, `hash2` per coordinate | no |
 | `gameplay::kinematics` | `Position`, `PreviousPosition`, `body()` | no |
 | `gameplay::player` | `Player`, `MoveIntent`, movimento 8 direzioni dentro l'arena | no |
-| `gameplay::enemies` | ondata iniziale, inseguimento, separazione, respinta dal player, rimpiazzo (`SpawnRng` unico per la run) | no |
+| `gameplay::enemies` | `Enemy`, `enemy_bundle`, inseguimento, separazione (griglia, stile Jacobi), ostacoli, limiti, respinta dal player | no |
+| `gameplay::spawning` | spawn director: budget per ondata, limiti per archetipo e totali, punti validi fuori vista | no |
+| `gameplay::spatial` | `EnemyGrid`: griglia 32 px ordinata per cella, ricostruita prima di `Resolve` e di `Combat` | no |
+| `gameplay::damage` | danno da contatto al player, `Invulnerability`, `GodMode`, passaggio a `Defeated` | no |
+| `gameplay::run` | `RunClock` (tempo di gioco, fermo in pausa e da sconfitti) | no |
 | `gameplay::companions` | `Companion`, scia dietro al player, attacco del compagno di fuoco | no |
-| `gameplay::combat` | `Health`, `Hurtbox`, `AutoAttack`, `Projectile`, `HitFlash`, `RunStats`; targeting, colpi, morti | no |
+| `gameplay::attacks` | `AutoAttack`, carica e cadenza (`attack_tick`), scelta del bersaglio, raffiche | no |
+| `gameplay::combat` | `Health`, `Hurtbox`, `Projectile`, `HitFlash`, `RunStats`; volo dei proiettili, colpi, morti | no |
 | `gameplay::input` | tastiera → `MoveIntent`, Esc/P pausa, pausa su perdita focus | input (client) |
-| `world` | costanti arena, `ArenaBounds` (`min`/`max` sui piedi); `generation` (seed → tile, pura); `tiles` (indici); spawn degli ostacoli della run | no |
+| `world` | costanti arena, `ArenaBounds` (`min`/`max` sui piedi), `inside_arena` (limite proiettili); `generation` (seed → tile, pura); `tiles` (indici); spawn degli ostacoli (`WorldSetup`) | no |
+| `world::view` | geometria della vista 480×270 e centro camera, condivisa da camera e spawn director | no |
 | `world::obstacles` | rocce/alberi dal seed (pura), `ObstacleField` con griglia spaziale 32 px, entità `Obstacle` | no |
 | `gameplay::collision` | `Footprint`, `push_outside`, respinta dei corpi dagli ostacoli | no |
 | `world::render` | `TilemapChunk` per chunk | sì |
@@ -41,10 +47,11 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 3. `FixedUpdate`, in catena e solo in `RunPhase::Playing`: `SimSet::Player` (movimento del
    player con respinta dagli ostacoli e limiti) → `SimSet::Movement` (inseguimento, scia dei
    compagni, volo dei proiettili) → `SimSet::Resolve` (separazione, ostacoli, limiti arena,
-   respinta dal player per ultima) →
-   `SimSet::Combat` (spari, colpi, morti, scadenza proiettili, fine tinta) → `SimSet::Spawn`
-   (rimpiazzo nemici). Una morte è contata una sola volta: il despawn è applicato prima del
-   passo successivo e i colpi ignorano chi è a 0 HP.
+   respinta dal player per ultima; la griglia viene ricostruita all'inizio) →
+   `SimSet::Combat` (griglia ricostruita, spari, colpi, morti, scadenza proiettili, fine tinta) →
+   `SimSet::Damage` (danno da contatto al player dai nemici vivi) → `SimSet::Spawn` (spawn
+   director). Una morte è contata una sola volta: il despawn è applicato prima del passo
+   successivo e i colpi ignorano chi è a 0 HP. `RunPhase::Defeated` ferma tutto come la pausa.
 4. `PostUpdate` (prima di `TransformSystems::Propagate`): `SyncTransforms` scrive i
    `Transform` interpolati e arrotondati; la camera mondo segue il player a pixel interi;
    il canvas si adatta alla finestra.

@@ -4,6 +4,7 @@ use std::collections::HashSet;
 
 use super::GameConfig;
 use crate::gameplay::SIM_HZ;
+use crate::world::ArenaBounds;
 use crate::world::obstacles::{MIN_FOOTPRINT_RADIUS, MIN_OBSTACLE_GAP};
 use crate::world::view::VIEW_HALF_DIAGONAL;
 
@@ -200,8 +201,44 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
             plan.max_alive
         ));
     }
-    if plan.waves.is_empty() {
-        r.0.push(format!("{}: serve almeno un'ondata", at("spawns.waves")));
+    // Dal punto di partenza (centro) l'anello deve arrivare dentro l'arena, altrimenti nessun
+    // punto è valido e la run resta vuota senza errori.
+    let arena = ArenaBounds::default();
+    let reach = arena.max.min(-arena.min).min_element();
+    if plan.ring.0 >= reach {
+        r.0.push(format!(
+            "{} = {:?}: con min {} ogni punto è fuori dall'arena (raggio utile {reach:.0} px \
+             dal centro), i nemici non nascerebbero mai",
+            at("spawns.ring"),
+            plan.ring,
+            plan.ring.0
+        ));
+    }
+    match plan.waves.first() {
+        None => {
+            r.0.push(format!("{}: serve almeno un'ondata", at("spawns.waves")))
+        }
+        // L'ondata iniziale è fatta di nemici della prima ondata e ne rispetta le regole.
+        Some(first) if plan.initial_burst > 0 => {
+            if plan.initial_burst > first.max_alive {
+                r.0.push(format!(
+                    "{} = {} supera spawns.waves[0].max_alive = {}",
+                    at("spawns.initial_burst"),
+                    plan.initial_burst,
+                    first.max_alive
+                ));
+            }
+            if first.start_s > 0.0 {
+                r.0.push(format!(
+                    "{} = {}: la prima ondata inizia a {} s, ma initial_burst la fa comparire \
+                     all'avvio (metti start_s: 0.0 o initial_burst: 0)",
+                    at("spawns.initial_burst"),
+                    plan.initial_burst,
+                    first.start_s
+                ));
+            }
+        }
+        Some(_) => {}
     }
     for (i, wave) in plan.waves.iter().enumerate() {
         let at = |field: &str| format!("stages.ron: {}.spawns.waves[{i}].{field}", s.id);
@@ -222,155 +259,4 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::super::GameConfig;
-    use super::*;
-
-    fn errors_after(change: impl FnOnce(&mut GameConfig)) -> Vec<String> {
-        let mut config = GameConfig::embedded();
-        change(&mut config);
-        validate(&config)
-    }
-
-    fn assert_error(change: impl FnOnce(&mut GameConfig), expected: &str) {
-        let errors = errors_after(change);
-        assert!(
-            errors.iter().any(|e| e.contains(expected)),
-            "atteso '{expected}' in {errors:?}"
-        );
-    }
-
-    #[test]
-    fn the_embedded_data_has_no_errors() {
-        assert_eq!(validate(&GameConfig::embedded()), Vec::<String>::new());
-    }
-
-    #[test]
-    fn numbers_out_of_range_are_reported_with_file_and_field() {
-        assert_error(
-            |c| c.player.speed = 0.0,
-            "player.ron: speed deve essere > 0",
-        );
-        assert_error(
-            |c| c.enemies[0].speed = -3.0,
-            "enemies.ron: blob.speed deve essere >= 0, trovato -3",
-        );
-        assert_error(
-            |c| c.attacks[0].interval_s = f32::NAN,
-            "attacks.ron: ember_bolt.interval_s",
-        );
-        assert_error(|c| c.attacks[0].projectiles = 0, "ember_bolt.projectiles");
-    }
-
-    #[test]
-    fn broken_references_are_reported() {
-        assert_error(
-            |c| c.companions[0].attack = "missing".into(),
-            "companions.ron: ember.attack = \"missing\": non esiste in attacks.ron",
-        );
-        assert_error(
-            |c| c.stage.spawns.waves[1].enemy = "dragon".into(),
-            "stages.ron: meadow.spawns.waves[1].enemy = \"dragon\": non esiste in enemies.ron",
-        );
-        assert_error(
-            |c| c.stage.starting_companion = "x".into(),
-            "starting_companion",
-        );
-    }
-
-    #[test]
-    fn physical_limits_are_enforced() {
-        // corpo troppo largo per i varchi tra ostacoli
-        assert_error(
-            |c| c.enemies[0].footprint_radius = 10.0,
-            "non passa tra gli ostacoli",
-        );
-        // proiettile che salterebbe oltre un nemico in un passo
-        assert_error(
-            |c| c.attacks[0].projectile_speed = 2000.0,
-            "attraversa i nemici",
-        );
-        assert_error(|c| c.stage.spawns.ring = (360.0, 290.0), "0 < min < max");
-        // anello tutto dentro la vista: nessun nemico nascerebbe mai
-        assert_error(
-            |c| c.stage.spawns.ring = (100.0, 200.0),
-            "i nemici non nascerebbero mai",
-        );
-        // corpi abbastanza veloci da saltare oltre un tronco (4 + 5 px per passo = 540 px/s)
-        assert_error(
-            |c| c.player.speed = 600.0,
-            "player.ron: speed = 600 px/s = 10.0 px per passo: oltre 9 attraversa gli ostacoli",
-        );
-        assert_error(|c| c.enemies[0].speed = 700.0, "blob.speed = 700 px/s");
-        assert!(errors_after(|c| c.player.speed = 540.0).is_empty());
-        // proiettile che sparisce prima della gittata
-        assert_error(
-            |c| c.attacks[0].projectile_lifetime_s = 0.5,
-            "il proiettile percorre 110 px, meno della gittata 150 px",
-        );
-    }
-
-    #[test]
-    fn spawn_plan_and_combat_values_are_checked() {
-        assert_error(
-            |c| c.stage.spawns.initial_burst = 999,
-            "spawns.initial_burst = 999 supera spawns.max_alive",
-        );
-        assert_error(
-            |c| c.stage.spawns.max_alive = 0,
-            "spawns.max_alive deve essere >= 1",
-        );
-        assert_error(|c| c.stage.spawns.waves.clear(), "serve almeno un'ondata");
-        assert_error(
-            |c| c.stage.spawns.waves[0].rate_per_min = -1.0,
-            "spawns.waves[0].rate_per_min deve essere >= 0",
-        );
-        assert_error(
-            |c| c.stage.spawns.waves[2].max_alive = 0,
-            "spawns.waves[2].max_alive deve essere >= 1",
-        );
-        assert_error(
-            |c| c.player.max_hp = 0.0,
-            "player.ron: max_hp deve essere > 0",
-        );
-        assert_error(
-            |c| c.enemies[1].contact_damage = -2.0,
-            "enemies.ron: swarm.contact_damage deve essere >= 0",
-        );
-    }
-
-    #[test]
-    fn obstacle_parameters_are_checked() {
-        assert_error(
-            |c| c.stage.obstacles.density = 1.5,
-            "stages.ron: meadow.obstacles.density deve essere tra 0 e 1",
-        );
-        assert_error(
-            |c| c.stage.obstacles.tree_chance = -0.1,
-            "obstacles.tree_chance",
-        );
-        assert_error(
-            |c| c.stage.obstacles.safe_radius = -1.0,
-            "obstacles.safe_radius",
-        );
-    }
-
-    #[test]
-    fn duplicate_ids_and_bad_sprite_paths_are_reported() {
-        assert_error(
-            |c| {
-                let copy = c.enemies[0].clone();
-                c.enemies.push(copy);
-            },
-            "enemies.ron: id \"blob\" duplicato",
-        );
-        assert_error(
-            |c| c.player.sprite = "../secret.png".into(),
-            "player.ron: sprite",
-        );
-        assert_error(
-            |c| c.enemies[0].sprite = "sprites/blob.gif".into(),
-            "serve un percorso .png",
-        );
-    }
-}
+mod tests;

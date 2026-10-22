@@ -180,16 +180,17 @@ mod tests {
 
     #[test]
     fn the_real_data_files_are_valid() {
+        // Tutti i riferimenti tra file si risolvono (gli accessori non vanno in panic).
         let config = GameConfig::embedded();
-        assert_eq!(config.stage.id, "meadow");
-        assert_eq!(config.starting_companion().id, "ember");
+        let companion = config.starting_companion();
+        assert_eq!(config.companion_attack(companion).id, companion.attack);
+        for wave in &config.stage.spawns.waves {
+            assert_eq!(config.wave_enemy(wave).id, wave.enemy);
+        }
         assert_eq!(
-            config.companion_attack(config.starting_companion()).id,
-            "ember_bolt"
+            config.first_wave_enemy().id,
+            config.stage.spawns.waves[0].enemy
         );
-        assert_eq!(config.first_wave_enemy().id, "blob");
-        let ids: Vec<&str> = config.enemies.iter().map(|e| e.id.as_str()).collect();
-        assert_eq!(ids, ["blob", "swarm", "armored"]);
     }
 
     #[test]
