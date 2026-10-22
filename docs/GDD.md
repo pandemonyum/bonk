@@ -27,7 +27,8 @@ Nessun tasto d'attacco: gli attacchi sono automatici.
 | Arena | 4096×4096 px, bordo di siepe | ~55 s per attraversarla: spazio per fuggire senza perdersi |
 | Simulazione | 60 Hz fissi | riproducibile con seed |
 | HP gelatina | 30 | 3 colpi del compagno di fuoco |
-| Compagno di fuoco | 12 danni, 1 colpo ogni 1,1 s, gittata 150 px, proiettile 220 px/s | valori dell'handoff §7 |
+| Compagno di fuoco | 12 danni, 1 colpo ogni 1,1 s, gittata 150 px, proiettile 220 px/s per 0,85 s (~187 px) | valori dell'handoff §7; il volo oltre la gittata raggiunge chi si sposta |
+| Ostacoli | densità 1,2%, zona libera 128 px, 60% alberi sull'erba | ~650 per arena, mai un vicolo cieco |
 | Compagno: distanza di scia | 18 px dietro il player, max 120 px/s | non intralcia la lettura del player |
 | Popolazione nemici | 10, rimpiazzati a 290–340 px (fuori schermo) | finché non c'è lo spawn director (P0.3) |
 

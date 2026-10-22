@@ -95,7 +95,11 @@ i limiti di al massimo `CONTACT_DISTANCE`, ma non entra mai nel player (test ded
 Rocce e alberi su tile non adiacenti (nemmeno in diagonale): i varchi restano ≥ 18 px, più
 larghi di qualunque corpo, quindi l'arena è sempre attraversabile e i nemici possono inseguire
 in linea retta scivolando attorno agli ostacoli. Niente pathfinding finché il level design non
-richiede muri o corridoi. Collisione sull'impronta a terra (cerchio ai piedi); i proiettili
+richiede muri o corridoi. Due tile di margine dalla siepe, così la zona di respinta di ogni
+ostacolo sta dentro i limiti dei piedi (dopo il code review P0). Densità, zona libera e quota
+di alberi sono in `stages.ron`; distanza minima e margine restano nel codice perché sono la
+garanzia di attraversabilità. La validazione dei dati impedisce corpi più larghi del varco e
+velocità che salterebbero oltre un tronco in un passo. Collisione sull'impronta a terra (cerchio ai piedi); i proiettili
 passano sopra gli ostacoli (lettura del combattimento prima del realismo); il compagno, che
 fluttua, li ignora.
 

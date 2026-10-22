@@ -52,8 +52,9 @@ fn spawn_player(mut commands: Commands, config: Res<GameConfig>) {
 }
 
 /// Movimento, poi respinta dagli ostacoli (si scivola lungo il bordo), poi limiti dell'arena.
-/// Gli ostacoli distano almeno un tile dalla siepe: il clamp finale non può riportare il
-/// player dentro un'impronta.
+/// Gli ostacoli distano due tile dalla siepe e la loro zona di respinta sta dentro i limiti
+/// (test `obstacle_exclusion_zones_stay_inside_the_walkable_area`): il clamp finale non può
+/// riportare il player dentro un'impronta.
 fn move_player(
     time: Res<Time>,
     intent: Res<MoveIntent>,

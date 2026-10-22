@@ -39,6 +39,21 @@ riferimento inesistente (schermata d'errore con entrambi i messaggi).
 
 Rimossa anche la toolchain `stable` duplicata (1,3 GB); default rustup = 1.99.1.
 
+### Code review P0.2/P0.1/P0.0 (ruolo code-reviewer, lettura indipendente)
+
+Verdetto iniziale CHANGES REQUESTED, 7 rilievi, tutti corretti. Dopo le correzioni: 92 test
+(70 unitari + 22 d'integrazione, 1 sonda ignorata), gate verde, gioco avviato con i dati nuovi.
+
+| # | Rilievo | Correzione | Verifica |
+|---|---|---|---|
+| 1 | Lungo la siepe nord i colpi partivano fuori dal rettangolo dei piedi e sparivano al primo passo: il compagno non colpiva | limite dei proiettili = intera arena (`world::inside_arena`) | test `shots_fired_along_the_north_hedge_still_hit`; col vecchio limite il nemico resta a 30 HP (fallisce) |
+| 2 | Ricarica a caldo: dopo un primo caricamento fallito la versione corretta arriva come `Added`, ignorata; un file illeggibile durante la run non mostrava errori | conta `Added`/`Modified`/`LoadedWithDependencies`; legge `AssetLoadFailedEvent` | 5 test del loader con AssetServer vero; reintroducendo il bug `fixing_an_unreadable_file_after_a_failed_first_load_starts_the_game` fallisce |
+| 3 | Test della griglia spaziale vacuo (sonde senza ostacoli vicini) | sonde su ostacoli veri ai bordi e al centro, con asserzione "non vuoto" | test aggiornato |
+| 4 | `pierce` enorme in overflow; corpi veloci attraversano i tronchi | `saturating_add`; validazione velocità ≤ (4 + raggio) px per passo | test di validazione (600 px/s rifiutati, 540 accettati) |
+| 5 | Commento falso: il clamp poteva riportare un corpo dentro una roccia della riga più a nord | margine di 2 tile dalla siepe | test `obstacle_exclusion_zones_stay_inside_the_walkable_area` su 10 seed |
+| 6 | Valori di bilanciamento nel codice (`LIFETIME_MARGIN`, densità ostacoli, zona libera, quota alberi) | `projectile_lifetime_s` in `attacks.ron`, `obstacles` in `stages.ron`, validati | test di validazione e `parameters_change_the_field` |
+| 7 | Cadenza arrotondata per eccesso (0,935 s → 0,95 s) | carica che conserva il resto (`attack_tick`) | test: 66 passi esatti per 1,1 s, media 56,1 passi per 0,935 s, nessuna raffica dopo attesa |
+
 ### Limiti aperti
 
 - Compilazione WASM non riverificata dopo la P0.0 (loader dei dati, watcher solo nativo):

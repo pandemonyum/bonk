@@ -57,6 +57,8 @@ pub struct AttackData {
     pub range: f32,
     pub projectile_speed: f32,
     pub projectile_radius: f32,
+    /// Secondi di volo prima che un proiettile mancato sparisca (portata = velocità × durata).
+    pub projectile_lifetime_s: f32,
     pub projectile_sprite: String,
     pub projectiles: u32,
     pub spread_deg: f32,
@@ -99,6 +101,18 @@ pub struct EnemiesFile {
     pub enemies: Vec<EnemyData>,
 }
 
+/// Ostacoli dello stage. La distanza minima tra ostacoli (attraversabilità) resta nel codice.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ObstacleParams {
+    /// Probabilità che un tile candidato ospiti un ostacolo, prima dello scarto per vicinanza.
+    pub density: f32,
+    /// Raggio libero attorno al punto di partenza del player.
+    pub safe_radius: f32,
+    /// Probabilità che un ostacolo sull'erba sia un albero invece di una roccia.
+    pub tree_chance: f32,
+}
+
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct StageData {
@@ -110,6 +124,7 @@ pub struct StageData {
     pub population_cap: u32,
     pub initial_ring: (f32, f32),
     pub respawn_ring: (f32, f32),
+    pub obstacles: ObstacleParams,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]

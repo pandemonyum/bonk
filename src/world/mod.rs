@@ -11,6 +11,7 @@ pub mod tiles;
 use bevy::prelude::*;
 
 use crate::app::{AppState, RunSeed};
+use crate::data::GameConfig;
 use crate::gameplay::kinematics::body;
 use obstacles::{Obstacle, ObstacleField, generate_obstacles};
 
@@ -48,6 +49,13 @@ impl Default for ArenaBounds {
     }
 }
 
+/// Dentro il quadrato dell'intera arena, siepe compresa. È il limite dei proiettili: non i
+/// limiti dei piedi (`ArenaBounds`), perché un colpo parte più in alto dei piedi e un nemico
+/// respinto dal player può sforare i limiti di qualche pixel.
+pub fn inside_arena(point: Vec2) -> bool {
+    point.abs().cmple(Vec2::splat(ARENA_HALF_EXTENT)).all()
+}
+
 impl ArenaBounds {
     pub fn clamp(&self, point: Vec2) -> Vec2 {
         point.clamp(self.min, self.max)
@@ -69,8 +77,8 @@ impl Plugin for WorldPlugin {
 
 /// Genera gli ostacoli della run: la griglia `ObstacleField` per le collisioni e un'entità
 /// per ostacolo per il rendering.
-fn spawn_obstacles(mut commands: Commands, seed: Res<RunSeed>) {
-    let field = ObstacleField::new(generate_obstacles(seed.0));
+fn spawn_obstacles(mut commands: Commands, seed: Res<RunSeed>, config: Res<GameConfig>) {
+    let field = ObstacleField::new(generate_obstacles(seed.0, &config.stage.obstacles));
     for obstacle in &field.obstacles {
         commands.spawn((
             Name::new(format!(

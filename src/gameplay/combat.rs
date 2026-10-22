@@ -6,21 +6,38 @@
 
 use bevy::prelude::*;
 
-use super::SimSet;
 use super::enemies::Enemy;
 use super::kinematics::{Position, body};
+use super::{SIM_HZ, SimSet};
 use crate::app::AppState;
 use crate::data::DataId;
 use crate::data::schema::AttackData;
-use crate::world::ArenaBounds;
+use crate::world::inside_arena;
 
 /// Durata della tinta di colpo.
 pub const HIT_FLASH_SECS: f32 = 0.12;
-/// Margine di vita del proiettile oltre la gittata (raggiunge nemici in movimento).
-const LIFETIME_MARGIN: f32 = 1.25;
-/// Tolleranza sul cooldown: sottrarre 1/60 s a ogni passo accumula errore di arrotondamento,
+/// Tolleranza sulla carica: sommare 1/60 s a ogni passo accumula errore di arrotondamento,
 /// e senza tolleranza un intervallo di 1,1 s potrebbe durare 67 passi invece di 66.
-const COOLDOWN_EPSILON: f32 = 1.0e-4;
+const CHARGE_EPSILON: f32 = 1.0e-4;
+/// Durata di un passo fisso.
+const STEP: f32 = 1.0 / SIM_HZ as f32;
+
+/// Un passo di un attacco automatico. `charge` è il tempo accumulato dall'ultimo colpo;
+/// restituisce `(nuova carica, spara)`.
+/// - Il tempo oltre l'intervallo resta nella carica: la cadenza media è esattamente
+///   `interval` anche quando non è un multiplo del passo (0,935 s = 56,1 passi).
+/// - Senza bersaglio l'attacco resta *armato* (`interval - dt`): spara al primo passo in cui
+///   un nemico entra nel raggio, senza accumulare tempo di attesa e quindi senza raffiche.
+pub fn attack_tick(charge: f32, interval: f32, dt: f32, has_target: bool) -> (f32, bool) {
+    let charge = charge + dt;
+    if charge + CHARGE_EPSILON < interval {
+        (charge, false)
+    } else if has_target {
+        ((charge - interval).min(interval), true)
+    } else {
+        (interval - dt, false)
+    }
+}
 
 #[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub struct Health {
@@ -63,11 +80,13 @@ pub struct AutoAttack {
     pub damage: f32,
     /// Secondi tra due attacchi.
     pub interval: f32,
-    /// Secondi al prossimo attacco; a 0 l'attacco è pronto e parte appena c'è un bersaglio.
-    pub cooldown: f32,
+    /// Secondi accumulati dall'ultimo attacco (vedi [`attack_tick`]).
+    pub charge: f32,
     pub range: f32,
     pub projectile_speed: f32,
     pub projectile_radius: f32,
+    /// Secondi di volo prima che un proiettile mancato sparisca.
+    pub projectile_lifetime: f32,
     pub projectiles: u32,
     /// Angolo in radianti tra due proiettili della stessa raffica.
     pub spread: f32,
@@ -78,16 +97,17 @@ pub struct AutoAttack {
 }
 
 impl AutoAttack {
-    /// Attacco pronto (cooldown 0) con i valori di `attacks.ron`.
+    /// Attacco armato (spara al primo passo con un bersaglio) con i valori di `attacks.ron`.
     pub fn from_data(data: &AttackData) -> Self {
         Self {
             id: data.id.clone(),
             damage: data.damage,
             interval: data.interval_s,
-            cooldown: 0.0,
+            charge: data.interval_s - STEP,
             range: data.range,
             projectile_speed: data.projectile_speed,
             projectile_radius: data.projectile_radius,
+            projectile_lifetime: data.projectile_lifetime_s,
             projectiles: data.projectiles,
             spread: data.spread_deg.to_radians(),
             pierce: data.pierce,
@@ -186,8 +206,8 @@ fn fire_auto_attacks(
 ) {
     let dt = time.delta_secs();
     for (position, mut attack) in &mut shooters {
-        attack.cooldown = (attack.cooldown - dt).max(0.0);
-        if attack.cooldown > COOLDOWN_EPSILON {
+        if attack.charge + dt + CHARGE_EPSILON < attack.interval {
+            attack.charge += dt; // in ricarica: niente ricerca del bersaglio
             continue;
         }
         let origin = position.0 + Vec2::Y * attack.muzzle_height;
@@ -195,8 +215,11 @@ fn fire_auto_attacks(
             .iter()
             .filter(|(_, _, _, health)| !health.is_dead())
             .map(|(entity, feet, hurtbox, _)| (entity, hurtbox.center(feet.0)));
-        let Some((_, target)) = nearest_target(origin, alive, attack.range) else {
-            continue; // resta pronto: spara appena un nemico entra nel raggio
+        let target = nearest_target(origin, alive, attack.range);
+        let (charge, fire) = attack_tick(attack.charge, attack.interval, dt, target.is_some());
+        attack.charge = charge;
+        let (true, Some((_, target))) = (fire, target) else {
+            continue; // armato: spara appena un nemico entra nel raggio
         };
         let aim = (target - origin).normalize_or(Vec2::X);
         for direction in spread_directions(aim, attack.projectiles, attack.spread) {
@@ -207,8 +230,9 @@ fn fire_auto_attacks(
                     velocity: direction * attack.projectile_speed,
                     damage: attack.damage,
                     radius: attack.projectile_radius,
-                    remaining_secs: attack.range / attack.projectile_speed * LIFETIME_MARGIN,
-                    hits_left: attack.pierce + 1,
+                    remaining_secs: attack.projectile_lifetime,
+                    // saturating: `pierce` enorme (es. u32::MAX = "infinito") non va in overflow
+                    hits_left: attack.pierce.saturating_add(1),
                     already_hit: Vec::new(),
                 },
                 body(origin),
@@ -216,7 +240,6 @@ fn fire_auto_attacks(
             ));
             stats.projectiles_fired += 1;
         }
-        attack.cooldown = attack.interval;
     }
 }
 
@@ -271,7 +294,6 @@ fn resolve_deaths(
 fn expire_projectiles(
     mut commands: Commands,
     time: Res<Time>,
-    arena: Res<ArenaBounds>,
     mut projectiles: Query<(Entity, &Position, &mut Projectile)>,
 ) {
     let dt = time.delta_secs();
@@ -280,7 +302,7 @@ fn expire_projectiles(
             continue; // già rimosso da projectile_hits
         }
         projectile.remaining_secs -= dt;
-        if projectile.remaining_secs <= 0.0 || !arena.contains(position.0) {
+        if projectile.remaining_secs <= 0.0 || !inside_arena(position.0) {
             commands.entity(entity).try_despawn();
         }
     }
@@ -358,5 +380,45 @@ mod tests {
         assert!(!h.is_dead());
         h.current -= 30.0;
         assert!(h.is_dead());
+    }
+
+    /// Passi in cui l'attacco spara, simulando `steps` passi con il bersaglio deciso da `target`.
+    fn shots(interval: f32, steps: u32, target: impl Fn(u32) -> bool) -> Vec<u32> {
+        let mut charge = interval - STEP; // armato, come AutoAttack::from_data
+        let mut fired = Vec::new();
+        for step in 1..=steps {
+            let (next, fire) = attack_tick(charge, interval, STEP, target(step));
+            charge = next;
+            if fire {
+                fired.push(step);
+            }
+        }
+        fired
+    }
+
+    #[test]
+    fn cadence_is_exact_for_whole_steps() {
+        // 1,1 s = 66 passi: primo colpo subito, poi ogni 66.
+        let fired = shots(1.1, 660, |_| true);
+        assert_eq!(fired.len(), 10);
+        assert!(fired.windows(2).all(|w| w[1] - w[0] == 66), "{fired:?}");
+        assert_eq!(fired[0], 1);
+    }
+
+    #[test]
+    fn cadence_averages_exactly_for_fractional_steps() {
+        // 0,935 s = 56,1 passi: senza conservare il resto diventerebbero 57 (0,95 s).
+        let fired = shots(0.935, 20_000, |_| true);
+        let span = (fired[fired.len() - 1] - fired[0]) as f32;
+        let average = span / (fired.len() - 1) as f32;
+        assert!((average - 56.1).abs() < 0.05, "media {average} passi");
+    }
+
+    #[test]
+    fn waiting_without_a_target_does_not_store_shots() {
+        // nessun bersaglio per 500 passi, poi sempre: un colpo subito, poi cadenza normale
+        let fired = shots(1.1, 700, |step| step > 500);
+        assert_eq!(fired[0], 501);
+        assert_eq!(fired[1], 501 + 66);
     }
 }

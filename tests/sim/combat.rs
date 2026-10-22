@@ -8,9 +8,10 @@ use pixel_monster_survivor::gameplay::combat::{
 };
 use pixel_monster_survivor::gameplay::companions::Companion;
 use pixel_monster_survivor::gameplay::enemies::Enemy;
-use pixel_monster_survivor::gameplay::kinematics::{Position, body};
+use pixel_monster_survivor::gameplay::kinematics::{Position, PreviousPosition, body};
 use pixel_monster_survivor::gameplay::player::MoveIntent;
 use pixel_monster_survivor::headless_app;
+use pixel_monster_survivor::world::ArenaBounds;
 
 fn stats(app: &App) -> RunStats {
     app.world().resource::<RunStats>().clone()
@@ -169,6 +170,40 @@ fn missed_projectiles_expire() {
     assert_eq!(count::<Projectile>(&mut app), 1);
     run_steps(&mut app, 2);
     assert_eq!(count::<Projectile>(&mut app), 0);
+}
+
+/// Lungo la siepe nord i colpi partono più in alto dei piedi (muzzle_height) e quindi fuori
+/// dal rettangolo dei piedi: devono comunque volare e colpire (rilievo del code review P0).
+#[test]
+fn shots_fired_along_the_north_hedge_still_hit() {
+    let mut app = headless_app(1);
+    app.update();
+    despawn_all::<Companion>(&mut app);
+    let arena = *app.world().resource::<ArenaBounds>();
+    let muzzle = config(&app)
+        .companion_attack(config(&app).starting_companion())
+        .muzzle_height;
+    let (enemy, _) = first_enemy(&mut app);
+    // Nemico fermo con i piedi sul limite nord, 40 px a est del punto di sparo.
+    let feet = Vec2::new(40.0, arena.max.y);
+    let world = app.world_mut();
+    world
+        .entity_mut(enemy)
+        .insert((Position(feet), PreviousPosition(feet)));
+    world.get_mut::<Enemy>(enemy).unwrap().speed = 0.0;
+    let max_hp = world.get::<Health>(enemy).unwrap().max;
+    let origin = Vec2::new(0.0, arena.max.y + muzzle);
+    assert!(
+        !arena.contains(origin),
+        "lo scenario deve partire fuori dai limiti dei piedi"
+    );
+    let projectile = projectile_at(&app, origin, 12.0, Vec2::X * 220.0, 0.85);
+    app.world_mut().spawn(projectile);
+    run_steps(&mut app, 20);
+    assert_eq!(
+        app.world().get::<Health>(enemy).unwrap().current,
+        max_hp - 12.0
+    );
 }
 
 #[test]

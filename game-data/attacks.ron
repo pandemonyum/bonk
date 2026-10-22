@@ -11,6 +11,8 @@
             // px/s; il validatore impedisce velocità che attraversano un nemico in un passo
             projectile_speed: 220.0,
             projectile_radius: 3.0,
+            // 0,85 s × 220 px/s ≈ 187 px: un po' oltre la gittata, per raggiungere chi si sposta
+            projectile_lifetime_s: 0.85,
             projectile_sprite: "sprites/fireball.png",
             // proiettili per attacco, a ventaglio di `spread_deg` gradi l'uno dall'altro
             projectiles: 1,

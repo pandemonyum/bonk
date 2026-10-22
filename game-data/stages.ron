@@ -14,6 +14,14 @@
             initial_ring: (170.0, 240.0),
             // rimpiazzi oltre la mezza diagonale dello schermo (~275 px)
             respawn_ring: (290.0, 340.0),
+            obstacles: (
+                // ~650 tra rocce e alberi su 256x256 tile (mai adiacenti: varchi sempre aperti)
+                density: 0.012,
+                // nessun ostacolo entro 8 tile dal punto di partenza
+                safe_radius: 128.0,
+                // sull'erba; sulle radure di terra solo rocce
+                tree_chance: 0.6,
+            ),
         ),
     ],
 )

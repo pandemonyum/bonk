@@ -40,7 +40,8 @@ fn the_run_spawns_the_seeded_obstacles() {
     let mut app = headless_app(21);
     app.update();
     let field = field(&app);
-    assert_eq!(field.obstacles, generate_obstacles(21));
+    let params = config(&app).stage.obstacles;
+    assert_eq!(field.obstacles, generate_obstacles(21, &params));
     assert_eq!(count::<Obstacle>(&mut app), field.obstacles.len());
 }
 

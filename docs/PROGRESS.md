@@ -12,6 +12,24 @@ Stato corrente, ultimo aggiornamento: **2026-10-22**.
 Prossimo task eseguibile: **P0.3** (spawn director, danni al player, griglia spaziale), vedi
 `docs/BACKLOG.md`.
 
+## Report tranche "code review P0" (2026-10-22)
+
+```text
+Task: correzioni del code review su P0.2, P0.1, P0.0
+Owner: code-reviewer (lettura) → gameplay-engineer / world-generation (correzioni)
+Stato: DONE
+File: src/gameplay/{combat,player}.rs, src/data/{loader,schema,validate}.rs,
+       src/world/{mod,obstacles}.rs, game-data/{attacks,stages}.ron, tests/sim/{combat,world}.rs,
+       docs/*
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1                       OK: 92 test (70 unit + 22 integrazione), 1 ignorato
+  controprove con i bug reintrodotti         i due test nuovi falliscono (vedi QA_REPORT)
+  cargo run -- --autoplay ...                OK, dati caricati, exit 0
+Comportamento verificato: 7 rilievi corretti, dettaglio in docs/QA_REPORT.md
+Rischi noti: compilazione WASM da riverificare in P1.
+Prossimo task: P0.3
+```
+
 ## Report tranche P0.0 + riduzione spazio su disco (2026-10-22)
 
 ```text

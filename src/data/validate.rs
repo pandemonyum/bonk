@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use super::GameConfig;
 use crate::gameplay::SIM_HZ;
-use crate::world::obstacles::MIN_OBSTACLE_GAP;
+use crate::world::obstacles::{MIN_FOOTPRINT_RADIUS, MIN_OBSTACLE_GAP};
 
 /// Il corpo più largo che passa sempre tra due ostacoli (vedi `world::obstacles`).
 const MAX_FOOTPRINT_RADIUS: f32 = MIN_OBSTACLE_GAP / 2.0;
@@ -67,6 +67,26 @@ impl Report {
                 .push(format!("{at} = ({min}, {max}): serve 0 < min < max"));
         }
     }
+
+    fn probability(&mut self, at: &str, value: f32) {
+        if !(0.0..=1.0).contains(&value) {
+            self.0
+                .push(format!("{at} deve essere tra 0 e 1, trovato {value}"));
+        }
+    }
+
+    /// Un corpo che si sposta di più di (impronta minima + proprio raggio) in un passo può
+    /// saltare oltre il centro di un tronco: la respinta lo manda dall'altra parte.
+    fn body_speed(&mut self, at: &str, speed: f32, footprint_radius: f32) {
+        let step = speed / SIM_HZ as f32;
+        let max_step = MIN_FOOTPRINT_RADIUS + footprint_radius;
+        if step > max_step {
+            self.0.push(format!(
+                "{at} = {speed} px/s = {step:.1} px per passo: oltre {max_step} attraversa gli \
+                 ostacoli"
+            ));
+        }
+    }
 }
 
 pub(super) fn validate(config: &GameConfig) -> Vec<String> {
@@ -75,6 +95,7 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
     let p = &config.player;
     r.positive("player.ron: speed", p.speed);
     r.footprint("player.ron: footprint_radius", p.footprint_radius);
+    r.body_speed("player.ron: speed", p.speed, p.footprint_radius);
     r.sprite("player.ron: sprite", &p.sprite);
 
     r.unique_ids("companions.ron", config.companions.iter().map(|c| &c.id));
@@ -102,6 +123,16 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
         r.positive(&at("range"), a.range);
         r.positive(&at("projectile_speed"), a.projectile_speed);
         r.positive(&at("projectile_radius"), a.projectile_radius);
+        r.positive(&at("projectile_lifetime_s"), a.projectile_lifetime_s);
+        let travel = a.projectile_speed * a.projectile_lifetime_s;
+        if travel < a.range {
+            r.0.push(format!(
+                "{}: il proiettile percorre {travel:.0} px, meno della gittata {} px: sparisce \
+                 prima di raggiungere i nemici in raggio",
+                at("projectile_lifetime_s"),
+                a.range
+            ));
+        }
         r.non_negative(&at("spread_deg"), a.spread_deg);
         r.non_negative(&at("muzzle_height"), a.muzzle_height);
         r.sprite(&at("projectile_sprite"), &a.projectile_sprite);
@@ -128,6 +159,7 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
         r.positive(&at("hurtbox.radius"), e.hurtbox.radius);
         r.non_negative(&at("hurtbox.center_offset"), e.hurtbox.center_offset);
         r.footprint(&at("footprint_radius"), e.footprint_radius);
+        r.body_speed(&at("speed"), e.speed, e.footprint_radius);
         r.non_negative(&at("contact_distance"), e.contact_distance);
         r.non_negative(&at("separation_radius"), e.separation_radius);
         r.sprite(&at("sprite"), &e.sprite);
@@ -157,6 +189,9 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
     }
     r.ring(&at("initial_ring"), s.initial_ring);
     r.ring(&at("respawn_ring"), s.respawn_ring);
+    r.probability(&at("obstacles.density"), s.obstacles.density);
+    r.non_negative(&at("obstacles.safe_radius"), s.obstacles.safe_radius);
+    r.probability(&at("obstacles.tree_chance"), s.obstacles.tree_chance);
 
     r.0
 }
@@ -232,6 +267,34 @@ mod tests {
         );
         assert_error(|c| c.stage.initial_ring = (240.0, 170.0), "0 < min < max");
         assert_error(|c| c.stage.initial_enemies = 99, "supera population_cap");
+        // corpi abbastanza veloci da saltare oltre un tronco (4 + 5 px per passo = 540 px/s)
+        assert_error(
+            |c| c.player.speed = 600.0,
+            "player.ron: speed = 600 px/s = 10.0 px per passo: oltre 9 attraversa gli ostacoli",
+        );
+        assert_error(|c| c.enemies[0].speed = 700.0, "blob.speed = 700 px/s");
+        assert!(errors_after(|c| c.player.speed = 540.0).is_empty());
+        // proiettile che sparisce prima della gittata
+        assert_error(
+            |c| c.attacks[0].projectile_lifetime_s = 0.5,
+            "il proiettile percorre 110 px, meno della gittata 150 px",
+        );
+    }
+
+    #[test]
+    fn obstacle_parameters_are_checked() {
+        assert_error(
+            |c| c.stage.obstacles.density = 1.5,
+            "stages.ron: meadow.obstacles.density deve essere tra 0 e 1",
+        );
+        assert_error(
+            |c| c.stage.obstacles.tree_chance = -0.1,
+            "obstacles.tree_chance",
+        );
+        assert_error(
+            |c| c.stage.obstacles.safe_radius = -1.0,
+            "obstacles.safe_radius",
+        );
     }
 
     #[test]
