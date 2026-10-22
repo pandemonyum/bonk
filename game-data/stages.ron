@@ -1,6 +1,6 @@
 // Stage (mappe). La prima voce è quella giocata. Élite, boss e fine run: P0.6.
 (
-    version: 2,
+    version: 3,
     stages: [
         (
             id: "meadow",

@@ -1,0 +1,13 @@
+# Gemma XP, 6x8: piccolo rombo blu (blu = esperienza nella regola colori) con un riflesso
+# bianco, leggibile a terra in mezzo all'erba e diversa da qualunque nemico.
+out: sprites/xp_gem.png
+mirror: true
+---
+..k
+.kw
+kuw
+kuu
+kuu
+kUu
+.kU
+..k

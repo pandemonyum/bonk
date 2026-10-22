@@ -1,6 +1,6 @@
 // Attacchi automatici. P0.2: proiettile mirato sul nemico più vicino entro `range`.
 (
-    version: 2,
+    version: 3,
     attacks: [
         (
             id: "ember_bolt",

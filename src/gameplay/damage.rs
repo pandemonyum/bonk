@@ -105,6 +105,7 @@ mod tests {
             contact_distance,
             separation_radius: 14.0,
             contact_damage,
+            xp: 1,
         }
     }
 

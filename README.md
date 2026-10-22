@@ -51,7 +51,8 @@ Se un valore non è valido il gioco mostra l'elenco degli errori con file e camp
 | WASD / frecce | movimento |
 | Esc / P | pausa |
 | F5 | ricomincia la run (da sconfitti anche Invio) |
-| F3 | overlay debug (FPS, entità, posizione, seed) |
+| 1 / 2 / 3 o clic | sceglie la carta del draft a ogni livello |
+| F3 | overlay debug (FPS, entità, gemme, XP, posizione, seed) |
 | F12 | screenshot in `screenshots/` |
 
 Opzioni: `cargo run -- --help`.

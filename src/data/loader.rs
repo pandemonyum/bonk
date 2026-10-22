@@ -77,23 +77,15 @@ fn start_loading(mut commands: Commands, assets: Res<AssetServer>) {
 }
 
 /// Testi dei file se sono tutti caricati, nell'ordine di `DATA_FILES`.
-fn loaded_texts<'a>(handles: &DataHandles, texts: &'a Assets<DataText>) -> Option<[&'a str; 5]> {
-    let mut out = [""; 5];
+fn loaded_texts<'a>(
+    handles: &DataHandles,
+    texts: &'a Assets<DataText>,
+) -> Option<[&'a str; DATA_FILES.len()]> {
+    let mut out = [""; DATA_FILES.len()];
     for (slot, handle) in out.iter_mut().zip(&handles.0) {
         *slot = texts.get(handle)?.0.as_str();
     }
     Some(out)
-}
-
-fn sources(texts: [&str; 5]) -> DataSources<'_> {
-    let [player, companions, attacks, enemies, stages] = texts;
-    DataSources {
-        player,
-        companions,
-        attacks,
-        enemies,
-        stages,
-    }
 }
 
 /// Primo caricamento e ricariche. Si (ri)valida quando un file arriva o cambia:
@@ -144,7 +136,7 @@ fn update_config(
     let Some(texts) = loaded_texts(&handles, &texts) else {
         return; // ancora in caricamento
     };
-    match GameConfig::parse(&sources(texts)) {
+    match GameConfig::parse(&DataSources::from_files(texts)) {
         Ok(config) => {
             *status = DataStatus::Ready;
             match current {
@@ -190,21 +182,14 @@ mod tests {
     use super::*;
     use crate::data::EMBEDDED;
 
-    /// Cartella temporanea con i 5 file di dati, rimossa a fine test.
+    /// Cartella temporanea con tutti i file di dati, rimossa a fine test.
     struct DataDir(PathBuf);
 
     impl DataDir {
         fn new(name: &str) -> Self {
             let dir = std::env::temp_dir().join(format!("pms-data-{}-{name}", std::process::id()));
             std::fs::create_dir_all(&dir).unwrap();
-            let texts = [
-                EMBEDDED.player,
-                EMBEDDED.companions,
-                EMBEDDED.attacks,
-                EMBEDDED.enemies,
-                EMBEDDED.stages,
-            ];
-            for (file, text) in DATA_FILES.iter().zip(texts) {
+            for (file, text) in DATA_FILES.iter().zip(EMBEDDED.files()) {
                 std::fs::write(dir.join(file), text).unwrap();
             }
             Self(dir)

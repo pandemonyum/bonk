@@ -5,13 +5,14 @@
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 
-use super::{Z_ACTORS, Z_PROJECTILES};
+use super::{Z_ACTORS, Z_PICKUPS, Z_PROJECTILES};
 use crate::data::{DataId, GameConfig};
 use crate::gameplay::combat::{HitFlash, Projectile};
 use crate::gameplay::companions::Companion;
 use crate::gameplay::enemies::Enemy;
 use crate::gameplay::kinematics::{Position, PreviousPosition};
 use crate::gameplay::player::Player;
+use crate::gameplay::progression::XpGem;
 use crate::world::obstacles::{Obstacle, ObstacleKind};
 
 /// Profondità per pixel di y: chi sta più in basso è disegnato davanti.
@@ -47,6 +48,7 @@ impl Plugin for SpritesPlugin {
             .add_observer(attach_companion_sprite)
             .add_observer(attach_enemy_sprite)
             .add_observer(attach_projectile_sprite)
+            .add_observer(attach_gem_sprite)
             .add_observer(attach_obstacle_sprite)
             .add_systems(Update, tint_hit_enemies)
             .add_systems(
@@ -147,6 +149,19 @@ fn attach_projectile_sprite(
             DepthBase(Z_PROJECTILES),
         ));
     }
+}
+
+/// Le gemme stanno a terra: sotto gli attori, che ci camminano sopra.
+fn attach_gem_sprite(
+    add: On<Add<XpGem>>,
+    mut commands: Commands,
+    assets: Res<AssetServer>,
+    config: Res<GameConfig>,
+) {
+    let image = assets.load(config.progression.gem.sprite.clone());
+    commands
+        .entity(add.entity)
+        .insert((actor_sprite(image), DepthBase(Z_PICKUPS)));
 }
 
 /// Gli ostacoli condividono il y-sort degli attori: chi passa dietro un albero ne è coperto.

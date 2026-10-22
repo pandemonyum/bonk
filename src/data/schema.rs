@@ -2,12 +2,13 @@
 //! errore, non un valore ignorato in silenzio.
 //!
 //! Versioni: 1 (P0.0) → 2 (P0.3: ondate dello spawn director negli stage, HP e invulnerabilità
-//! del player, danno da contatto dei nemici).
+//! del player, danno da contatto dei nemici) → 3 (P0.4: XP dei nemici, raggio di raccolta,
+//! `progression.ron` e `upgrades.ron`).
 
 use serde::Deserialize;
 
 /// Versione dello schema supportata da questo codice.
-pub const SCHEMA_VERSION: u32 = 2;
+pub const SCHEMA_VERSION: u32 = 3;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -19,6 +20,108 @@ pub struct PlayerFile {
     pub max_hp: f32,
     /// Secondi di invulnerabilità dopo un colpo subito.
     pub invulnerability_s: f32,
+    /// Distanza dai piedi entro cui le gemme XP vengono attirate.
+    pub pickup_radius: f32,
+}
+
+/// XP per passare dal livello `n` al `n + 1`: `base + per_level × (n − 1)`.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct XpCurve {
+    pub base: f32,
+    pub per_level: f32,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GemData {
+    pub sprite: String,
+    /// Velocità con cui una gemma attirata vola verso il player.
+    pub magnet_speed: f32,
+    /// Distanza a cui la gemma è raccolta.
+    pub collect_distance: f32,
+    /// Gemme a terra al massimo: oltre, l'XP di una gemma nuova si somma a una esistente.
+    pub max_on_field: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
+pub enum Rarity {
+    Common,
+    Uncommon,
+    Rare,
+}
+
+/// Peso relativo di estrazione per rarità nel draft.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RarityWeights {
+    pub common: f32,
+    pub uncommon: f32,
+    pub rare: f32,
+}
+
+impl RarityWeights {
+    pub fn of(&self, rarity: Rarity) -> f32 {
+        match rarity {
+            Rarity::Common => self.common,
+            Rarity::Uncommon => self.uncommon,
+            Rarity::Rare => self.rare,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProgressionFile {
+    pub version: u32,
+    pub xp_to_level: XpCurve,
+    pub gem: GemData,
+    /// Carte proposte a ogni livello.
+    pub draft_size: u32,
+    pub rarity_weights: RarityWeights,
+}
+
+/// Effetto di uno stack di upgrade. Le percentuali si sommano tra stack (due stack di +15% =
+/// +30% sul valore base dei dati). Gli effetti "Companion" valgono per tutti i compagni.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub enum Effect {
+    CompanionDamagePct(f32),
+    /// Negativo = attacchi più frequenti.
+    CompanionIntervalPct(f32),
+    CompanionProjectiles(u32),
+    CompanionPierce(u32),
+    /// Allunga anche la durata del proiettile, così la portata cresce con la gittata.
+    CompanionRangePct(f32),
+    ProjectileSpeedPct(f32),
+    /// HP massimi in più; cura della stessa quantità.
+    MaxHp(f32),
+    RegenPerSecond(f32),
+    MoveSpeedPct(f32),
+    PickupRadiusPct(f32),
+    /// Cura immediata, nessun effetto permanente.
+    Heal(f32),
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct UpgradeData {
+    pub id: String,
+    /// Titolo della carta.
+    pub name: String,
+    /// Testo della carta: cosa fa uno stack.
+    pub description: String,
+    pub rarity: Rarity,
+    pub max_stack: u32,
+    /// Id di upgrade da avere già (almeno uno stack ciascuno) perché questo venga proposto.
+    pub requires: Vec<String>,
+    pub effect: Effect,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct UpgradesFile {
+    pub version: u32,
+    pub upgrades: Vec<UpgradeData>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
@@ -100,6 +203,8 @@ pub struct EnemyData {
     pub separation_radius: f32,
     /// Danno inflitto al player a contatto (una volta per finestra di invulnerabilità).
     pub contact_damage: f32,
+    /// XP della gemma lasciata alla morte.
+    pub xp: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]

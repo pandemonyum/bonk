@@ -8,5 +8,7 @@ mod combat;
 mod common;
 mod damage;
 mod movement;
+mod progression;
 mod spawning;
+mod upgrades;
 mod world;

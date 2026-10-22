@@ -14,6 +14,7 @@ Moodboard `references/pixel_art_concept.png`: non presente al 2026-10-22.
 | Nemici comuni | gelatina 16×13, sciame 12×8, corazzato 20×15 | la taglia dice il ruolo: piccolo = veloce e fragile, grande = lento e resistente; silhouette diverse (tonda, alata, a cupola) |
 | Compagni | 16×17 (fuoco) | silhouette verticale/appuntita: mai la stessa forma dei nemici |
 | Proiettili | 6×6 | ancora al centro, nucleo chiaro, disegnati sopra gli attori |
+| Gemma XP | 6×8 | rombo blu `u/U` con riflesso `w`; a terra, sotto gli attori |
 | Roccia | 16×10 | luce in alto a sinistra; impronta r=7 |
 | Albero | 24×26 | più alto dell'evocatore; chioma scura `A/B` per staccarsi dall'erba; impronta solo tronco r=4 |
 | Élite | 24–32 px | |
@@ -44,6 +45,11 @@ Osservato in P0.3 con 220 nemici (`docs/evidence/p03-220-nemici-59fps.png`): l'o
 stratifica da sola, sciami al centro e corazzati sul bordo, e le tre sagome restano
 distinguibili anche in massa. Da migliorare in P2: il player si perde dentro l'orda (serve un
 contorno o un'ombra più marcata) e le gelatine ammassate formano una macchia uniforme.
+
+Interfaccia del draft (P0.4, `docs/evidence/p04-draft.png`): carte scure semitrasparenti con
+bordo del colore della rarità (comune grigio chiaro, non comune verde, rara oro), titolo in
+blu XP, carta più chiara al passaggio del mouse. Testi solo ASCII finché il font provvisorio
+non ha le accentate (D-033).
 
 Lezione P0.2: la prima versione del compagno aveva la stessa sagoma della gelatina e si
 distingueva solo per il colore; ridisegnato a goccia di fiamma. Regola: alleati e nemici

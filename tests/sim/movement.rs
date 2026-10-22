@@ -9,12 +9,17 @@ use crate::common::{
     quiet_config, run_steps,
 };
 use bevy::prelude::*;
-use pixel_monster_survivor::app::{AppState, RunPhase, restart_run};
+use bevy::state::app::StatesPlugin;
+use bevy::time::TimeUpdateStrategy;
+use pixel_monster_survivor::app::{AppState, RunPhase, SimulationPlugin, restart_run};
+use pixel_monster_survivor::data::GameConfig;
 use pixel_monster_survivor::gameplay::combat::{Projectile, RunStats};
 use pixel_monster_survivor::gameplay::companions::Companion;
 use pixel_monster_survivor::gameplay::enemies::Enemy;
 use pixel_monster_survivor::gameplay::player::{MoveIntent, Player};
+use pixel_monster_survivor::gameplay::progression::Progression;
 use pixel_monster_survivor::gameplay::spawning::SpawnDirector;
+use pixel_monster_survivor::gameplay::upgrades::UpgradeStacks;
 use pixel_monster_survivor::world::ArenaBounds;
 use pixel_monster_survivor::world::obstacles::Obstacle;
 use pixel_monster_survivor::{headless_app, headless_app_with};
@@ -137,7 +142,10 @@ fn same_seed_same_simulation() {
         let mut enemies = enemy_positions(&mut app);
         enemies.sort_by(|a, b| a.x.total_cmp(&b.x).then(a.y.total_cmp(&b.y)));
         let stats = app.world().resource::<RunStats>().clone();
-        (player_position(&mut app), enemies, stats)
+        // anche livelli e carte scelte (draft con stream RNG proprio e scelta automatica)
+        let levels = app.world().resource::<Progression>().clone();
+        let stacks = app.world().resource::<UpgradeStacks>().clone();
+        (player_position(&mut app), enemies, stats, levels, stacks)
     };
     let first = simulate(42);
     assert!(
@@ -225,4 +233,27 @@ fn restart_rebuilds_a_clean_run_without_leftovers() {
     assert!(!app.world().resource::<Time<Virtual>>().is_paused());
     assert_eq!(run_census(&mut app), expected);
     assert_eq!(*app.world().resource::<RunStats>(), RunStats::default());
+}
+
+/// Come nel client: l'app parte in `Loading` senza `GameConfig` (i file arrivano in modo
+/// asincrono) e nessun sistema deve chiederla prima che esista (rilievo P0.4: il ricalcolo
+/// degli upgrade andava in panic all'avvio del gioco vero, mai in headless).
+#[test]
+fn the_app_waits_for_the_data_without_panicking_then_starts_the_run() {
+    let mut app = App::new();
+    app.add_plugins((MinimalPlugins, StatesPlugin))
+        .add_plugins(SimulationPlugin { seed: 1 })
+        .insert_resource(TimeUpdateStrategy::FixedTimesteps(1));
+    run_steps(&mut app, 10);
+    assert_eq!(
+        *app.world().resource::<State<AppState>>().get(),
+        AppState::Loading
+    );
+    app.insert_resource(GameConfig::embedded());
+    run_steps(&mut app, 3);
+    assert_eq!(
+        *app.world().resource::<State<AppState>>().get(),
+        AppState::InRun
+    );
+    assert_eq!(count::<Player>(&mut app), 1);
 }

@@ -255,8 +255,10 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
     r.non_negative(&at("obstacles.safe_radius"), s.obstacles.safe_radius);
     r.probability(&at("obstacles.tree_chance"), s.obstacles.tree_chance);
 
+    progression::check(&mut r, config);
     r.0
 }
 
+mod progression;
 #[cfg(test)]
 mod tests;

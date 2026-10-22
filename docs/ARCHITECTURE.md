@@ -14,7 +14,7 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 
 | Modulo | Contenuto | Richiede GPU |
 |---|---|---|
-| `app` | `AppState` (`Loading`, `InRun`), sottostato `RunPhase` (`Playing`, `Paused`), `RunSeed`, `restart_run`, `SimulationPlugin` | no |
+| `app` | `AppState` (`Loading`, `InRun`), sottostato `RunPhase` (`Playing`, `Paused`, `LevelUp`, `Defeated`), `RunSeed`, `restart_run`, `SimulationPlugin` | no |
 | `data` | schema dei file `game-data/*.ron`, `GameConfig` validata, `DataStatus`, `DataId`, copia incorporata per headless | no |
 | `data::loader` | sorgente `data://`, loader di testo, primo caricamento e ricarica a caldo | AssetServer (client) |
 | `options` | parsing CLI (`--seed`, `--autoplay`, `--overlay`, `--screenshot*`, `--exit-after`, `--window`, `--scale-factor`) | no |
@@ -29,7 +29,9 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `gameplay::companions` | `Companion`, scia dietro al player, attacco del compagno di fuoco | no |
 | `gameplay::attacks` | `AutoAttack`, carica e cadenza (`attack_tick`), scelta del bersaglio, raffiche | no |
 | `gameplay::combat` | `Health`, `Hurtbox`, `Projectile`, `HitFlash`, `RunStats`; volo dei proiettili, colpi, morti | no |
-| `gameplay::input` | tastiera → `MoveIntent`, Esc/P pausa, pausa su perdita focus | input (client) |
+| `gameplay::progression` | `XpGem`, `Attracted`, `PickupRadius`, `Progression` (livello, XP, livelli in attesa); gemme lasciate dai morti, limite con fusione, attrazione e raccolta | no |
+| `gameplay::upgrades` | `UpgradeStacks`, `Draft`, `ChooseUpgrade`, `AutoPick`; estrazione pesata, apertura del draft, scelta, ricalcolo a caldo, rigenerazione; `upgrades::modifiers`: `Modifiers` (dati base + stack), `pct_factor` | no |
+| `gameplay::input` | tastiera → `MoveIntent`, Esc/P pausa, pausa su perdita focus, 1/2/3 nel draft | input (client) |
 | `world` | costanti arena, `ArenaBounds` (`min`/`max` sui piedi), `inside_arena` (limite proiettili); `generation` (seed → tile, pura); `tiles` (indici); spawn degli ostacoli (`WorldSetup`) | no |
 | `world::view` | geometria della vista 480×270 e centro camera, condivisa da camera e spawn director | no |
 | `world::obstacles` | rocce/alberi dal seed (pura), `ObstacleField` con griglia spaziale 32 px, entità `Obstacle` | no |
@@ -37,7 +39,8 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `world::render` | `TilemapChunk` per chunk | sì |
 | `presentation::camera` | canvas 480×270, camera mondo/schermo, scala intera, offset mezzo pixel, follow | sì |
 | `presentation::sprites` | observer `On<Add<Player/Enemy>>` → `Sprite`; interpolazione + snap al pixel + y-sort | sì |
-| `presentation::hud` | promemoria comandi, banner pausa | sì |
+| `presentation::hud` | livello, HP, tempo, barra XP, promemoria comandi, banner pausa e sconfitta, errori dei dati | sì |
+| `presentation::draft` | schermata del draft: carte con rarità, testo e stack, evidenziate al passaggio, clic → `ChooseUpgrade` | sì |
 | `diagnostics` | overlay F3, screenshot F12/programmati, autoplay, uscita automatica | sì |
 
 ## Flusso di un frame
@@ -49,10 +52,20 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
    compagni, volo dei proiettili) → `SimSet::Resolve` (separazione, ostacoli, limiti arena,
    respinta dal player per ultima; la griglia viene ricostruita all'inizio) →
    `SimSet::Combat` (griglia ricostruita, spari, colpi, morti, scadenza proiettili, fine tinta) →
-   `SimSet::Damage` (danno da contatto al player dai nemici vivi) → `SimSet::Spawn` (spawn
-   director). Una morte è contata una sola volta: il despawn è applicato prima del passo
-   successivo e i colpi ignorano chi è a 0 HP. `RunPhase::Defeated` ferma tutto come la pausa.
-4. `PostUpdate` (prima di `TransformSystems::Propagate`): `SyncTransforms` scrive i
+   `SimSet::Damage` (danno da contatto al player dai nemici vivi) → `SimSet::Pickup` (gemme
+   attirate e raccolte, rigenerazione) → `SimSet::Spawn` (spawn director). Una morte è contata
+   una sola volta e lascia una sola gemma: `drop_xp_gems` gira tra i colpi e `resolve_deaths`,
+   che rimuove il morto nello stesso passo; i colpi ignorano chi è a 0 HP. Il passo fisso gira
+   solo con `simulation_running` (Playing, player vivo, nessun livello in attesa): il passo
+   della morte o del livello nuovo è l'ultimo anche col tempo accelerato.
+   `RunPhase::Paused`, `LevelUp` e `Defeated` fermano anche il tempo virtuale.
+4. `Update`: con livelli in attesa `open_draft` passa a `LevelUp`, dove `deal_draft` (in
+   `OnEnter`) estrae le carte, così una pausa nello stesso fotogramma non spreca estrazioni; la scelta
+   (tasti, clic o `AutoPick`) arriva come messaggio `ChooseUpgrade` (vale il primo del
+   fotogramma, gli altri sono scartati), aggiunge uno stack, apre il
+   draft successivo o torna a `Playing`; `refresh_modifiers` ricalcola attacchi e player dai
+   dati base più gli stack (solo in `InRun`: nel client la `GameConfig` arriva dopo l'avvio).
+5. `PostUpdate` (prima di `TransformSystems::Propagate`): `SyncTransforms` scrive i
    `Transform` interpolati e arrotondati; la camera mondo segue il player a pixel interi;
    il canvas si adatta alla finestra.
 
@@ -63,12 +76,13 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
   la scala di `n = floor(min(Wfis/480, Hfis/270))` con `ortho.scale = scale_factor / n`.
 - `ImagePlugin::default_nearest()` per tutte le texture. Ancora degli sprite in basso al centro
   con larghezza pari: i bordi cadono sulla griglia dei texel.
-- Profondità: suolo z=0, attori z = 10 − y·10⁻⁴, proiettili z = 20 − y·10⁻⁴ (`DepthBase`).
+- Profondità: suolo z=0, gemme z = 5 − y·10⁻⁴, attori z = 10 − y·10⁻⁴, proiettili
+  z = 20 − y·10⁻⁴ (`DepthBase`).
 
 ## Dati
 
 Tutti i valori di bilanciamento sono in `game-data/` (`player`, `companions`, `attacks`,
-`enemies`, `stages`, schema versione 1). Restano nel codice solo le costanti strutturali
+`enemies`, `stages`, `progression`, `upgrades`, schema versione 3). Restano nel codice solo le costanti strutturali
 (dimensioni dell'arena e dei tile, frequenza della simulazione, densità degli ostacoli).
 
 ```text
@@ -81,15 +95,19 @@ headless: GameConfig::embedded() (include_str! degli stessi file) → InRun dal 
 
 La validazione controlla anche vincoli fisici legati al codice: nessun corpo più largo del
 varco minimo tra ostacoli, nessun proiettile abbastanza veloce da attraversare un nemico tra
-due passi, anelli di spawn coerenti, riferimenti tra file esistenti.
+due passi, anelli di spawn coerenti, riferimenti tra file esistenti. Per gli upgrade gli stessi
+limiti valgono con tutti gli stack al massimo, più requisiti non circolari, primo draft mai
+vuoto e testi delle carte in ASCII (font provvisorio, D-033).
 
 ## Test
 
 - Unit test accanto al codice per funzioni pure (direzioni, inseguimento, separazione, RNG,
   generazione, scala canvas, opzioni).
 - `tests/sim/` è un solo eseguibile (D-027) con i moduli `movement` (movimento, limiti,
-  pausa, restart, valori dai dati), `combat` (compagno, danni, morti, cadenza, popolazione),
-  `world` (ostacoli, collisioni) e helper in `common`; tutti senza GPU.
-- `tests/sim/balance.rs`: sonda di bilanciamento `#[ignore]`, stampa statistiche di 60 s
-  (`cargo test --test sim balance -- --ignored --nocapture`).
+  pausa, restart, attesa dei dati come nel client), `combat` (compagno, danni, morti, cadenza),
+  `damage`, `spawning`, `progression` (gemme, livelli, draft, upgrade a caldo), `world`
+  (ostacoli, collisioni) e helper in `common`; tutti senza GPU. `headless_app` sceglie da sola
+  la prima carta del draft (`AutoPick`); `quiet_config` toglie le XP per misurare i valori base.
+- `tests/sim/balance.rs`: sonde `#[ignore]` (colpi, sopravvivenza con e senza upgrade, ritmo
+  dei livelli, costo per passo): `cargo test --test sim balance -- --ignored --nocapture`.
 - `scripts/check-pixel-grid.py` per la verifica nearest-neighbor su screenshot reali.

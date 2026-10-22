@@ -7,6 +7,7 @@ use super::collision::{Footprint, resolve_against_obstacles};
 use super::combat::Health;
 use super::damage::Invulnerability;
 use super::kinematics::{Position, body};
+use super::progression::PickupRadius;
 use crate::app::AppState;
 use crate::data::GameConfig;
 use crate::world::ArenaBounds;
@@ -52,6 +53,7 @@ fn spawn_player(mut commands: Commands, config: Res<GameConfig>) {
             duration: data.invulnerability_s,
         },
         Footprint(data.footprint_radius),
+        PickupRadius(data.pickup_radius),
         body(PLAYER_SPAWN),
         DespawnOnExit(AppState::InRun),
     ));

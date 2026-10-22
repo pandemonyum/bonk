@@ -4,17 +4,17 @@
 use super::super::GameConfig;
 use super::*;
 
-fn embedded() -> GameConfig {
+pub(super) fn embedded() -> GameConfig {
     GameConfig::embedded()
 }
 
-fn errors_after(change: impl FnOnce(&mut GameConfig)) -> Vec<String> {
+pub(super) fn errors_after(change: impl FnOnce(&mut GameConfig)) -> Vec<String> {
     let mut config = embedded();
     change(&mut config);
     validate(&config)
 }
 
-fn assert_error(change: impl FnOnce(&mut GameConfig), expected: &str) {
+pub(super) fn assert_error(change: impl FnOnce(&mut GameConfig), expected: &str) {
     let errors = errors_after(change);
     assert!(
         errors.iter().any(|e| e.contains(expected)),

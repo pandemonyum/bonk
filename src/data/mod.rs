@@ -13,12 +13,14 @@ use bevy::prelude::*;
 use schema::*;
 
 /// File di `game-data/`, nell'ordine dei campi di [`DataSources`].
-pub const DATA_FILES: [&str; 5] = [
+pub const DATA_FILES: [&str; 7] = [
     "player.ron",
     "companions.ron",
     "attacks.ron",
     "enemies.ron",
     "stages.ron",
+    "progression.ron",
+    "upgrades.ron",
 ];
 
 /// Testo grezzo dei file di dati.
@@ -29,6 +31,45 @@ pub struct DataSources<'a> {
     pub attacks: &'a str,
     pub enemies: &'a str,
     pub stages: &'a str,
+    pub progression: &'a str,
+    pub upgrades: &'a str,
+}
+
+impl<'a> DataSources<'a> {
+    /// Dai testi nell'ordine di [`DATA_FILES`].
+    pub fn from_files(texts: [&'a str; DATA_FILES.len()]) -> Self {
+        let [
+            player,
+            companions,
+            attacks,
+            enemies,
+            stages,
+            progression,
+            upgrades,
+        ] = texts;
+        Self {
+            player,
+            companions,
+            attacks,
+            enemies,
+            stages,
+            progression,
+            upgrades,
+        }
+    }
+
+    /// I testi nell'ordine di [`DATA_FILES`].
+    pub fn files(&self) -> [&'a str; DATA_FILES.len()] {
+        [
+            self.player,
+            self.companions,
+            self.attacks,
+            self.enemies,
+            self.stages,
+            self.progression,
+            self.upgrades,
+        ]
+    }
 }
 
 /// Copia dei file incorporata nel binario: per test e simulazioni headless.
@@ -38,6 +79,8 @@ pub const EMBEDDED: DataSources<'static> = DataSources {
     attacks: include_str!("../../game-data/attacks.ron"),
     enemies: include_str!("../../game-data/enemies.ron"),
     stages: include_str!("../../game-data/stages.ron"),
+    progression: include_str!("../../game-data/progression.ron"),
+    upgrades: include_str!("../../game-data/upgrades.ron"),
 };
 
 /// Identificativo nei dati (es. `"blob"`, `"ember"`, `"ember_bolt"`) di un'entità di gioco:
@@ -64,6 +107,8 @@ pub struct GameConfig {
     pub enemies: Vec<EnemyData>,
     /// Lo stage giocato: il primo di `stages.ron`.
     pub stage: StageData,
+    pub progression: ProgressionFile,
+    pub upgrades: Vec<UpgradeData>,
 }
 
 impl GameConfig {
@@ -76,8 +121,26 @@ impl GameConfig {
         let attacks = parse_file::<AttacksFile>("attacks.ron", sources.attacks, &mut errors);
         let enemies = parse_file::<EnemiesFile>("enemies.ron", sources.enemies, &mut errors);
         let stages = parse_file::<StagesFile>("stages.ron", sources.stages, &mut errors);
-        let (Some(player), Some(companions), Some(attacks), Some(enemies), Some(stages)) =
-            (player, companions, attacks, enemies, stages)
+        let progression =
+            parse_file::<ProgressionFile>("progression.ron", sources.progression, &mut errors);
+        let upgrades = parse_file::<UpgradesFile>("upgrades.ron", sources.upgrades, &mut errors);
+        let (
+            Some(player),
+            Some(companions),
+            Some(attacks),
+            Some(enemies),
+            Some(stages),
+            Some(progression),
+            Some(upgrades),
+        ) = (
+            player,
+            companions,
+            attacks,
+            enemies,
+            stages,
+            progression,
+            upgrades,
+        )
         else {
             return Err(errors);
         };
@@ -88,6 +151,8 @@ impl GameConfig {
             ("attacks.ron", attacks.version),
             ("enemies.ron", enemies.version),
             ("stages.ron", stages.version),
+            ("progression.ron", progression.version),
+            ("upgrades.ron", upgrades.version),
         ] {
             if version != SCHEMA_VERSION {
                 errors.push(format!(
@@ -105,6 +170,8 @@ impl GameConfig {
             attacks: attacks.attacks,
             enemies: enemies.enemies,
             stage,
+            progression,
+            upgrades: upgrades.upgrades,
         };
         errors.extend(validate::validate(&config));
         if errors.is_empty() {
@@ -132,6 +199,10 @@ impl GameConfig {
 
     pub fn enemy(&self, id: &str) -> Option<&EnemyData> {
         self.enemies.iter().find(|e| e.id == id)
+    }
+
+    pub fn upgrade(&self, id: &str) -> Option<&UpgradeData> {
+        self.upgrades.iter().find(|u| u.id == id)
     }
 
     /// Compagno iniziale dello stage (esiste: verificato dalla validazione).

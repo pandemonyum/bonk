@@ -34,7 +34,8 @@ Opzioni CLI del gioco: `--seed <u64>`, `--autoplay`, `--overlay`, `--screenshot 
 `--screenshot-after <s>`, `--screenshot-burst <n>`, `--exit-after <s>`, `--window <LxA>`,
 `--scale-factor <f>`, `--god`, `--time-scale <f>`, `--watch`/`--no-watch`
 (`cargo run -- --help`). Tasti: WASD/frecce movimento, Esc/P pausa, F5 ricomincia (Invio da
-sconfitti), F3 overlay debug, F12 screenshot in `screenshots/`. Verifica nearest-neighbor su
+sconfitti), 1/2/3 o clic per la carta del draft, F3 overlay debug, F12 screenshot in
+`screenshots/`. Verifica nearest-neighbor su
 uno screenshot: `python scripts/check-pixel-grid.py <png>` (finestra con bande nere, senza overlay).
 
 ## Ownership dei file (nessuna sovrapposizione)

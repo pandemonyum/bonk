@@ -9,27 +9,33 @@ pub mod enemies;
 pub mod input;
 pub mod kinematics;
 pub mod player;
+pub mod progression;
 pub mod run;
 pub mod spatial;
 pub mod spawning;
+pub mod upgrades;
 
 use bevy::prelude::*;
 
 use crate::app::RunPhase;
 use combat::Health;
 use player::Player;
+use progression::Progression;
 
 /// Frequenza della logica di gioco.
 pub const SIM_HZ: f64 = 60.0;
 
-/// La simulazione avanza: run in corso, non in pausa, player vivo. Il passo in cui il player
-/// muore è l'ultimo anche se il fotogramma ne prevede altri (tempo accelerato): orologio,
-/// colpi e spawn si fermano lì, e le statistiche della sconfitta non dipendono dagli FPS.
+/// La simulazione avanza: run in corso, non in pausa, player vivo, nessun livello in attesa
+/// del draft. Il passo in cui il player muore o sale di livello è l'ultimo anche se il
+/// fotogramma ne prevede altri (tempo accelerato): orologio, colpi e spawn si fermano lì, e
+/// sconfitta e draft non dipendono dagli FPS.
 pub fn simulation_running(
     phase: Option<Res<State<RunPhase>>>,
+    progression: Option<Res<Progression>>,
     player: Query<&Health, With<Player>>,
 ) -> bool {
     phase.is_some_and(|phase| *phase.get() == RunPhase::Playing)
+        && progression.is_none_or(|p| p.pending_levels == 0)
         && player.iter().all(|health| !health.is_dead())
 }
 
@@ -47,6 +53,8 @@ pub enum SimSet {
     Combat,
     /// Danni al player dai nemici rimasti vivi dopo il combattimento.
     Damage,
+    /// Gemme XP attirate e raccolte, rigenerazione.
+    Pickup,
     /// Nuovi nemici dello spawn director.
     Spawn,
 }
@@ -64,6 +72,7 @@ impl Plugin for GameplayPlugin {
                     SimSet::Resolve,
                     SimSet::Combat,
                     SimSet::Damage,
+                    SimSet::Pickup,
                     SimSet::Spawn,
                 )
                     .chain()
@@ -79,6 +88,8 @@ impl Plugin for GameplayPlugin {
                 spawning::SpawningPlugin,
                 combat::CombatPlugin,
                 damage::DamagePlugin,
+                progression::ProgressionPlugin,
+                upgrades::UpgradesPlugin,
             ));
     }
 }

@@ -2,7 +2,7 @@
 // gelatina = base, sciame = veloce e fragile, corazzato = lento e resistente.
 // Élite e boss arrivano con la P0.6.
 (
-    version: 2,
+    version: 3,
     enemies: [
         (
             id: "blob",
@@ -21,6 +21,7 @@
             // distanza minima tra due nemici
             separation_radius: 14.0,
             contact_damage: 3.0,
+            xp: 1,
         ),
         (
             id: "swarm",
@@ -35,6 +36,7 @@
             contact_distance: 8.0,
             separation_radius: 10.0,
             contact_damage: 2.0,
+            xp: 1,
         ),
         (
             id: "armored",
@@ -48,6 +50,8 @@
             contact_distance: 13.0,
             separation_radius: 18.0,
             contact_damage: 6.0,
+            // vale la fatica: 10 colpi
+            xp: 6,
         ),
     ],
 )

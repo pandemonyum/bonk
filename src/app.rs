@@ -23,6 +23,8 @@ pub enum RunPhase {
     #[default]
     Playing,
     Paused,
+    /// Draft delle carte dopo un livello nuovo: tempo fermo finché non si sceglie.
+    LevelUp,
     /// Il player è a 0 HP: la run è ferma finché non si ricomincia (schermata risultati
     /// completa e vittoria con la P0.6).
     Defeated,
@@ -49,11 +51,13 @@ impl Plugin for SimulationPlugin {
                 Update,
                 start_run_when_ready.run_if(in_state(AppState::Loading)),
             )
-            // In pausa e da sconfitti si ferma il tempo virtuale: il passo fisso non avanza e
+            // In pausa, nel draft e da sconfitti si ferma il tempo virtuale: il passo fisso non avanza e
             // l'interpolazione del rendering resta ferma (senza, gli sprite tremerebbero di un
             // pixel tra le ultime due posizioni dietro la schermata).
             .add_systems(OnEnter(RunPhase::Paused), pause_time)
             .add_systems(OnExit(RunPhase::Paused), resume_time)
+            .add_systems(OnEnter(RunPhase::LevelUp), pause_time)
+            .add_systems(OnExit(RunPhase::LevelUp), resume_time)
             .add_systems(OnEnter(RunPhase::Defeated), pause_time)
             .add_systems(OnExit(RunPhase::Defeated), resume_time);
     }

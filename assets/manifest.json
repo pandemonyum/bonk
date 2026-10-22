@@ -90,6 +90,17 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/xp_gem.png",
+      "kind": "sprite",
+      "size": [
+        6,
+        8
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/xp_gem.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "tiles/meadow_tileset.png",
       "kind": "tileset",
       "size": [

@@ -1,10 +1,11 @@
 //! Comandi del giocatore (solo client): tastiera → `MoveIntent`, pausa, pausa su perdita
-//! focus, F5 per ricominciare la run.
+//! focus, F5 per ricominciare la run, tasti 1/2/3 nel draft.
 
 use bevy::prelude::*;
 use bevy::window::WindowFocused;
 
 use super::player::{MoveIntent, direction_from_keys};
+use super::upgrades::ChooseUpgrade;
 use crate::LaunchOptions;
 use crate::app::{AppState, RunPhase, restart_run};
 
@@ -19,6 +20,7 @@ impl Plugin for PlayerControlsPlugin {
                 toggle_pause,
                 restart_on_f5.run_if(in_state(AppState::InRun)),
                 pause_on_focus_lost.run_if(not(autoplay_enabled)),
+                choose_card_with_keys.run_if(in_state(RunPhase::LevelUp)),
             ),
         );
     }
@@ -61,8 +63,24 @@ fn toggle_pause(
         match phase.get() {
             RunPhase::Playing => next.set(RunPhase::Paused),
             RunPhase::Paused => next.set(RunPhase::Playing),
-            RunPhase::Defeated => {} // da sconfitti si può solo ricominciare
+            // nel draft si sceglie una carta; da sconfitti si può solo ricominciare
+            RunPhase::LevelUp | RunPhase::Defeated => {}
         }
+    }
+}
+
+/// Nel draft: 1, 2, 3 (anche dal tastierino) scelgono la carta in quella posizione.
+fn choose_card_with_keys(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut choose: MessageWriter<ChooseUpgrade>,
+) {
+    const KEYS: [[KeyCode; 2]; 3] = [
+        [KeyCode::Digit1, KeyCode::Numpad1],
+        [KeyCode::Digit2, KeyCode::Numpad2],
+        [KeyCode::Digit3, KeyCode::Numpad3],
+    ];
+    if let Some(slot) = KEYS.iter().position(|pair| keys.any_just_pressed(*pair)) {
+        choose.write(ChooseUpgrade(slot));
     }
 }
 

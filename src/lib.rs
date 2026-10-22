@@ -21,6 +21,7 @@ use bevy::window::WindowResolution;
 use app::AppState;
 use data::{DataStatus, GameConfig};
 use gameplay::damage::GodMode;
+use gameplay::upgrades::AutoPick;
 pub use options::LaunchOptions;
 
 /// App completa per desktop e web. I dati arrivano da `game-data/` tramite l'AssetServer.
@@ -57,6 +58,12 @@ pub fn client_app(options: LaunchOptions) -> App {
         diagnostics::DiagnosticsPlugin,
     ))
     .insert_resource(GodMode(options.god));
+    if options.autoplay {
+        // il draft resta a schermo un attimo: si vede negli screenshot e a occhio
+        app.insert_resource(AutoPick {
+            delay_secs: AUTOPLAY_PICK_DELAY_SECS,
+        });
+    }
     let time_scale = options.time_scale;
     app.add_systems(Startup, move |mut time: ResMut<Time<Virtual>>| {
         time.set_relative_speed(time_scale);
@@ -65,9 +72,13 @@ pub fn client_app(options: LaunchOptions) -> App {
     app
 }
 
+/// Secondi reali per cui l'autoplay lascia aperto il draft prima di scegliere la prima carta.
+pub const AUTOPLAY_PICK_DELAY_SECS: f32 = 0.6;
+
 /// Simulazione senza finestra né GPU, per test e benchmark, con i dati incorporati di
 /// `game-data/`. Ogni `app.update()` esegue esattamente un passo fisso da 1/60 s e la run
-/// esiste già dopo il primo.
+/// esiste già dopo il primo. Nel draft viene scelta subito la prima carta ([`AutoPick`]):
+/// i test del draft tolgono la risorsa per scegliere da sé.
 pub fn headless_app(seed: u64) -> App {
     headless_app_with(seed, GameConfig::embedded())
 }
@@ -80,6 +91,7 @@ pub fn headless_app_with(seed: u64, config: GameConfig) -> App {
         .insert_state(AppState::InRun)
         .insert_resource(config)
         .insert_resource(DataStatus::Ready)
-        .insert_resource(TimeUpdateStrategy::FixedTimesteps(1));
+        .insert_resource(TimeUpdateStrategy::FixedTimesteps(1))
+        .insert_resource(AutoPick { delay_secs: 0.0 });
     app
 }

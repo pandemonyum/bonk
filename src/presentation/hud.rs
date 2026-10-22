@@ -1,5 +1,5 @@
-//! HUD minimo: HP e tempo, promemoria comandi, pausa, sconfitta, stato dei dati (caricamento
-//! ed errori). L'HUD di gioco completo (barre, compagni, abilità, XP) arriva con la P0.7.
+//! HUD minimo: livello, HP e tempo, barra XP, promemoria comandi, pausa, sconfitta, stato dei
+//! dati (caricamento ed errori). L'HUD di gioco completo (compagni, abilità) arriva con la P0.7.
 
 use bevy::prelude::*;
 
@@ -7,6 +7,7 @@ use crate::app::RunPhase;
 use crate::data::DataStatus;
 use crate::gameplay::combat::{Health, RunStats};
 use crate::gameplay::player::Player;
+use crate::gameplay::progression::Progression;
 use crate::gameplay::run::RunClock;
 
 const HINT: &str = "WASD/frecce muovi   Esc pausa   F5 ricomincia   F3 debug   F12 screenshot";
@@ -17,29 +18,84 @@ struct DataStatusPanel;
 #[derive(Component)]
 struct VitalsText;
 
+/// Parte piena della barra XP.
+#[derive(Component)]
+struct XpFill;
+
+/// Altezza della barra XP sul bordo superiore della finestra.
+const XP_BAR_HEIGHT: f32 = 5.0;
+/// Blu delle gemme (`u` della palette): la barra si legge come "esperienza".
+const XP_BLUE: Color = Color::srgb_u8(0x4f, 0xa4, 0xe0);
+
 pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (spawn_hint, spawn_vitals, spawn_data_status_panel))
-            .add_systems(OnEnter(RunPhase::Paused), spawn_pause_banner)
-            .add_systems(OnEnter(RunPhase::Defeated), spawn_defeat_banner)
-            .add_systems(
-                Update,
-                (
-                    show_vitals,
-                    show_data_status.run_if(resource_changed::<DataStatus>),
-                ),
-            );
+        app.add_systems(
+            Startup,
+            (
+                spawn_hint,
+                spawn_xp_bar,
+                spawn_vitals,
+                spawn_data_status_panel,
+            ),
+        )
+        .add_systems(OnEnter(RunPhase::Paused), spawn_pause_banner)
+        .add_systems(OnEnter(RunPhase::Defeated), spawn_defeat_banner)
+        .add_systems(
+            Update,
+            (
+                show_vitals,
+                show_xp.run_if(resource_changed::<Progression>),
+                show_data_status.run_if(resource_changed::<DataStatus>),
+            ),
+        );
     }
 }
 
-/// Riga in alto a sinistra: "HP 85/100   02:31   sconfitti 57".
-pub fn vitals_text(health: Option<&Health>, clock: &RunClock, stats: &RunStats) -> String {
+/// Riga in alto a sinistra: "Lv 3   HP 85/100   02:31   sconfitti 57".
+pub fn vitals_text(
+    level: u32,
+    health: Option<&Health>,
+    clock: &RunClock,
+    stats: &RunStats,
+) -> String {
     let hp = health.map_or("-".to_string(), |h| {
         format!("{:.0}/{:.0}", h.current.max(0.0), h.max)
     });
-    format!("HP {hp}   {}   sconfitti {}", clock.label(), stats.defeated)
+    format!(
+        "Lv {level}   HP {hp}   {}   sconfitti {}",
+        clock.label(),
+        stats.defeated
+    )
+}
+
+fn spawn_xp_bar(mut commands: Commands) {
+    commands.spawn((
+        Name::new("XpBar"),
+        Node {
+            position_type: PositionType::Absolute,
+            top: px(0),
+            left: px(0),
+            width: percent(100),
+            height: px(XP_BAR_HEIGHT),
+            ..default()
+        },
+        BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6)),
+        children![(
+            XpFill,
+            Node {
+                width: percent(0),
+                height: percent(100),
+                ..default()
+            },
+            BackgroundColor(XP_BLUE),
+        )],
+    ));
+}
+
+fn show_xp(progression: Res<Progression>, mut fill: Single<&mut Node, With<XpFill>>) {
+    fill.width = percent(100.0 * progression.fraction().clamp(0.0, 1.0));
 }
 
 fn spawn_vitals(mut commands: Commands) {
@@ -52,7 +108,7 @@ fn spawn_vitals(mut commands: Commands) {
         BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.45)),
         Node {
             position_type: PositionType::Absolute,
-            top: px(6),
+            top: px(XP_BAR_HEIGHT + 4.0),
             left: px(8),
             padding: UiRect::axes(px(6), px(2)),
             ..default()
@@ -63,16 +119,22 @@ fn spawn_vitals(mut commands: Commands) {
 fn show_vitals(
     clock: Res<RunClock>,
     stats: Res<RunStats>,
+    progression: Res<Progression>,
     player: Query<&Health, With<Player>>,
     mut text: Single<&mut Text, With<VitalsText>>,
 ) {
-    let line = vitals_text(player.single().ok(), &clock, &stats);
+    let line = vitals_text(progression.level, player.single().ok(), &clock, &stats);
     if text.0 != line {
         text.0 = line;
     }
 }
 
-fn spawn_defeat_banner(mut commands: Commands, clock: Res<RunClock>, stats: Res<RunStats>) {
+fn spawn_defeat_banner(
+    mut commands: Commands,
+    clock: Res<RunClock>,
+    stats: Res<RunStats>,
+    progression: Res<Progression>,
+) {
     commands.spawn((
         Name::new("DefeatBanner"),
         Node {
@@ -94,8 +156,9 @@ fn spawn_defeat_banner(mut commands: Commands, clock: Res<RunClock>, stats: Res<
             ),
             (
                 Text::new(format!(
-                    "Resistito {}   Nemici sconfitti {}",
+                    "Resistito {}   Livello {}   Nemici sconfitti {}",
                     clock.label(),
+                    progression.level,
                     stats.defeated
                 )),
                 TextFont::from_font_size(16.0),
@@ -213,15 +276,15 @@ mod tests {
         };
         let clock = RunClock { elapsed: 151.0 };
         assert_eq!(
-            vitals_text(Some(&health), &clock, &stats),
-            "HP 85/100   02:31   sconfitti 57"
+            vitals_text(3, Some(&health), &clock, &stats),
+            "Lv 3   HP 85/100   02:31   sconfitti 57"
         );
         let dead = Health {
             current: -7.0,
             max: 100.0,
         };
-        assert!(vitals_text(Some(&dead), &clock, &stats).starts_with("HP 0/100"));
-        assert!(vitals_text(None, &clock, &stats).starts_with("HP -"));
+        assert!(vitals_text(1, Some(&dead), &clock, &stats).contains("HP 0/100"));
+        assert!(vitals_text(1, None, &clock, &stats).contains("HP -"));
     }
 
     #[test]

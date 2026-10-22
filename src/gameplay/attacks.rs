@@ -17,6 +17,9 @@ use crate::data::schema::AttackData;
 const CHARGE_EPSILON: f32 = 1.0e-4;
 /// Durata di un passo fisso.
 const STEP: f32 = 1.0 / SIM_HZ as f32;
+/// Proiettili al massimo per raffica, upgrade compresi (validato nei dati): oltre, un refuso
+/// creerebbe migliaia di entità per colpo.
+pub const MAX_PROJECTILES: u32 = 32;
 
 /// Un passo di un attacco automatico. `charge` è il tempo accumulato dall'ultimo colpo;
 /// restituisce `(nuova carica, spara)`.

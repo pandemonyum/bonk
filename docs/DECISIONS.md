@@ -162,6 +162,47 @@ separazione e prima del combattimento (posizioni aggiornate per mira e colpi): O
 misurato 0,45–0,62 ms per passo completo con 50–500 nemici in build dev. Separazione in stile
 Jacobi (tutte le spinte calcolate sulla stessa fotografia) per non dipendere dall'ordine di visita.
 
+## D-031 XP intera, gemme attirate per sempre, limite con fusione
+XP e soglie sono interi (la curva `base + per_level × (n − 1)` si arrotonda per eccesso): l'HUD
+mostra numeri esatti e i test confrontano senza tolleranze. Una gemma entrata nel raggio di
+raccolta resta attirata finché non arriva, a una velocità che la validazione vuole più alta di
+quella massima del player (con tutti gli upgrade). Oltre `max_on_field` l'XP di un nemico va alla
+gemma più vicina, già a terra o nata nello stesso passo: nessuna XP persa, al massimo 300
+entità. Le gemme nascono nella catena del combattimento tra i colpi e la rimozione dei morti,
+quindi una per nemico; la raccolta gira in `SimSet::Pickup`, dopo i danni e prima dello spawn.
+
+## D-032 Draft come fase della run, upgrade ricalcolati dai dati base
+`RunPhase::LevelUp` ferma il tempo virtuale come la pausa; `simulation_running` richiede anche
+nessun livello in attesa, così il passo del livello nuovo è l'ultimo anche col tempo accelerato
+(stessa regola della sconfitta, D-029). Carte estratte senza ripetizione, pesate per rarità, con
+uno stream RNG dedicato (2): stesso seed e stesse scelte = stesso draft. A ogni scelta attacchi e
+player si ricalcolano da dati base + stack (nessun errore che si accumula; restart e ricarica dei
+dati ripartono puliti); la carica degli attacchi resta, la durata dei proiettili segue gittata e
+velocità perché la portata resti almeno la gittata. Gli stack sono indicizzati come
+`GameConfig::upgrades`: la configurazione non cambia durante una run (una ricarica la fa
+ripartire). Le carte si estraggono entrando in `LevelUp` (`OnEnter`), non quando il draft viene
+chiesto: se nello stesso fotogramma vince una pausa nessuna estrazione va persa (rilievo del code
+review). Vale la prima scelta del fotogramma, le altre sono scartate. Scelta automatica della
+prima carta (`AutoPick`): subito in headless, perché test e
+simulazioni lunghe non si fermino al primo livello (i test del draft la tolgono); dopo 0,6 s
+reali con `--autoplay`, così il draft si vede. Senza upgrade disponibili il livello passa senza
+draft.
+
+## D-033 Testi delle carte solo in ASCII finché non c'è un font
+Il FiraMono ridotto incluso in Bevy (D-013) non ha le lettere accentate: nella prima prova del
+draft "più" usciva come "pi" seguito da un quadratino. I testi di `upgrades.ron` sono stati
+riformulati e la validazione rifiuta caratteri non ASCII con un messaggio che lo spiega. Da
+togliere quando in P0.7/P2 si sceglie un font (pixel OFL o bitmap originale) con le accentate.
+
+## D-034 Limiti degli upgrade sommati per segno, tetti strutturali
+La validazione somma le carte con lo stesso effetto, separando quelle che tolgono (il valore più
+basso raggiungibile deve restare positivo: niente intervallo 0 con 60 raffiche al secondo) da
+quelle che aggiungono (il valore più alto deve rispettare i limiti fisici). Sommare tutto
+insieme faceva compensare una carta +50% con una −30%. Tetti nel codice, controllati sui dati:
+3 carte per draft (tasti 1-3, larghezza dello schermo), 32 proiettili per raffica, 1000 XP per
+nemico; perforazione e XP usano somme saturanti (`pierce` enorme resta "infinito"). I compagni
+devono stare dietro al player anche alla sua velocità massima.
+
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale
 come seconda build separata dopo la P1.

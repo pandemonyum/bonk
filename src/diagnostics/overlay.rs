@@ -1,4 +1,4 @@
-//! Overlay di debug (F3): FPS, frame-time, nemici ed entità attive, seed, fase della run.
+//! Overlay di debug (F3): FPS, frame-time, nemici, gemme ed entità attive, XP, seed, fase.
 
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
@@ -10,6 +10,7 @@ use crate::gameplay::combat::{Projectile, RunStats};
 use crate::gameplay::enemies::Enemy;
 use crate::gameplay::kinematics::Position;
 use crate::gameplay::player::Player;
+use crate::gameplay::progression::{Progression, XpGem};
 
 /// Aggiornamento del testo 4 volte al secondo: leggibile e senza costo per frame.
 const REFRESH_SECS: f32 = 0.25;
@@ -67,6 +68,8 @@ fn refresh_overlay(
     stats: Res<RunStats>,
     enemies: Query<&DataId, With<Enemy>>,
     projectiles: Query<(), With<Projectile>>,
+    gems: Query<(), With<XpGem>>,
+    progression: Res<Progression>,
     entities: Query<()>,
     player: Query<&Position, With<Player>>,
     config: Option<Res<GameConfig>>,
@@ -102,7 +105,8 @@ fn refresh_overlay(
     });
     text.0 = format!(
         "FPS {:.0}  frame {:.2} ms\nnemici {}  proiettili {}  entita {}\n{by_kind}\n\
-         sconfitti {}  sparati {}  danni subiti {:.0}\nplayer {}  fase {}\nseed {}",
+         sconfitti {}  sparati {}  danni subiti {:.0}\ngemme {}  XP {}/{}  totale {}\n\
+         player {}  fase {}\nseed {}",
         smoothed(&FrameTimeDiagnosticsPlugin::FPS),
         smoothed(&FrameTimeDiagnosticsPlugin::FRAME_TIME),
         enemies.iter().count(),
@@ -111,6 +115,10 @@ fn refresh_overlay(
         stats.defeated,
         stats.projectiles_fired,
         stats.damage_taken,
+        gems.iter().count(),
+        progression.xp,
+        progression.xp_to_next,
+        progression.total_xp,
         player,
         phase,
         seed.0,

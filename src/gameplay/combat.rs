@@ -10,6 +10,7 @@ use super::SimSet;
 use super::attacks::fire_auto_attacks;
 use super::enemies::Enemy;
 use super::kinematics::Position;
+use super::progression::drop_xp_gems;
 use super::spatial::EnemyGrid;
 use crate::app::AppState;
 use crate::world::inside_arena;
@@ -92,6 +93,7 @@ impl Plugin for CombatPlugin {
                 (
                     fire_auto_attacks,
                     projectile_hits,
+                    drop_xp_gems,
                     resolve_deaths,
                     expire_projectiles,
                     fade_hit_flash,

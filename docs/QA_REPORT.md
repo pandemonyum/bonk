@@ -1,5 +1,64 @@
 # QA REPORT
 
+## 2026-10-22 — P0.4 (gemme XP, livelli, draft, upgrade a caldo)
+
+### Automatici
+
+| Controllo | Esito |
+|---|---|
+| `./scripts/check.ps1` | OK: 158 test (105 unitari + 53 integrazione) + 4 sonde ignorate, 10 PNG, 7 sprite citati dai dati |
+| Sonda livelli (5 seed, prima carta automatica) | primo level-up con l'autoplay 0:30–0:41; da fermi morte a 0:13 al livello 1 |
+| Sonda livelli con player invulnerabile (10 min) | livello 5 a ~2:20, livello 10 a 4:39–5:56, finale 14–25 |
+| Sonda sopravvivenza con upgrade (autoplay) | 1:08–1:24, livello 2–3 (senza upgrade 1:06–1:16) |
+
+Controprove (regola rotta apposta → test che falliscono, poi ripristino e verde):
+
+| Regola rotta | Test che falliscono |
+|---|---|
+| il passo del livello non ferma la simulazione | `the_level_up_step_is_the_last_one_even_with_accelerated_time` |
+| `+1 proiettile` ignorato nel ricalcolo | `the_multishot_upgrade_fires_one_more_projectile_per_attack` |
+| nessun limite alle gemme a terra | `beyond_the_cap_new_xp_merges_into_gems_on_the_field` |
+| `refresh_modifiers` anche in `Loading` (panic del gioco vero) | `the_app_waits_for_the_data_without_panicking_then_starts_the_run` |
+| validazione carta per carta / somme che si compensano | `cards_with_the_same_effect_add_up`, `negative_cards_do_not_hide_the_upper_limits` |
+| un solo messaggio letto per fotogramma | `extra_choices_in_the_same_frame_are_dropped` |
+| carte estratte alla richiesta del draft | `a_pause_on_the_level_up_frame_does_not_change_the_cards` |
+| attrazione che non dura | `an_attracted_gem_keeps_chasing_a_player_who_leaves_the_radius` |
+
+### Prove sul gioco reale
+
+| Prova | Osservato | Prova |
+|---|---|---|
+| Player fermo, `--god --time-scale 3`, input reale | draft al livello 2, tasto 2 sceglie la seconda carta, livello 3 dopo | log `upgrade scelto: ember_speed` |
+| Mouse reale sulle carte | carta evidenziata al passaggio, clic sulla prima e sulla terza scelgono quelle | `docs/evidence/p04-draft.png` |
+| `--autoplay --god --time-scale 4 --overlay` | livello 4 a 2:00, barra XP e conteggio gemme, draft aperto 0,6 s poi scelta automatica | `docs/evidence/p04-hud-xp-autoplay.png` |
+
+Problemi trovati provando il gioco vero (invisibili in headless):
+- panic all'avvio: `refresh_modifiers` chiedeva la `GameConfig` in `Loading`; corretto e coperto
+  da un test che simula l'attesa asincrona dei dati;
+- "più" disegnato come "pi" + quadratino: il font provvisorio non ha le accentate; testi
+  riformulati e validazione ASCII (D-033).
+
+### Code review P0.4
+
+Verdetto CHANGES REQUESTED, nessun bloccante:
+
+| # | Rilievo | Correzione | Verifica |
+|---|---|---|---|
+| 1 | Validazione carta per carta: due carte di cadenza valide da sole portavano l'intervallo a 0 (60 raffiche/s); positive e negative si compensavano | somme separate per segno, fattore minimo > 0 e limiti fisici sul massimo; HP massimi cumulati (D-034) | 2 test nuovi, falliscono con la vecchia logica |
+| 2 | Overflow di `pierce`/`projectiles` (`pierce` "infinito" + carta = panic in dev); raffiche illimitate | somme saturanti; massimo 32 proiettili per raffica | test di validazione |
+| 3 | `draft_size` oltre 3 senza tasto né spazio a schermo | validato da 1 a 3 | test di validazione |
+| 4 | Due scelte nello stesso fotogramma: la seconda finiva nel draft successivo | vale la prima, le altre scartate | test nuovo con controprova |
+| 5 | XP dei nemici senza limite (overflow, ciclo da 1e9 livelli) | massimo 1000 XP per nemico, somme saturanti | test di validazione |
+| 6 | Test della gemma attirata vacuo | il player esce dal raggio dopo l'aggancio | controprova |
+| 7 | Valori di gioco nei test (slot 1, 2 XP, 60 px, livello 3 dopo 90 s) | slot, distanze e XP ricavati dai dati; livelli iniziali dati da una gemma | gate verde |
+| 8 | `tests/sim/progression.rs` oltre 400 righe; gemma assente da `ASSET_LICENSES.md` | diviso in `progression.rs` e `upgrades.rs`; voce aggiunta; `Modifiers` in `upgrades/modifiers.rs` | tutti i file sotto 400 righe |
+| 9 | `MaxHp(inf)` accettato; compagno più lento del player al massimo; prerequisito con peso 0; a capo vietato | valori finiti; `follow.max_speed` ≥ velocità massima; requisiti mai proposti segnalati; a capo ammesso | test di validazione |
+| 10 | Test mancanti | morte e livello nello stesso passo, restart dal draft, draft vuoto, stesso seed con livelli e carte | 4 test nuovi + confronto esteso |
+| P1 | Pausa nel fotogramma del livello: carte estratte di nuovo alla ripresa | estrazione in `OnEnter(LevelUp)` | test nuovo con controprova |
+| P2 | Ricarica dei dati con il draft aperto: indici vecchi sulla lista nuova | `get` invece dell'indice diretto | codice |
+| P3 | `Modifiers` della run precedente nei primi passi | azzerati in `reset_upgrades` | codice |
+| P4 | Compagni aggiunti a metà run senza modificatori | annotato nella P0.5 del backlog | — |
+
 ## 2026-10-22 — P0.3 (spawn director, danni al player, griglia spaziale)
 
 ### Automatici

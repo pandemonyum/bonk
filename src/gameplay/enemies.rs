@@ -23,6 +23,8 @@ pub struct Enemy {
     /// Distanza minima da un altro nemico.
     pub separation_radius: f32,
     pub contact_damage: f32,
+    /// XP della gemma lasciata alla morte (0 = nessuna gemma).
+    pub xp: u32,
 }
 
 /// Correzioni dei nemici in `SimSet::Resolve`, in catena.
@@ -39,6 +41,7 @@ pub fn enemy_bundle(data: &EnemyData, at: Vec2, serial: u32) -> impl Bundle {
             contact_distance: data.contact_distance,
             separation_radius: data.separation_radius,
             contact_damage: data.contact_damage,
+            xp: data.xp,
         },
         Health::full(data.max_hp),
         Hurtbox {

@@ -1,0 +1,18 @@
+// Progressione della run: esperienza, gemme, draft delle carte.
+(
+    version: 3,
+    // XP per passare dal livello n al n+1 = base + per_level × (n − 1): 5, 8, 11, 14, ...
+    // Obiettivo GDD: primo level-up entro 30-45 s.
+    xp_to_level: (base: 5.0, per_level: 3.0),
+    gem: (
+        sprite: "sprites/xp_gem.png",
+        // più veloce del player anche con tutti gli upgrade di velocità
+        magnet_speed: 220.0,
+        collect_distance: 6.0,
+        // oltre, l'XP di una gemma nuova si somma a una già a terra (niente migliaia di entità)
+        max_on_field: 300,
+    ),
+    draft_size: 3,
+    // peso relativo di estrazione nel draft
+    rarity_weights: (common: 10.0, uncommon: 5.0, rare: 2.0),
+)

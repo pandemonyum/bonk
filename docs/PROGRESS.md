@@ -5,12 +5,48 @@ Stato corrente, ultimo aggiornamento: **2026-10-22**.
 | Fase | Stato |
 |---|---|
 | S0 — bootstrap e ambiente | **DONE** (gate S0 superato, prove sotto) |
-| P0 — core giocabile desktop | in corso: P0.0–P0.3 DONE |
+| P0 — core giocabile desktop | in corso: P0.0–P0.4 DONE |
 | P1 — web | non iniziata |
 | P2 / P3 | non iniziate |
 
-Prossimo task eseguibile: **P0.4** (gemme XP, livelli, draft di 3 carte, upgrade), vedi
-`docs/BACKLOG.md`.
+Prossimo task eseguibile: **P0.5** (secondo e terzo compagno: onda in area, foglie orbitanti;
+slot da dati), vedi `docs/BACKLOG.md`.
+
+## Report tranche P0.4 (2026-10-22)
+
+```text
+Task: P0.4 - Gemme XP, livelli, draft di 3 carte con pausa, upgrade applicati a caldo
+Owner: gameplay-engineer + game-designer (valori, testi) + pixel-art-director (gemma, carte)
+Stato: DONE (code review: CHANGES REQUESTED, nessun bloccante; 3 rilievi da correggere e 7
+       minori corretti, 4 plausibili gestiti, dettaglio in docs/QA_REPORT.md)
+File: src/gameplay/{progression,upgrades}.rs, src/gameplay/upgrades/tests.rs,
+       src/data/validate/progression.rs, src/presentation/draft.rs, tests/sim/progression.rs,
+       src/gameplay/upgrades/modifiers.rs, src/data/validate/progression/tests.rs,
+       tests/sim/upgrades.rs, game-data/{progression,upgrades}.ron,
+       assets-src/sprites/xp_gem.px (nuovi);
+       src/gameplay/{mod,combat,enemies,player,input,damage}.rs, src/data/{mod,schema,loader,
+       validate}.rs, src/presentation/{hud,sprites,mod}.rs, src/diagnostics/overlay.rs,
+       src/{app,lib}.rs, game-data/*.ron (schema v3), tests/sim/{common,balance,movement}.rs
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1                       OK: 158 test (105 unit + 53 integrazione), 4 sonde
+  controprove (8 regole rotte apposta)      falliscono esattamente i test mirati (QA_REPORT)
+  sonda livelli (5 seed, prima carta)       primo level-up con autoplay 0:30-0:41
+  sonda livelli invulnerabile (10 min)      Lv5 ~2:20, Lv10 4:39-5:56, finale Lv 14-25
+  gioco vero, input reale (keybd/mouse)     draft aperto, tasto 2 e clic su 1a e 3a carta
+  cargo run -- --autoplay --god --time-scale 4 --overlay   livello 4 a 2:00, 0,6 s di draft
+Comportamento verificato:
+  - ogni nemico sconfitto lascia una sola gemma anche se colpito due volte nello stesso passo
+  - oltre il limite di gemme a terra l'XP si fonde senza perdite
+  - il draft ferma tempo, colpi e orologio; col tempo x4 il passo del livello è l'ultimo
+  - +1 proiettile: raffica e proiettili in campo = base + 1; +15% danno: il colpo vero toglie
+    il danno nuovo; HP massimi, cura, rigenerazione, velocità e raggio di raccolta misurati
+  - restart: livello 1, nessuno stack, attacco ai valori base
+Problemi trovati e risolti: panic all'avvio del gioco vero (ricalcolo degli upgrade prima che
+  la configurazione esista, invisibile in headless) → condizione su InRun + test che simula
+  l'attesa dei dati; lettere accentate non disegnate dal font → testi ASCII e validazione.
+Rischi noti: con scelta casuale e autoplay cieco la run dura ~1:10-1:24; font senza accenti.
+Prossimo task: P0.5
+```
 
 ## Report tranche P0.3 (2026-10-22)
 

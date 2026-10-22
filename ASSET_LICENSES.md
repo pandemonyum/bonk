@@ -16,6 +16,7 @@ manifest `assets/manifest.json`.
 | `assets/sprites/swarm_enemy.png` | `assets-src/sprites/swarm_enemy.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/armored_enemy.png` | `assets-src/sprites/armored_enemy.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/tree.png` | `assets-src/sprites/tree.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
+| `assets/sprites/xp_gem.png` | `assets-src/sprites/xp_gem.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/tiles/meadow_tileset.png` | generato da `scripts/build-assets.py` (seed 20261022) | originale, proprietà del progetto |
 | Palette "Germoglio" (`assets-src/palette.txt`) | definita per il progetto | originale, proprietà del progetto |
 

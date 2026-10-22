@@ -13,7 +13,8 @@ restart immediato.
 ## Comandi
 
 WASD/frecce: movimento 8 direzioni. Esc o P: pausa. F5 (o Invio da sconfitti): ricomincia.
-F3: overlay debug. F12: screenshot. Nessun tasto d'attacco: gli attacchi sono automatici.
+1/2/3 o clic: carta del draft. F3: overlay debug. F12: screenshot. Nessun tasto d'attacco: gli
+attacchi sono automatici.
 
 ## Valori attuali
 
@@ -37,6 +38,37 @@ F3: overlay debug. F12: screenshot. Nessun tasto d'attacco: gli attacchi sono au
 **Danni al player:** a ogni finestra di invulnerabilità si somma il danno di tutti i nemici a
 contatto. Essere circondati costa caro, uscirne in tempo no: muoversi è la difesa principale.
 
+**Progressione (`progression.ron`, P0.4)**
+
+| Parametro | Valore | Motivo |
+|---|---|---|
+| XP per nemico | gelatina 1, sciame 1, corazzato 6 | il corazzato costa 10 colpi: vale la deviazione |
+| XP per livello | 5 + 3 × (livello − 1): 5, 8, 11, 14, ... | primo livello entro 30–45 s, poi un ritmo che rallenta senza fermarsi |
+| Raccolta | raggio 28 px dai piedi; poi la gemma vola a 220 px/s e si prende a 6 px | bisogna avvicinarsi alle gemme: muoversi rende |
+| Gemme a terra | al massimo 300, oltre l'XP si somma alla gemma più vicina | nessuna XP persa, nessuna esplosione di entità |
+| Draft | 3 carte, pesi di rarità comune 10, non comune 5, rara 2 | scelte frequenti, le rare si notano |
+
+**Upgrade (`upgrades.ron`).** Le percentuali si sommano sul valore base (2 × +15% = +30%) e
+tutto si ricalcola dai dati base più gli stack a ogni scelta.
+
+| Carta | Effetto per stack | Rarità | Max | Requisiti |
+|---|---|---|---|---|
+| Fiamma viva | danno dei compagni +15% | comune | 5 | — |
+| Respiro rapido | intervallo tra gli attacchi −10% | comune | 5 | — |
+| Scintille gemelle | +1 proiettile a ventaglio | rara | 3 | Fiamma viva |
+| Fuoco perforante | perforazione +1 | non comune | 3 | — |
+| Vista lunga | gittata +20% (la durata del proiettile cresce con lei) | comune | 3 | — |
+| Vampa veloce | velocità dei proiettili +20% | comune | 2 | — |
+| Scorza robusta | HP massimi +20, cura 20 | comune | 5 | — |
+| Germoglio | rigenera 0,5 HP/s | non comune | 3 | — |
+| Passo leggero | movimento +10% | non comune | 3 | — |
+| Richiamo | raggio di raccolta +25% | comune | 3 | — |
+| Merenda | cura 30 HP, nessuno stack permanente | comune | 99 | — (il draft non resta vuoto) |
+
+"Nuovo slot compagno" arriva con i compagni della P0.5. La validazione controlla i limiti fisici
+con tutti gli upgrade al massimo (proiettili che attraversano i nemici, corpi che saltano oltre
+un tronco, cadenza sotto un passo, gemme più lente del player).
+
 **Ondate (`stages.ron`, ritmo = base + crescita × minuti dall'inizio dell'ondata)**
 
 | Ondata | Da | Base/min | Crescita/min² | Max vivi |
@@ -59,6 +91,13 @@ nell'anello 290–360 px dal player, sempre fuori vista.
   upgrade della P0.4.
 - **P0.3, carico:** 220 nemici a 59 FPS / 16,9 ms nel gioco (build dev, vsync); simulazione
   0,45–0,62 ms per passo con 50–500 nemici.
+- **P0.4, livelli (5 seed, prima carta scelta in automatico):** primo level-up con l'autoplay a
+  **0:30–0:41** (obiettivo 30–45 s: centrato). Con il player invulnerabile, per misurare il solo
+  ritmo: livello 5 a ~2:20, livello 10 a 4:39–5:56, livello finale 14–25 a 10:00. Da fermi si
+  muore a 0:13 con 2–3 nemici sconfitti, ancora al livello 1. Con l'autoplay e
+  gli upgrade la run dura 1:08–1:24 (livello 2–3), contro 1:06–1:16 senza: la scelta casuale e
+  il movimento cieco non bastano; la run di 10 minuti si riverifica con i compagni della P0.5 e
+  la difficoltà della P0.6, e con un giocatore vero.
 
 ## Contenuti MVP (bozza, da bilanciare in P0)
 
@@ -81,6 +120,6 @@ formula, testo UI.
 ## Obiettivi di bilanciamento
 
 - Senza upgrade, il giocatore che resta fermo muore entro 90 s (non invincibile). **Oggi: 13 s.**
-- Il primo level-up arriva entro 30–45 s (progressione percepibile). Da misurare in P0.4.
+- Il primo level-up arriva entro 30–45 s (progressione percepibile). **Oggi: 0:30–0:41.**
 - A metà run almeno due build elementali diverse sono praticabili (scelte significative).
 - Il boss è sconfiggibile da una build media in 60–120 s.

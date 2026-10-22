@@ -1,6 +1,6 @@
 // Evocatore controllato dal giocatore. Unità: pixel di mondo (1 px = 1 texel a 480x270), secondi.
 (
-    version: 2,
+    version: 3,
     sprite: "sprites/summoner.png",
     // 75 px/s: attraversa lo schermo (480 px) in ~6 s, orde leggibili.
     speed: 75.0,
@@ -9,4 +9,6 @@
     max_hp: 100.0,
     // Dopo un colpo: niente altri danni per 0,6 s (tempo per reagire e uscire dalla calca).
     invulnerability_s: 0.6,
+    // Gemme XP entro questa distanza volano verso il player.
+    pickup_radius: 28.0,
 )
