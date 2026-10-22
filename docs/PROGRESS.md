@@ -5,11 +5,45 @@ Stato corrente, ultimo aggiornamento: **2026-10-22**.
 | Fase | Stato |
 |---|---|
 | S0 — bootstrap e ambiente | **DONE** (gate S0 superato, prove sotto) |
-| P0 — core giocabile desktop | da iniziare: prossimo task **P0.1** |
+| P0 — core giocabile desktop | in corso: P0.2 DONE; ordine deciso dall'utente P0.2 → P0.1 → P0.0 |
 | P1 — web | non iniziata |
 | P2 / P3 | non iniziate |
 
 Prossimo task eseguibile: **P0.1** (ostacoli e collisioni nell'arena), vedi `docs/BACKLOG.md`.
+
+## Report tranche P0.2 (2026-10-22)
+
+```text
+Task: P0.2 - Primo compagno con attacco automatico
+Owner: gameplay-engineer + pixel-art-director (sequenziale, stesso agente)
+Stato: DONE
+Assunzioni: nemici con HP e morte già in P0.2 (senza, l'attacco non ha effetto visibile);
+       popolazione mantenuta a 10 con rimpiazzi fuori schermo finché non c'è lo spawn director.
+File: src/gameplay/{combat,companions}.rs (nuovi), src/gameplay/{mod,enemies}.rs,
+       src/presentation/{mod,sprites}.rs, src/diagnostics/{overlay,automation}.rs,
+       src/options.rs, tests/{combat_sim,balance_probe}.rs, tests/common/mod.rs,
+       tests/headless_sim.rs, assets-src/{palette.txt,sprites/ember_companion.px,
+       sprites/fireball.px}, assets/**, docs/*, ASSET_LICENSES.md
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1                     OK: fmt, clippy -D warnings, 55 test
+                                          (40 unit + 8 combattimento + 7 movimento), 5 PNG
+  cargo test --test balance_probe -- --ignored --nocapture
+                                          OK: 54-55 colpi/min, 100% a segno, 14-18 sconfitti/min
+  cargo run -- --autoplay --overlay --screenshot ... --screenshot-burst 8
+                                          OK, exit 0, 8 screenshot
+Comportamento verificato:
+  - il compagno segue dietro al player (in corsa < 33 px, fermo a 18±1 px) e spara da solo
+  - cadenza esatta: 10 colpi in 600 passi con intervallo 1,1 s (66 passi)
+  - danno 12 → HP 30→18 e tinta di colpo; un nemico colpito due volte nello stesso passo
+    muore e viene contato una sola volta; popolazione mai sopra 10
+  - +2 proiettili per attacco → 3 proiettili in volo (base per l'upgrade della P0.4)
+  - screenshot con proiettile appena sparato: docs/evidence/p02-compagno-proiettile.png
+Problemi trovati e risolti: prima sagoma del compagno identica alla gelatina (ridisegnato);
+  ipotesi "molti colpi a vuoto" smentita dalla sonda (100% a segno), niente mira predittiva.
+Rischi noti: rimpiazzi visibili se il player è vicino al bordo (zone di spawn in P0.3);
+  collisioni proiettile×nemico O(n×m) da sostituire con griglia spaziale in P0.3.
+Prossimo task: P0.1
+```
 
 ---
 

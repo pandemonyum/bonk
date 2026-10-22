@@ -1,0 +1,10 @@
+# Proiettile del compagno di fuoco, 6x6, nucleo chiaro per leggerlo in mezzo alle orde.
+out: sprites/fireball.png
+mirror: true
+---
+.kk
+kwy
+kyg
+kgo
+.ko
+..k

@@ -6,9 +6,10 @@ pub mod sprites;
 
 use bevy::prelude::*;
 
-/// Livelli di profondità. Gli attori usano `Z_ACTORS` meno un piccolo y-sort.
+/// Livelli di profondità. Attori e proiettili sottraggono un piccolo y-sort (max ±0,2).
 pub const Z_GROUND: f32 = 0.0;
 pub const Z_ACTORS: f32 = 10.0;
+pub const Z_PROJECTILES: f32 = 20.0;
 
 pub struct PresentationPlugin;
 

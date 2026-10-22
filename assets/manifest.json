@@ -13,6 +13,28 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/ember_companion.png",
+      "kind": "sprite",
+      "size": [
+        16,
+        17
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/ember_companion.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/fireball.png",
+      "kind": "sprite",
+      "size": [
+        6,
+        6
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/fireball.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "sprites/summoner.png",
       "kind": "sprite",
       "size": [

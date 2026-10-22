@@ -26,6 +26,14 @@ Nessun tasto d'attacco: gli attacchi sono automatici.
 | Separazione nemici | 14 px | sprite da 16 px quasi a contatto senza sovrapporsi |
 | Arena | 4096×4096 px, bordo di siepe | ~55 s per attraversarla: spazio per fuggire senza perdersi |
 | Simulazione | 60 Hz fissi | riproducibile con seed |
+| HP gelatina | 30 | 3 colpi del compagno di fuoco |
+| Compagno di fuoco | 12 danni, 1 colpo ogni 1,1 s, gittata 150 px, proiettile 220 px/s | valori dell'handoff §7 |
+| Compagno: distanza di scia | 18 px dietro il player, max 120 px/s | non intralcia la lettura del player |
+| Popolazione nemici | 10, rimpiazzati a 290–340 px (fuori schermo) | finché non c'è lo spawn director (P0.3) |
+
+**Misurato (P0.2, `tests/balance_probe.rs`, 60 s, 5 seed):** 54–55 colpi, 100% a segno,
+18 nemici sconfitti al minuto da fermo, 14–16 in movimento (alcuni nemici restano fuori
+gittata alle spalle). La mira predittiva non serve con queste velocità.
 
 ## Contenuti MVP (bozza, da bilanciare in P0)
 

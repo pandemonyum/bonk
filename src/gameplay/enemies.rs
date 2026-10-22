@@ -1,9 +1,10 @@
-//! Nemici S0: un'ondata iniziale che insegue il player e si separa per non sovrapporsi.
-//! Lo spawn director con archetipi da `game-data/` arriva con la P0.3.
+//! Nemici: ondata iniziale, inseguimento, separazione, rimpiazzo di chi viene sconfitto.
+//! Lo spawn director con archetipi e curve da `game-data/` arriva con la P0.3.
 
 use bevy::prelude::*;
 
 use super::SimSet;
+use super::combat::{Health, Hurtbox};
 use super::kinematics::{Position, body};
 use super::player::{PLAYER_SPAWN, Player};
 use crate::app::{AppState, RunSeed};
@@ -11,9 +12,20 @@ use crate::rng::Pcg32;
 use crate::world::ArenaBounds;
 
 pub const ENEMY_SPEED: f32 = 40.0;
+/// Tre colpi del compagno di fuoco (12 danni).
+pub const ENEMY_MAX_HP: f32 = 30.0;
+/// Hurtbox della gelatina 16×13: cerchio di 7 px centrato a metà altezza.
+pub const ENEMY_HURTBOX: Hurtbox = Hurtbox {
+    radius: 7.0,
+    center_offset: 6.0,
+};
 pub const INITIAL_ENEMIES: usize = 10;
-/// Anello di spawn attorno al player: fuori dai 135 px di mezza altezza dello schermo.
+/// Popolazione mantenuta finché non c'è lo spawn director (P0.3).
+pub const ENEMY_POPULATION: usize = INITIAL_ENEMIES;
+/// Anello dell'ondata iniziale: in parte visibile, così l'inseguimento si vede subito.
 pub const SPAWN_RING: (f32, f32) = (170.0, 240.0);
+/// Anello dei rimpiazzi: oltre la mezza diagonale dello schermo (√(240²+135²) ≈ 275 px).
+pub const RESPAWN_RING: (f32, f32) = (290.0, 340.0);
 /// Distanza a cui il nemico smette di avanzare (contatto; i danni arrivano con la P0.3).
 pub const CONTACT_DISTANCE: f32 = 10.0;
 /// Distanza minima tra due nemici.
@@ -24,6 +36,14 @@ const SPAWN_STREAM: u64 = 1;
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Enemy {
     pub speed: f32,
+}
+
+/// Generatore degli spawn della run: unico per ondata iniziale e rimpiazzi, così la
+/// sequenza dipende solo dal seed e dall'ordine degli eventi.
+#[derive(Resource, Debug, Clone)]
+pub struct SpawnRng {
+    rng: Pcg32,
+    spawned: u32,
 }
 
 /// Punto casuale nell'anello `[r_min, r_max)` attorno a `center`.
@@ -89,20 +109,48 @@ impl Plugin for EnemyPlugin {
                 (separate_enemies, keep_enemies_in_arena, keep_out_of_player)
                     .chain()
                     .in_set(SimSet::Resolve),
-            );
+            )
+            .add_systems(FixedUpdate, maintain_population.in_set(SimSet::Spawn));
     }
 }
 
+fn spawn_enemy(commands: &mut Commands, spawns: &mut SpawnRng, at: Vec2) {
+    commands.spawn((
+        Name::new(format!("Gelatina {}", spawns.spawned)),
+        Enemy { speed: ENEMY_SPEED },
+        Health::full(ENEMY_MAX_HP),
+        ENEMY_HURTBOX,
+        body(at),
+        DespawnOnExit(AppState::InRun),
+    ));
+    spawns.spawned += 1;
+}
+
 fn spawn_initial_wave(mut commands: Commands, seed: Res<RunSeed>, arena: Res<ArenaBounds>) {
-    let mut rng = Pcg32::new(seed.0, SPAWN_STREAM);
-    for i in 0..INITIAL_ENEMIES {
-        let at = ring_point(&mut rng, PLAYER_SPAWN, SPAWN_RING.0, SPAWN_RING.1);
-        commands.spawn((
-            Name::new(format!("Gelatina {i}")),
-            Enemy { speed: ENEMY_SPEED },
-            body(arena.clamp(at)),
-            DespawnOnExit(AppState::InRun),
-        ));
+    let mut spawns = SpawnRng {
+        rng: Pcg32::new(seed.0, SPAWN_STREAM),
+        spawned: 0,
+    };
+    for _ in 0..INITIAL_ENEMIES {
+        let at = ring_point(&mut spawns.rng, PLAYER_SPAWN, SPAWN_RING.0, SPAWN_RING.1);
+        spawn_enemy(&mut commands, &mut spawns, arena.clamp(at));
+    }
+    commands.insert_resource(spawns);
+}
+
+/// Rimpiazza i nemici sconfitti fuori dallo schermo. Vicino ai bordi dell'arena il clamp può
+/// portare un rimpiazzo in vista: le zone di spawn vere arrivano con la P0.3.
+fn maintain_population(
+    mut commands: Commands,
+    mut spawns: ResMut<SpawnRng>,
+    arena: Res<ArenaBounds>,
+    player: Single<&Position, With<Player>>,
+    enemies: Query<(), With<Enemy>>,
+) {
+    let missing = ENEMY_POPULATION.saturating_sub(enemies.iter().count());
+    for _ in 0..missing {
+        let at = ring_point(&mut spawns.rng, player.0, RESPAWN_RING.0, RESPAWN_RING.1);
+        spawn_enemy(&mut commands, &mut spawns, arena.clamp(at));
     }
 }
 

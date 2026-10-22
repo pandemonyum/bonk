@@ -1,42 +1,18 @@
 //! Simulazione completa senza finestra né GPU: ogni `app.update()` = un passo fisso da 1/60 s.
+//! Movimento, inseguimento, limiti, pausa. Il combattimento è in `combat_sim.rs`.
+
+mod common;
 
 use bevy::prelude::*;
+use common::{despawn_all, enemy_positions, mean_distance, player_position, run_steps};
 use pixel_monster_survivor::app::{AppState, RunPhase};
+use pixel_monster_survivor::gameplay::companions::Companion;
 use pixel_monster_survivor::gameplay::enemies::{
-    CONTACT_DISTANCE, Enemy, INITIAL_ENEMIES, SEPARATION_RADIUS,
+    CONTACT_DISTANCE, INITIAL_ENEMIES, SEPARATION_RADIUS,
 };
-use pixel_monster_survivor::gameplay::kinematics::Position;
-use pixel_monster_survivor::gameplay::player::{MoveIntent, PLAYER_SPEED, Player};
+use pixel_monster_survivor::gameplay::player::{MoveIntent, PLAYER_SPEED};
 use pixel_monster_survivor::headless_app;
 use pixel_monster_survivor::world::ArenaBounds;
-
-fn player_position(app: &mut App) -> Vec2 {
-    let world = app.world_mut();
-    world
-        .query_filtered::<&Position, With<Player>>()
-        .single(world)
-        .expect("esattamente un player")
-        .0
-}
-
-fn enemy_positions(app: &mut App) -> Vec<Vec2> {
-    let world = app.world_mut();
-    world
-        .query_filtered::<&Position, With<Enemy>>()
-        .iter(world)
-        .map(|p| p.0)
-        .collect()
-}
-
-fn mean_distance(enemies: &[Vec2], to: Vec2) -> f32 {
-    enemies.iter().map(|e| e.distance(to)).sum::<f32>() / enemies.len() as f32
-}
-
-fn run_steps(app: &mut App, steps: usize) {
-    for _ in 0..steps {
-        app.update();
-    }
-}
 
 #[test]
 fn run_spawns_one_player_and_initial_wave() {
@@ -104,6 +80,7 @@ fn enemies_never_enter_the_player_against_a_wall() {
 fn enemies_chase_the_player_and_do_not_stack() {
     let mut app = headless_app(7);
     app.update();
+    despawn_all::<Companion>(&mut app); // solo movimento: nessun nemico sconfitto e rimpiazzato
     let before = mean_distance(&enemy_positions(&mut app), Vec2::ZERO);
     run_steps(&mut app, 60 * 8);
     let enemies = enemy_positions(&mut app);

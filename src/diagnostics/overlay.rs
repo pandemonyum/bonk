@@ -5,6 +5,7 @@ use bevy::prelude::*;
 
 use crate::LaunchOptions;
 use crate::app::{RunPhase, RunSeed};
+use crate::gameplay::combat::{Projectile, RunStats};
 use crate::gameplay::enemies::Enemy;
 use crate::gameplay::kinematics::Position;
 use crate::gameplay::player::Player;
@@ -62,7 +63,9 @@ fn refresh_overlay(
     diagnostics: Res<DiagnosticsStore>,
     seed: Res<RunSeed>,
     phase: Option<Res<State<RunPhase>>>,
+    stats: Res<RunStats>,
     enemies: Query<(), With<Enemy>>,
+    projectiles: Query<(), With<Projectile>>,
     entities: Query<()>,
     player: Query<&Position, With<Player>>,
     overlay: Single<(&mut Text, &Visibility), With<OverlayText>>,
@@ -84,11 +87,15 @@ fn refresh_overlay(
         .single()
         .map_or("-".to_string(), |p| format!("{:.0},{:.0}", p.x, p.y));
     text.0 = format!(
-        "FPS {:.0}  frame {:.2} ms\nnemici {}  entita {}\nplayer {}  fase {}\nseed {}",
+        "FPS {:.0}  frame {:.2} ms\nnemici {}  proiettili {}  entita {}\n\
+         sconfitti {}  sparati {}\nplayer {}  fase {}\nseed {}",
         smoothed(&FrameTimeDiagnosticsPlugin::FPS),
         smoothed(&FrameTimeDiagnosticsPlugin::FRAME_TIME),
         enemies.iter().count(),
+        projectiles.iter().count(),
         entities.iter().count(),
+        stats.defeated,
+        stats.projectiles_fired,
         player,
         phase,
         seed.0,

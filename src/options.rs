@@ -14,7 +14,8 @@ Uso: pixel-monster-survivor [opzioni]
   --overlay                mostra subito l'overlay di debug (F3)
   --screenshot <file.png>  salva uno screenshot della finestra
   --screenshot-after <s>   secondi prima dello screenshot (default 3)
-  --exit-after <s>         chiude il gioco dopo s secondi (attende lo screenshot)
+  --screenshot-burst <n>   n screenshot a 0,1 s l'uno dall'altro (file-0.png, file-1.png, ...)
+  --exit-after <s>         chiude il gioco dopo s secondi (attende gli screenshot)
   --window <LxA>           dimensione iniziale della finestra (default 960x540)
   --scale-factor <f>       forza il fattore DPI (es. 1.25 per simulare uno schermo al 125%)
   -h, --help               mostra questo aiuto";
@@ -26,6 +27,8 @@ pub struct LaunchOptions {
     pub show_overlay: bool,
     pub screenshot: Option<PathBuf>,
     pub screenshot_after_secs: f32,
+    /// Numero di screenshot della raffica (1 = uno solo, col percorso così com'è).
+    pub screenshot_burst: u32,
     pub exit_after_secs: Option<f32>,
     /// Pixel logici; 960×540 = 2× la risoluzione virtuale 480×270.
     pub window_size: (u32, u32),
@@ -41,6 +44,7 @@ impl Default for LaunchOptions {
             show_overlay: false,
             screenshot: None,
             screenshot_after_secs: 3.0,
+            screenshot_burst: 1,
             exit_after_secs: None,
             window_size: (960, 540),
             scale_factor: None,
@@ -79,6 +83,10 @@ impl LaunchOptions {
                 "--overlay" => options.show_overlay = true,
                 "--screenshot" => options.screenshot = Some(value(&mut args, &flag)?),
                 "--screenshot-after" => options.screenshot_after_secs = value(&mut args, &flag)?,
+                "--screenshot-burst" => match value::<u32>(&mut args, &flag)? {
+                    n @ 1..=50 => options.screenshot_burst = n,
+                    n => return Err(format!("--screenshot-burst: da 1 a 50, trovato {n}")),
+                },
                 "--exit-after" => options.exit_after_secs = Some(value(&mut args, &flag)?),
                 "--window" => {
                     options.window_size = window_size(&value::<String>(&mut args, &flag)?)?
@@ -163,6 +171,14 @@ mod tests {
         assert_eq!(o.scale_factor, Some(1.25));
         assert!(parse(&["--scale-factor", "0"]).is_err());
         assert!(parse(&["--scale-factor", "-1"]).is_err());
+    }
+
+    #[test]
+    fn parses_screenshot_burst_within_limits() {
+        let o = parse(&["--screenshot-burst", "8"]).unwrap().unwrap();
+        assert_eq!(o.screenshot_burst, 8);
+        assert!(parse(&["--screenshot-burst", "0"]).is_err());
+        assert!(parse(&["--screenshot-burst", "51"]).is_err());
     }
 
     #[test]

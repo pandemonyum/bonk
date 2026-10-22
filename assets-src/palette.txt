@@ -12,6 +12,8 @@ C 1f5a6b alleato-teal-ombra
 l 6cc7c2 alleato-teal-luce
 g f2c94c oro
 G b8862e oro-ombra
+o f08a3c fuoco-alleato
+O b85a2a fuoco-alleato-ombra
 p 8e5bc8 nemico-viola
 P 5b3a8c nemico-viola-ombra
 q c79bf0 nemico-viola-luce
