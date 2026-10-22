@@ -1,0 +1,23 @@
+// Archetipi nemici. P0.3 aggiungerà sciame veloce, corazzato, élite e boss.
+(
+    version: 1,
+    enemies: [
+        (
+            id: "blob",
+            display_name: "Gelatina",
+            sprite: "sprites/blob_enemy.png",
+            // 3 colpi di ember_bolt
+            max_hp: 30.0,
+            // ~53% del player: si distanzia ma non si ignora
+            speed: 40.0,
+            // cerchio colpibile, centrato `center_offset` px sopra i piedi
+            hurtbox: (radius: 7.0, center_offset: 6.0),
+            // collisioni con gli ostacoli; max 9 (varco minimo 18 px)
+            footprint_radius: 6.0,
+            // distanza a cui smette di avanzare verso il player
+            contact_distance: 10.0,
+            // distanza minima tra due nemici
+            separation_radius: 14.0,
+        ),
+    ],
+)

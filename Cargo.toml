@@ -11,22 +11,34 @@ publish = false
 # Bevy bloccata alla serie 0.20.x. Solo i profili 2D + UI: niente 3D/PBR, compilazione piu' rapida.
 # `2d` include gia' default_platform (winit, webgl2, gilrs, default_font, multi_threaded).
 bevy = { version = "0.20.0", default-features = false, features = ["2d", "ui"] }
+# Dati di gioco in RON (game-data/). Stesse versioni già usate da Bevy nel lockfile.
+ron = "0.12"
+serde = { version = "1", features = ["derive"] }
 
-[features]
-# Sviluppo: hot reload asset (file_watcher) e strumenti di debug di Bevy. Non usare nelle release.
-dev = ["bevy/dev"]
+# Watcher dei file sempre compilato in nativo (non esiste sul web): la ricarica a caldo si
+# accende a runtime (`--watch`/`--no-watch`), così c'è un solo set di feature e Bevy non va
+# ricompilata due volte (con una feature `dev` separata `target/` raddoppiava).
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+bevy = { version = "0.20.0", default-features = false, features = ["file_watcher"] }
 
 [lints.clippy]
 # I sistemi Bevy hanno per natura molti parametri e query con tipi lunghi.
 too_many_arguments = "allow"
 type_complexity = "allow"
 
-# Compilazione dev: il nostro codice leggermente ottimizzato, le dipendenze (Bevy) ottimizzate al massimo.
+# Compilazione dev: il nostro codice leggermente ottimizzato, le dipendenze (Bevy) ottimizzate al
+# massimo. Simboli di debug solo come numeri di riga per il nostro codice e assenti per le
+# dipendenze: misurato, i .pdb pesavano ~0,75 GB per ogni eseguibile (gioco e test).
 [profile.dev]
 opt-level = 1
+debug = "line-tables-only"
 
 [profile.dev.package."*"]
 opt-level = 3
+debug = false
+
+[profile.dev.build-override]
+debug = false
 
 [profile.release]
 codegen-units = 1

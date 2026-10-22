@@ -23,7 +23,7 @@ compagni mostriciattolo **originali** in pixel art. Rust + Bevy 0.20, nativo Win
 |---|---|---|
 | Gate qualità (fmt + clippy + test) | `./scripts/check.ps1` | `./scripts/check.sh` |
 | Avvio gioco | `cargo run` | `cargo run` |
-| Avvio con hot reload asset | `cargo run --features dev` | idem |
+| Avvio (ricarica a caldo di `assets/` e `game-data/` attiva in debug) | `cargo run` (`-- --no-watch` per spegnerla) | idem |
 | Rigenera placeholder pixel art | `python scripts/build-assets.py` | idem |
 | Valida asset | `python scripts/validate-assets.py` | idem |
 | Prova automatica con screenshot | `cargo run -- --autoplay --screenshot screenshots/s.png --screenshot-after 4 --exit-after 5` | idem |
@@ -43,7 +43,7 @@ F12 screenshot in `screenshots/`. Verifica nearest-neighbor su uno screenshot:
 | gameplay-engineer | `src/app.rs`, `src/rng.rs`, `src/gameplay/`, `src/data/` (schema + loader), `src/presentation/` |
 | world-generation | `src/world/` |
 | pixel-art-director | `docs/ART_BIBLE.md`, `assets-src/`, `assets/`, `scripts/build-assets.py`, `scripts/validate-assets.py`, `ASSET_LICENSES.md` |
-| qa-performance | `docs/QA_REPORT.md`, `src/diagnostics/`, `tests/`, `benches/`, `scripts/check.*` |
+| qa-performance | `docs/QA_REPORT.md`, `src/diagnostics/`, `tests/` (un solo eseguibile: `tests/sim/`), `benches/`, `scripts/check.*`, `scripts/clean-stale.*` |
 | web-release | `web/`, `scripts/build-web.*`, `.github/`, `docs/RELEASE.md`, sezioni `[profile.*]` di `Cargo.toml` |
 | code-reviewer | nessun file: solo lettura, esito nel report |
 
@@ -60,6 +60,9 @@ nel task. Due agenti non lavorano mai contemporaneamente sugli stessi file.
   interpola. La logica non dipende da `Sprite`/GPU: i test girano con `MinimalPlugins`.
 - Gameplay e grafica separati: la presentazione aggancia gli sprite con observer `On<Add<T>>`.
 - Random solo da `rng::Pcg32` con seed esplicito; mai `rand::thread_rng` nella simulazione.
+- Valori di bilanciamento solo in `game-data/*.ron`, mai come costanti nel codice; un campo
+  nuovo va aggiunto allo schema (`src/data/schema.rs`) e alla validazione
+  (`src/data/validate.rs`) con un test. I test leggono i valori attesi da `GameConfig`.
 - Mondo renderizzato a 480×270 su texture, upscaling intero nearest-neighbor, letterbox.
 - Niente dipendenze nuove senza voce in `docs/DECISIONS.md` (motivo, versione, licenza).
 - Moduli piccoli: nessun file Rust oltre ~400 righe senza motivo scritto.

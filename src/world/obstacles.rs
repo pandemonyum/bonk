@@ -40,6 +40,9 @@ impl ObstacleKind {
 
 /// Raggio dell'impronta più grande, per le query sulla griglia.
 pub const MAX_FOOTPRINT_RADIUS: f32 = 7.0;
+/// Varco minimo garantito tra due impronte: centri ad almeno 2 tile, meno due impronte
+/// massime. I dati validano che nessun corpo sia più largo (`data::validate`).
+pub const MIN_OBSTACLE_GAP: f32 = 2.0 * TILE_SIZE as f32 - 2.0 * MAX_FOOTPRINT_RADIUS;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ObstacleSpec {
@@ -178,8 +181,8 @@ mod tests {
     }
 
     #[test]
-    fn gaps_between_obstacles_fit_the_largest_body() {
-        let largest_body_diameter = 12.0;
+    fn gaps_between_obstacles_are_never_below_the_guaranteed_minimum() {
+        assert_eq!(MIN_OBSTACLE_GAP, 18.0);
         let obstacles = generate_obstacles(3);
         let field = ObstacleField::new(obstacles.clone());
         for a in &obstacles {
@@ -190,7 +193,7 @@ mod tests {
                 let gap = a.footprint_center().distance(b.footprint_center())
                     - a.footprint_radius()
                     - b.footprint_radius();
-                assert!(gap >= largest_body_diameter, "varco di {gap} px");
+                assert!(gap >= MIN_OBSTACLE_GAP - 1e-3, "varco di {gap} px");
             }
         }
     }

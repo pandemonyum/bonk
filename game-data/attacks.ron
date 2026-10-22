@@ -1,0 +1,24 @@
+// Attacchi automatici. P0.2: proiettile mirato sul nemico più vicino entro `range`.
+(
+    version: 1,
+    attacks: [
+        (
+            id: "ember_bolt",
+            damage: 12.0,
+            // secondi tra due attacchi
+            interval_s: 1.1,
+            range: 150.0,
+            // px/s; il validatore impedisce velocità che attraversano un nemico in un passo
+            projectile_speed: 220.0,
+            projectile_radius: 3.0,
+            projectile_sprite: "sprites/fireball.png",
+            // proiettili per attacco, a ventaglio di `spread_deg` gradi l'uno dall'altro
+            projectiles: 1,
+            spread_deg: 11.5,
+            // nemici extra attraversati da ogni proiettile
+            pierce: 0,
+            // altezza di partenza del colpo sopra i piedi di chi attacca
+            muzzle_height: 8.0,
+        ),
+    ],
+)

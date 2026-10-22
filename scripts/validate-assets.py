@@ -19,8 +19,11 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
+GAME_DATA = ROOT / "game-data"
 PALETTE = ROOT / "assets-src" / "palette.txt"
 NAME_RE = re.compile(r"^[a-z0-9_]+\.png$")
+# Campi sprite nei file RON di game-data/ (es. sprite: "sprites/x.png").
+DATA_SPRITE_RE = re.compile(r'\b(?:sprite|projectile_sprite)\s*:\s*"([^"]+)"')
 MAX_SPRITE = 64  # boss inclusi; vedi docs/ART_BIBLE.md
 
 
@@ -71,9 +74,27 @@ def main() -> int:
             if any(0 < px[3] < 255 for px in pixels):
                 errors.append(f"{path}: alpha semitrasparente (pixel art: solo 0 o 255)")
 
+    # Gli sprite citati dai dati di gioco devono esistere ed essere nel manifest: il gioco li
+    # carica per percorso e un file mancante sarebbe solo uno sprite invisibile.
+    referenced = 0
+    for data_file in sorted(GAME_DATA.glob("*.ron")):
+        for line_no, line in enumerate(data_file.read_text(encoding="utf-8").splitlines(), 1):
+            if line.lstrip().startswith("//"):
+                continue
+            for path in DATA_SPRITE_RE.findall(line):
+                referenced += 1
+                if path not in entries:
+                    errors.append(
+                        f"game-data/{data_file.name}:{line_no}: sprite \"{path}\" "
+                        "assente da assets/ o dal manifest"
+                    )
+
     for e in errors:
         print("ERRORE:", e)
-    print(f"{'FALLITO' if errors else 'OK'}: {len(on_disk)} PNG controllati, {len(errors)} errori")
+    print(
+        f"{'FALLITO' if errors else 'OK'}: {len(on_disk)} PNG controllati, "
+        f"{referenced} sprite citati in game-data/, {len(errors)} errori"
+    )
     return 1 if errors else 0
 
 

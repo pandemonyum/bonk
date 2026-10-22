@@ -36,10 +36,20 @@ cargo run -- --autoplay --overlay --screenshot screenshots/prova.png --screensho
 python scripts/build-assets.py
 ```
 
+Per cambiare i valori di gioco (velocità, danni, nemici, compagni) modifica i file in
+`game-data/`. Con questo comando il gioco li ricarica appena salvi e la run riparte:
+
+```bash
+cargo run
+```
+
+Se un valore non è valido il gioco mostra l'elenco degli errori con file e campo.
+
 | Tasto | Azione |
 |---|---|
 | WASD / frecce | movimento |
 | Esc / P | pausa |
+| F5 | ricomincia la run |
 | F3 | overlay debug (FPS, entità, posizione, seed) |
 | F12 | screenshot in `screenshots/` |
 

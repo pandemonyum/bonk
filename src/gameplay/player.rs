@@ -3,15 +3,14 @@
 use bevy::prelude::*;
 
 use super::SimSet;
-use super::collision::{Footprint, PLAYER_FOOTPRINT, resolve_against_obstacles};
+use super::collision::{Footprint, resolve_against_obstacles};
 use super::kinematics::{Position, body};
 use crate::app::AppState;
+use crate::data::GameConfig;
 use crate::world::ArenaBounds;
 use crate::world::obstacles::ObstacleField;
 
-/// Velocità S0 in px/s. Dalla P0 il valore arriva da `game-data/`.
-pub const PLAYER_SPEED: f32 = 75.0;
-/// Punto di partenza: il centro dell'arena.
+/// Punto di partenza: il centro dell'arena (sempre libero da ostacoli).
 pub const PLAYER_SPAWN: Vec2 = Vec2::ZERO;
 
 #[derive(Component, Debug, Clone, Copy)]
@@ -40,13 +39,13 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn spawn_player(mut commands: Commands) {
+fn spawn_player(mut commands: Commands, config: Res<GameConfig>) {
     commands.spawn((
         Name::new("Evocatore"),
         Player {
-            speed: PLAYER_SPEED,
+            speed: config.player.speed,
         },
-        PLAYER_FOOTPRINT,
+        Footprint(config.player.footprint_radius),
         body(PLAYER_SPAWN),
         DespawnOnExit(AppState::InRun),
     ));

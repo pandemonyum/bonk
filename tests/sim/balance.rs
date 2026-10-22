@@ -1,10 +1,8 @@
 //! Sonda di bilanciamento (non un test di correttezza): stampa le statistiche di 60 s di
 //! simulazione con autoplay per alcuni seed. Eseguire con
-//! `cargo test --test balance_probe -- --ignored --nocapture`.
+//! `cargo test --test sim balance -- --ignored --nocapture`.
 
-mod common;
-
-use common::run_steps;
+use crate::common::run_steps;
 use pixel_monster_survivor::diagnostics::automation::autoplay_direction;
 use pixel_monster_survivor::gameplay::combat::RunStats;
 use pixel_monster_survivor::gameplay::player::MoveIntent;

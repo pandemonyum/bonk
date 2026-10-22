@@ -1,11 +1,12 @@
-//! Comandi del giocatore (solo client): tastiera → `MoveIntent`, pausa, pausa su perdita focus.
+//! Comandi del giocatore (solo client): tastiera → `MoveIntent`, pausa, pausa su perdita
+//! focus, F5 per ricominciare la run.
 
 use bevy::prelude::*;
 use bevy::window::WindowFocused;
 
 use super::player::{MoveIntent, direction_from_keys};
 use crate::LaunchOptions;
-use crate::app::RunPhase;
+use crate::app::{AppState, RunPhase, restart_run};
 
 pub struct PlayerControlsPlugin;
 
@@ -16,9 +17,16 @@ impl Plugin for PlayerControlsPlugin {
             (
                 keyboard_intent.run_if(not(autoplay_enabled)),
                 toggle_pause,
+                restart_on_f5.run_if(in_state(AppState::InRun)),
                 pause_on_focus_lost.run_if(not(autoplay_enabled)),
             ),
         );
+    }
+}
+
+fn restart_on_f5(keys: Res<ButtonInput<KeyCode>>, mut next: ResMut<NextState<AppState>>) {
+    if keys.just_pressed(KeyCode::F5) {
+        restart_run(&mut next);
     }
 }
 

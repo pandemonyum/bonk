@@ -18,6 +18,8 @@ Uso: pixel-monster-survivor [opzioni]
   --exit-after <s>         chiude il gioco dopo s secondi (attende gli screenshot)
   --window <LxA>           dimensione iniziale della finestra (default 960x540)
   --scale-factor <f>       forza il fattore DPI (es. 1.25 per simulare uno schermo al 125%)
+  --watch / --no-watch     ricarica a caldo di assets/ e game-data/ (default: attiva nella
+                           build di sviluppo, spenta in release; non disponibile sul web)
   -h, --help               mostra questo aiuto";
 
 #[derive(Resource, Debug, Clone, PartialEq)]
@@ -34,6 +36,8 @@ pub struct LaunchOptions {
     pub window_size: (u32, u32),
     /// `None` = DPI del sistema.
     pub scale_factor: Option<f32>,
+    /// Ricarica a caldo; `None` = default della build (vedi [`LaunchOptions::watch_files`]).
+    pub watch: Option<bool>,
 }
 
 impl Default for LaunchOptions {
@@ -48,11 +52,18 @@ impl Default for LaunchOptions {
             exit_after_secs: None,
             window_size: (960, 540),
             scale_factor: None,
+            watch: None,
         }
     }
 }
 
 impl LaunchOptions {
+    /// Ricarica a caldo effettiva: esplicita da riga di comando, altrimenti attiva solo nelle
+    /// build di sviluppo. Sul web non c'è watcher e il valore viene ignorato.
+    pub fn watch_files(&self) -> bool {
+        self.watch.unwrap_or(cfg!(debug_assertions))
+    }
+
     /// Legge gli argomenti del processo; in caso di errore stampa l'uso ed esce.
     pub fn from_env() -> Self {
         match Self::parse(std::env::args().skip(1)) {
@@ -95,6 +106,8 @@ impl LaunchOptions {
                     f if f > 0.0 && f.is_finite() => options.scale_factor = Some(f),
                     f => return Err(format!("--scale-factor deve essere > 0, trovato {f}")),
                 },
+                "--watch" => options.watch = Some(true),
+                "--no-watch" => options.watch = Some(false),
                 "-h" | "--help" => return Ok(None),
                 other => return Err(format!("opzione sconosciuta: {other}")),
             }
@@ -171,6 +184,15 @@ mod tests {
         assert_eq!(o.scale_factor, Some(1.25));
         assert!(parse(&["--scale-factor", "0"]).is_err());
         assert!(parse(&["--scale-factor", "-1"]).is_err());
+    }
+
+    #[test]
+    fn watch_defaults_to_the_build_kind_and_can_be_forced() {
+        let default = parse(&[]).unwrap().unwrap();
+        assert_eq!(default.watch, None);
+        assert_eq!(default.watch_files(), cfg!(debug_assertions));
+        assert!(parse(&["--watch"]).unwrap().unwrap().watch_files());
+        assert!(!parse(&["--no-watch"]).unwrap().unwrap().watch_files());
     }
 
     #[test]

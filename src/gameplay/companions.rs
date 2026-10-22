@@ -1,41 +1,22 @@
-//! Compagni: seguono l'evocatore da dietro e attaccano da soli. P0.2: un compagno di fuoco
-//! (nome di lavorazione "Brasa") con proiettile mirato. Slot e archetipi da dati: P0.0/P0.5.
+//! Compagni: seguono l'evocatore da dietro e attaccano da soli. Valori da
+//! `game-data/companions.ron` e `attacks.ron`; secondo e terzo slot con la P0.5.
 
 use bevy::prelude::*;
 
 use super::SimSet;
 use super::combat::AutoAttack;
 use super::kinematics::{Position, body};
-use super::player::{MoveIntent, PLAYER_SPAWN, PLAYER_SPEED, Player};
+use super::player::{MoveIntent, PLAYER_SPAWN, Player};
 use crate::app::AppState;
+use crate::data::schema::FollowData;
+use crate::data::{DataId, GameConfig};
 use crate::world::ArenaBounds;
-
-/// Distanza dietro al player in cui il compagno si ferma.
-pub const FOLLOW_DISTANCE: f32 = 18.0;
-/// Più veloce del player, così recupera dopo un cambio di direzione.
-pub const FOLLOW_MAX_SPEED: f32 = PLAYER_SPEED * 1.6;
-/// Frazione della distanza dal punto di arrivo recuperata ogni secondo (avvicinamento morbido).
-pub const FOLLOW_GAIN: f32 = 6.0;
-
-/// Attacco base del compagno di fuoco (valori dell'handoff §7: attacco 12, intervallo 1,1 s).
-pub fn ember_attack() -> AutoAttack {
-    AutoAttack {
-        damage: 12.0,
-        interval: 1.1,
-        cooldown: 0.0,
-        range: 150.0,
-        projectile_speed: 220.0,
-        projectiles: 1,
-        spread: 0.2,
-        pierce: 0,
-        muzzle_height: 8.0,
-    }
-}
 
 #[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub struct Companion {
     /// Ultima direzione di marcia del player: il compagno sta dalla parte opposta.
     pub trail: Vec2,
+    pub follow: FollowData,
 }
 
 /// Un passo di inseguimento morbido verso `target`, con velocità massima.
@@ -53,13 +34,18 @@ impl Plugin for CompanionsPlugin {
     }
 }
 
-fn spawn_starting_companion(mut commands: Commands) {
+fn spawn_starting_companion(mut commands: Commands, config: Res<GameConfig>) {
+    let data = config.starting_companion();
     let trail = Vec2::X;
     commands.spawn((
-        Name::new("Brasa"),
-        Companion { trail },
-        ember_attack(),
-        body(PLAYER_SPAWN - trail * FOLLOW_DISTANCE),
+        Name::new(data.display_name.clone()),
+        DataId(data.id.clone()),
+        Companion {
+            trail,
+            follow: data.follow,
+        },
+        AutoAttack::from_data(config.companion_attack(data)),
+        body(PLAYER_SPAWN - trail * data.follow.distance),
         DespawnOnExit(AppState::InRun),
     ));
 }
@@ -76,8 +62,9 @@ fn follow_player(
         if let Some(direction) = intent.try_normalize() {
             companion.trail = direction;
         }
-        let target = player.0 - companion.trail * FOLLOW_DISTANCE;
-        let next = follow_step(position.0, target, FOLLOW_MAX_SPEED, FOLLOW_GAIN, dt);
+        let follow = companion.follow;
+        let target = player.0 - companion.trail * follow.distance;
+        let next = follow_step(position.0, target, follow.max_speed, follow.gain, dt);
         position.0 = arena.clamp(next);
     }
 }
@@ -91,7 +78,7 @@ mod tests {
         let target = Vec2::new(30.0, 0.0);
         let mut at = Vec2::ZERO;
         for _ in 0..120 {
-            let next = follow_step(at, target, FOLLOW_MAX_SPEED, FOLLOW_GAIN, 1.0 / 60.0);
+            let next = follow_step(at, target, 120.0, 6.0, 1.0 / 60.0);
             assert!(next.x >= at.x && next.x <= target.x);
             at = next;
         }

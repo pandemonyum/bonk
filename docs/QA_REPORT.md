@@ -1,5 +1,51 @@
 # QA REPORT
 
+## 2026-10-22 — P0.2, P0.1, P0.0 e riduzione dello spazio su disco
+
+Stessa macchina della S0. Build `dev` con il nuovo profilo (dipendenze senza simboli di debug).
+
+### Automatici
+
+| Controllo | Comando | Esito |
+|---|---|---|
+| Gate completo | `./scripts/check.ps1` | OK: fmt, clippy `-D warnings`, test, asset |
+| Unit test | `cargo test --lib` | 58/58 OK |
+| Integrazione headless | `cargo test --test sim` | 21/21 OK, 1 ignorato (sonda di bilanciamento) |
+| Asset + sprite citati dai dati | `python scripts/validate-assets.py` | OK, 7 PNG, 4 sprite citati in `game-data/` |
+| Sonda bilanciamento | `cargo test --test sim balance -- --ignored --nocapture` | 54–55 colpi/min, 100% a segno, 14–18 sconfitti/min |
+
+Controprove (il test fallisce quando il comportamento si rompe): ripresa dalla pausa senza
+`resume_time`; sprite mancante citato in `enemies.ron`; dati con velocità negativa e
+riferimento inesistente (schermata d'errore con entrambi i messaggi).
+
+### Prove sul gioco reale
+
+| Prova | Osservato | Prova |
+|---|---|---|
+| Compagno che attacca (P0.2) | proiettile in partenza dal compagno; tinta di colpo visibile su una gelatina | `docs/evidence/p02-compagno-proiettile.png`, `p00-dati-caricati-e-colpo.png` |
+| Ostacoli (P0.1) | rocce e alberi sparsi, chioma che copre per profondità, orde che li aggirano; 58–62 FPS con ~1150 entità | `docs/evidence/p01-ostacoli-alberi.png`, `p01-ostacoli-radura.png` |
+| Dati da `game-data/` (P0.0) | log "dati di gioco caricati da game-data/" e run avviata | `docs/evidence/p00-dati-caricati-e-colpo.png` |
+| Dati non validi | schermata con "enemies.ron: blob.speed deve essere >= 0, trovato -3" e "stages.ron: meadow.enemy = \"dragon\": non esiste in enemies.ron" | `docs/evidence/p00-errori-dati.png` |
+| Ricarica a caldo | `stages.ron` modificato a gioco avviato (10 → 20 nemici): log "dati di gioco ricaricati", la run riparte con 20 nemici e statistiche azzerate | `docs/evidence/p00-ricarica-a-caldo.png` |
+
+### Spazio su disco (D-027)
+
+| Momento | `target/` | Disco C: libero |
+|---|---|---|
+| Prima | 21,7 GB (11 GB di copie non più usate, .pdb da ~0,75 GB per eseguibile) | 6,5 GB |
+| Dopo `cargo clean` + nuova configurazione: solo `cargo build` | 2,62 GB (build completa 14 min invece di 23) | |
+| + test compilati (un solo eseguibile d'integrazione) | 2,85 GB | |
+| + clippy | 3,31 GB | 25,6 GB |
+
+Rimossa anche la toolchain `stable` duplicata (1,3 GB); default rustup = 1.99.1.
+
+### Limiti aperti
+
+- Compilazione WASM non riverificata dopo la P0.0 (loader dei dati, watcher solo nativo):
+  la verifica completa è il primo passo della P1.
+- Ricarica a caldo provata sui dati; sugli sprite (`assets/`) è attiva ma non provata.
+- I rimpiazzi dei nemici possono comparire in vista vicino ai bordi dell'arena (P0.3).
+
 ## 2026-10-22 — S0
 
 **Macchina:** Windows 11 Enterprise 26200, Intel Core Ultra 5 238V, 31,5 GiB, Intel Arc 130V

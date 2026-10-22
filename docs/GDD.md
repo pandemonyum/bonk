@@ -14,7 +14,7 @@ restart immediato.
 WASD/frecce: movimento 8 direzioni. Esc o P: pausa. F3: overlay debug. F12: screenshot.
 Nessun tasto d'attacco: gli attacchi sono automatici.
 
-## Valori attuali (S0, costanti nel codice → `game-data/` in P0.0)
+## Valori attuali (in `game-data/*.ron` dalla P0.0; questa tabella ne spiega il perché)
 
 | Parametro | Valore | Motivo |
 |---|---|---|

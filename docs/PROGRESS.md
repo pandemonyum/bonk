@@ -5,11 +5,44 @@ Stato corrente, ultimo aggiornamento: **2026-10-22**.
 | Fase | Stato |
 |---|---|
 | S0 — bootstrap e ambiente | **DONE** (gate S0 superato, prove sotto) |
-| P0 — core giocabile desktop | in corso: P0.2 e P0.1 DONE; ordine deciso dall'utente P0.2 → P0.1 → P0.0 |
+| P0 — core giocabile desktop | in corso: P0.2, P0.1, P0.0 DONE (ordine deciso dall'utente) |
 | P1 — web | non iniziata |
 | P2 / P3 | non iniziate |
 
-Prossimo task eseguibile: **P0.0** (dati esterni in `game-data/`), vedi `docs/BACKLOG.md`.
+Prossimo task eseguibile: **P0.3** (spawn director, danni al player, griglia spaziale), vedi
+`docs/BACKLOG.md`.
+
+## Report tranche P0.0 + riduzione spazio su disco (2026-10-22)
+
+```text
+Task: P0.0 - Dati di gioco esterni in game-data/ ; D-027 - spazio su disco
+Owner: gameplay-engineer + game-designer (valori) + qa-performance (sequenziale)
+Stato: DONE
+Assunzioni: game-data/ resta in radice (sorgente di asset data://); valori invariati
+       rispetto alle costanti della P0.2/P0.1; ricarica a caldo attiva di default in debug.
+File: src/data/{mod,schema,validate,loader}.rs (nuovi), game-data/*.ron (5, nuovi),
+       src/{app,lib,options}.rs, src/gameplay/{player,companions,enemies,combat,collision,input}.rs,
+       src/presentation/{sprites,hud}.rs, src/world/obstacles.rs, tests/sim/* (unificati),
+       scripts/{validate-assets.py,clean-stale.ps1,clean-stale.sh}, Cargo.toml, docs/*
+Comandi eseguiti (risultato):
+  cargo clean                              rimossi 9423 file, 22,3 GiB
+  rustup toolchain uninstall stable        OK (default 1.99.1)
+  cargo build / test --no-run / clippy     OK: 837 s; target/ 2,62 → 2,85 → 3,31 GB
+  ./scripts/check.ps1                      OK: 79 test (58 unit + 21 integrazione), 1 ignorato
+  cargo run (dati validi / non validi / modifica a caldo)   OK, vedi QA_REPORT
+Comportamento verificato:
+  - i 5 file RON vengono caricati dall'AssetServer; tutti i valori di bilanciamento escono
+    dal codice; i test leggono i valori attesi dalla configurazione
+  - errori di sintassi (file:riga:colonna), campi sconosciuti, versioni, numeri fuori range,
+    riferimenti tra file, vincoli fisici (corpo vs varco ostacoli, proiettile vs hurtbox)
+  - schermata d'errore in gioco; ricarica a caldo con restart della run; F5 = restart pulito
+    (test: stesso censimento di entità di una run nuova, anche partendo dalla pausa)
+Problemi trovati e risolti: errore di link LNK1318 transitorio (contesa sui .pdb), sparito al
+  secondo tentativo e non più possibile con i simboli ridotti; nella prima stesura del loader
+  correggere un file dopo un errore al primo avvio non aveva effetto (unificato in un sistema).
+Rischi noti: compilazione WASM da riverificare in P1; ricarica degli sprite non provata.
+Prossimo task: P0.3
+```
 
 ## Report tranche P0.1 (2026-10-22)
 

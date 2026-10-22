@@ -19,7 +19,7 @@ La 2022 (17.14) è la versione più collaudata con `cc`/`link.exe` dalle dipende
 ## D-004 Feature Bevy: solo `2d` + `ui`
 `default-features = false`, niente 3D/PBR/glTF: meno codice da compilare. `2d` include già
 `webgl2`, `default_font`, `multi_threaded`. Audio aggiunto quando serve (P2.4). Feature del
-progetto `dev` = `bevy/dev` (hot reload asset, strumenti debug).
+progetto `dev` rimossa il 2026-10-22: in nativo `bevy/file_watcher` è sempre compilato e la ricarica a caldo si accende a runtime (`--watch`, default in debug), perché una seconda combinazione di feature ricompilava tutta Bevy e raddoppiava `target/` (vedi D-027).
 
 ## D-005 RNG proprio (PCG32 + SplitMix64), niente crate `rand`
 Sequenze di interi stabili tra versioni di dipendenze e tra nativo e WASM (verificato contro la
@@ -98,6 +98,40 @@ in linea retta scivolando attorno agli ostacoli. Niente pathfinding finché il l
 richiede muri o corridoi. Collisione sull'impronta a terra (cerchio ai piedi); i proiettili
 passano sopra gli ostacoli (lettura del combattimento prima del realismo); il compagno, che
 fluttua, li ignora.
+
+## D-023 Dati in `game-data/` via sorgente di asset `data://`
+I file RON restano nella cartella `game-data/` in radice (come da handoff, ownership del
+game-designer) e l'AssetServer li legge da una sorgente registrata `data` →
+`AssetSourceBuilder::platform_default("game-data")`: da disco in nativo, via HTTP sul web
+(il `dist/` della P1 dovrà includere `game-data/`). Loader proprio che restituisce il testo;
+parsing e validazione insieme in `GameConfig::parse`, così gli errori sono tutti in un elenco
+con file, voce e campo. `deny_unknown_fields` contro i refusi. Dipendenze aggiunte: `serde`
+1 e `ron` 0.12, già presenti nel lockfile tramite Bevy (MIT/Apache-2.0).
+
+## D-024 Restart e ricarica passano da `AppState::Loading`
+Restart (F5) = `InRun → Loading → InRun`: le entità della run hanno `DespawnOnExit(InRun)`,
+le risorse della run si ricreano in `OnEnter(InRun)`. La ricarica a caldo dei dati
+(`--watch`, attiva di default nelle build di sviluppo) usa lo stesso percorso: dati validi e diversi → la run riparte con i valori
+nuovi; dati non validi → errori a schermo e la configurazione precedente resta in uso.
+
+## D-025 Headless con i dati incorporati a compile time
+`headless_app()` usa `include_str!` degli stessi file di `game-data/`: i test girano senza
+AssetServer e provano sempre i dati veri; un file non valido fa fallire il test
+`the_real_data_files_are_valid`. `headless_app_with(seed, config)` per i test che cambiano valori.
+
+## D-026 Sprite di attori e proiettili dai dati
+Le entità portano un `DataId` e la presentazione ricava lo sprite dal percorso nei dati;
+`validate-assets.py` verifica che ogni sprite citato in `game-data/` esista nel manifest.
+Gli sprite degli ostacoli restano nel codice del mondo finché non c'è un `world.ron`.
+
+## D-027 Spazio su disco di `target/` *(utente: ridurre lo spazio)*
+Misurato il 2026-10-22: 21,7 GB, di cui ~11 GB copie di compilazione non più usate (nuovi hash a
+ogni cambio di dipendenze o feature, più una build `--features dev` interrotta) e .pdb da
+~0,75 GB per ogni eseguibile. Contromisure: dipendenze senza simboli di debug e nostro codice
+con soli numeri di riga (`[profile.dev]`), un solo eseguibile per i test d'integrazione
+(`tests/sim/`), un solo set di feature (watcher sempre compilato in nativo, acceso a runtime),
+toolchain `stable` duplicata rimossa (default rustup = 1.99.1), `scripts/clean-stale.*` per
+ripulire le copie vecchie del nostro crate. Costo: backtrace senza dettagli dentro Bevy.
 
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale

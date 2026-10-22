@@ -1,0 +1,19 @@
+// Stage (mappe). La prima voce è quella giocata. Curve di difficoltà e boss: P0.3/P0.6.
+(
+    version: 1,
+    stages: [
+        (
+            id: "meadow",
+            display_name: "Prateria dei Germogli",
+            starting_companion: "ember",
+            enemy: "blob",
+            initial_enemies: 10,
+            // nemici in campo al massimo; i sconfitti vengono rimpiazzati
+            population_cap: 10,
+            // anello (min, max) in px attorno al player: in parte visibile all'inizio
+            initial_ring: (170.0, 240.0),
+            // rimpiazzi oltre la mezza diagonale dello schermo (~275 px)
+            respawn_ring: (290.0, 340.0),
+        ),
+    ],
+)

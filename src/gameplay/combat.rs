@@ -10,11 +10,10 @@ use super::SimSet;
 use super::enemies::Enemy;
 use super::kinematics::{Position, body};
 use crate::app::AppState;
+use crate::data::DataId;
+use crate::data::schema::AttackData;
 use crate::world::ArenaBounds;
 
-/// Raggio di collisione dei proiettili. Con velocità fino a 400 px/s (6,7 px per passo) e
-/// hurtbox da 7 px un proiettile non può attraversare un nemico tra due passi.
-pub const PROJECTILE_RADIUS: f32 = 3.0;
 /// Durata della tinta di colpo.
 pub const HIT_FLASH_SECS: f32 = 0.12;
 /// Margine di vita del proiettile oltre la gittata (raggiunge nemici in movimento).
@@ -59,6 +58,8 @@ pub struct HitFlash(pub f32);
 /// Attacco a proiettili mirati sul nemico più vicino entro `range`.
 #[derive(Component, Debug, Clone, PartialEq)]
 pub struct AutoAttack {
+    /// Id in `attacks.ron`, passato ai proiettili (la presentazione ne ricava lo sprite).
+    pub id: String,
     pub damage: f32,
     /// Secondi tra due attacchi.
     pub interval: f32,
@@ -66,6 +67,7 @@ pub struct AutoAttack {
     pub cooldown: f32,
     pub range: f32,
     pub projectile_speed: f32,
+    pub projectile_radius: f32,
     pub projectiles: u32,
     /// Angolo in radianti tra due proiettili della stessa raffica.
     pub spread: f32,
@@ -73,6 +75,25 @@ pub struct AutoAttack {
     pub pierce: u32,
     /// Altezza da cui parte il colpo rispetto ai piedi di chi attacca.
     pub muzzle_height: f32,
+}
+
+impl AutoAttack {
+    /// Attacco pronto (cooldown 0) con i valori di `attacks.ron`.
+    pub fn from_data(data: &AttackData) -> Self {
+        Self {
+            id: data.id.clone(),
+            damage: data.damage,
+            interval: data.interval_s,
+            cooldown: 0.0,
+            range: data.range,
+            projectile_speed: data.projectile_speed,
+            projectile_radius: data.projectile_radius,
+            projectiles: data.projectiles,
+            spread: data.spread_deg.to_radians(),
+            pierce: data.pierce,
+            muzzle_height: data.muzzle_height,
+        }
+    }
 }
 
 #[derive(Component, Debug, Clone, PartialEq)]
@@ -181,10 +202,11 @@ fn fire_auto_attacks(
         for direction in spread_directions(aim, attack.projectiles, attack.spread) {
             commands.spawn((
                 Name::new("Proiettile"),
+                DataId(attack.id.clone()),
                 Projectile {
                     velocity: direction * attack.projectile_speed,
                     damage: attack.damage,
-                    radius: PROJECTILE_RADIUS,
+                    radius: attack.projectile_radius,
                     remaining_secs: attack.range / attack.projectile_speed * LIFETIME_MARGIN,
                     hits_left: attack.pierce + 1,
                     already_hit: Vec::new(),

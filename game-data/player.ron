@@ -1,0 +1,9 @@
+// Evocatore controllato dal giocatore. Unità: pixel di mondo (1 px = 1 texel a 480x270), secondi.
+(
+    version: 1,
+    sprite: "sprites/summoner.png",
+    // 75 px/s: attraversa lo schermo (480 px) in ~6 s, orde leggibili.
+    speed: 75.0,
+    // Cerchio ai piedi per le collisioni con gli ostacoli. Max 9 (varco minimo 18 px).
+    footprint_radius: 5.0,
+)

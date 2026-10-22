@@ -14,7 +14,9 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 
 | Modulo | Contenuto | Richiede GPU |
 |---|---|---|
-| `app` | `AppState` (`InRun`), sottostato `RunPhase` (`Playing`, `Paused`), `RunSeed`, `SimulationPlugin` | no |
+| `app` | `AppState` (`Loading`, `InRun`), sottostato `RunPhase` (`Playing`, `Paused`), `RunSeed`, `restart_run`, `SimulationPlugin` | no |
+| `data` | schema dei file `game-data/*.ron`, `GameConfig` validata, `DataStatus`, `DataId`, copia incorporata per headless | no |
+| `data::loader` | sorgente `data://`, loader di testo, primo caricamento e ricarica a caldo | AssetServer (client) |
 | `options` | parsing CLI (`--seed`, `--autoplay`, `--overlay`, `--screenshot*`, `--exit-after`, `--window`, `--scale-factor`) | no |
 | `rng` | PCG32, SplitMix64, `hash2` per coordinate | no |
 | `gameplay::kinematics` | `Position`, `PreviousPosition`, `body()` | no |
@@ -58,15 +60,29 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 
 ## Dati
 
-S0: valori come costanti con unità nei moduli (`PLAYER_SPEED`, `ENEMY_SPEED`, ...).
-P0.0: spostamento in `game-data/*.ron` caricati con l'AssetServer (compatibile WASM) e validati.
+Tutti i valori di bilanciamento sono in `game-data/` (`player`, `companions`, `attacks`,
+`enemies`, `stages`, schema versione 1). Restano nel codice solo le costanti strutturali
+(dimensioni dell'arena e dei tile, frequenza della simulazione, densità degli ostacoli).
+
+```text
+client:   Startup → load data://*.ron → (tutti caricati) → GameConfig::parse
+              ok  → GameConfig + DataStatus::Ready → Loading → InRun
+              err → DataStatus::Error (schermata) → si riprova al salvataggio del file
+          AssetEvent::Modified (--watch) → parse → ok e diversa → restart della run
+headless: GameConfig::embedded() (include_str! degli stessi file) → InRun dal primo update
+```
+
+La validazione controlla anche vincoli fisici legati al codice: nessun corpo più largo del
+varco minimo tra ostacoli, nessun proiettile abbastanza veloce da attraversare un nemico tra
+due passi, anelli di spawn coerenti, riferimenti tra file esistenti.
 
 ## Test
 
 - Unit test accanto al codice per funzioni pure (direzioni, inseguimento, separazione, RNG,
   generazione, scala canvas, opzioni).
-- `tests/headless_sim.rs` (movimento, limiti, pausa), `tests/combat_sim.rs` (compagno,
-  danni, morti, cadenza, popolazione) e `tests/world_sim.rs` (ostacoli, collisioni) per i
-  sistemi ECS completi senza GPU; helper in `tests/common/`.
-- `tests/balance_probe.rs`: sonda di bilanciamento `#[ignore]`, stampa statistiche di 60 s.
+- `tests/sim/` è un solo eseguibile (D-027) con i moduli `movement` (movimento, limiti,
+  pausa, restart, valori dai dati), `combat` (compagno, danni, morti, cadenza, popolazione),
+  `world` (ostacoli, collisioni) e helper in `common`; tutti senza GPU.
+- `tests/sim/balance.rs`: sonda di bilanciamento `#[ignore]`, stampa statistiche di 60 s
+  (`cargo test --test sim balance -- --ignored --nocapture`).
 - `scripts/check-pixel-grid.py` per la verifica nearest-neighbor su screenshot reali.

@@ -1,43 +1,31 @@
 //! Nemici: ondata iniziale, inseguimento, separazione, rimpiazzo di chi viene sconfitto.
-//! Lo spawn director con archetipi e curve da `game-data/` arriva con la P0.3.
+//! Valori da `game-data/enemies.ron` e `stages.ron`. Lo spawn director con più archetipi e
+//! curve per minuto arriva con la P0.3.
 
 use bevy::prelude::*;
 
 use super::SimSet;
-use super::collision::{ENEMY_FOOTPRINT, Footprint, push_outside, resolve_against_obstacles};
+use super::collision::{Footprint, push_outside, resolve_against_obstacles};
 use super::combat::{Health, Hurtbox};
 use super::kinematics::{Position, body};
 use super::player::{PLAYER_SPAWN, Player};
 use crate::app::{AppState, RunSeed};
+use crate::data::schema::EnemyData;
+use crate::data::{DataId, GameConfig};
 use crate::rng::Pcg32;
 use crate::world::ArenaBounds;
 use crate::world::obstacles::ObstacleField;
 
-pub const ENEMY_SPEED: f32 = 40.0;
-/// Tre colpi del compagno di fuoco (12 danni).
-pub const ENEMY_MAX_HP: f32 = 30.0;
-/// Hurtbox della gelatina 16×13: cerchio di 7 px centrato a metà altezza.
-pub const ENEMY_HURTBOX: Hurtbox = Hurtbox {
-    radius: 7.0,
-    center_offset: 6.0,
-};
-pub const INITIAL_ENEMIES: usize = 10;
-/// Popolazione mantenuta finché non c'è lo spawn director (P0.3).
-pub const ENEMY_POPULATION: usize = INITIAL_ENEMIES;
-/// Anello dell'ondata iniziale: in parte visibile, così l'inseguimento si vede subito.
-pub const SPAWN_RING: (f32, f32) = (170.0, 240.0);
-/// Anello dei rimpiazzi: oltre la mezza diagonale dello schermo (√(240²+135²) ≈ 275 px).
-pub const RESPAWN_RING: (f32, f32) = (290.0, 340.0);
-/// Distanza a cui il nemico smette di avanzare (contatto; i danni arrivano con la P0.3).
-pub const CONTACT_DISTANCE: f32 = 10.0;
-/// Distanza minima tra due nemici.
-pub const SEPARATION_RADIUS: f32 = 14.0;
 /// Stream RNG dedicato agli spawn (vedi `Pcg32::new`).
 const SPAWN_STREAM: u64 = 1;
 
-#[derive(Component, Debug, Clone, Copy)]
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub struct Enemy {
     pub speed: f32,
+    /// Distanza dal player a cui smette di avanzare (i danni da contatto arrivano in P0.3).
+    pub contact_distance: f32,
+    /// Distanza minima da un altro nemico.
+    pub separation_radius: f32,
 }
 
 /// Generatore degli spawn della run: unico per ondata iniziale e rimpiazzi, così la
@@ -92,7 +80,7 @@ impl Plugin for EnemyPlugin {
                 FixedUpdate,
                 // La respinta dal player viene per ultima: contro un muro vale più non entrare
                 // nel player che restare dentro i limiti (si sfora di al massimo
-                // CONTACT_DISTANCE: lo sprite può sovrapporsi un poco alla siepe o a un
+                // `contact_distance`: lo sprite può sovrapporsi un poco alla siepe o a un
                 // ostacolo).
                 (
                     separate_enemies,
@@ -107,27 +95,41 @@ impl Plugin for EnemyPlugin {
     }
 }
 
-fn spawn_enemy(commands: &mut Commands, spawns: &mut SpawnRng, at: Vec2) {
+fn spawn_enemy(commands: &mut Commands, spawns: &mut SpawnRng, data: &EnemyData, at: Vec2) {
     commands.spawn((
-        Name::new(format!("Gelatina {}", spawns.spawned)),
-        Enemy { speed: ENEMY_SPEED },
-        Health::full(ENEMY_MAX_HP),
-        ENEMY_HURTBOX,
-        ENEMY_FOOTPRINT,
+        Name::new(format!("{} {}", data.display_name, spawns.spawned)),
+        DataId(data.id.clone()),
+        Enemy {
+            speed: data.speed,
+            contact_distance: data.contact_distance,
+            separation_radius: data.separation_radius,
+        },
+        Health::full(data.max_hp),
+        Hurtbox {
+            radius: data.hurtbox.radius,
+            center_offset: data.hurtbox.center_offset,
+        },
+        Footprint(data.footprint_radius),
         body(at),
         DespawnOnExit(AppState::InRun),
     ));
     spawns.spawned += 1;
 }
 
-fn spawn_initial_wave(mut commands: Commands, seed: Res<RunSeed>, arena: Res<ArenaBounds>) {
+fn spawn_initial_wave(
+    mut commands: Commands,
+    config: Res<GameConfig>,
+    seed: Res<RunSeed>,
+    arena: Res<ArenaBounds>,
+) {
     let mut spawns = SpawnRng {
         rng: Pcg32::new(seed.0, SPAWN_STREAM),
         spawned: 0,
     };
-    for _ in 0..INITIAL_ENEMIES {
-        let at = ring_point(&mut spawns.rng, PLAYER_SPAWN, SPAWN_RING.0, SPAWN_RING.1);
-        spawn_enemy(&mut commands, &mut spawns, arena.clamp(at));
+    let (enemy, (r_min, r_max)) = (config.stage_enemy(), config.stage.initial_ring);
+    for _ in 0..config.stage.initial_enemies {
+        let at = ring_point(&mut spawns.rng, PLAYER_SPAWN, r_min, r_max);
+        spawn_enemy(&mut commands, &mut spawns, enemy, arena.clamp(at));
     }
     commands.insert_resource(spawns);
 }
@@ -136,15 +138,18 @@ fn spawn_initial_wave(mut commands: Commands, seed: Res<RunSeed>, arena: Res<Are
 /// portare un rimpiazzo in vista: le zone di spawn vere arrivano con la P0.3.
 fn maintain_population(
     mut commands: Commands,
+    config: Res<GameConfig>,
     mut spawns: ResMut<SpawnRng>,
     arena: Res<ArenaBounds>,
     player: Single<&Position, With<Player>>,
     enemies: Query<(), With<Enemy>>,
 ) {
-    let missing = ENEMY_POPULATION.saturating_sub(enemies.iter().count());
+    let cap = config.stage.population_cap as usize;
+    let missing = cap.saturating_sub(enemies.iter().count());
+    let (enemy, (r_min, r_max)) = (config.stage_enemy(), config.stage.respawn_ring);
     for _ in 0..missing {
-        let at = ring_point(&mut spawns.rng, player.0, RESPAWN_RING.0, RESPAWN_RING.1);
-        spawn_enemy(&mut commands, &mut spawns, arena.clamp(at));
+        let at = ring_point(&mut spawns.rng, player.0, r_min, r_max);
+        spawn_enemy(&mut commands, &mut spawns, enemy, arena.clamp(at));
     }
 }
 
@@ -156,20 +161,25 @@ fn chase_player(
     let target = player.0;
     let dt = time.delta_secs();
     for (enemy, mut position) in &mut enemies {
-        position.0 = chase_step(position.0, target, enemy.speed, dt, CONTACT_DISTANCE);
+        position.0 = chase_step(position.0, target, enemy.speed, dt, enemy.contact_distance);
     }
 }
 
-/// O(n²): accettabile per le 10 entità della S0. Con lo spawn director (P0.3) va sostituito
-/// da una griglia spaziale (vedi docs/BACKLOG.md).
-fn separate_enemies(mut enemies: Query<&mut Position, With<Enemy>>) {
-    let mut bodies: Vec<Mut<Position>> = enemies.iter_mut().collect();
+/// O(n²): accettabile per le decine di nemici della P0. Con lo spawn director (P0.3) va
+/// sostituito da una griglia spaziale (vedi docs/BACKLOG.md). Tra due archetipi vale il
+/// raggio di separazione più grande.
+fn separate_enemies(mut enemies: Query<(&Enemy, &mut Position)>) {
+    let mut bodies: Vec<(f32, Mut<Position>)> = enemies
+        .iter_mut()
+        .map(|(enemy, position)| (enemy.separation_radius, position))
+        .collect();
     for i in 0..bodies.len() {
         for j in (i + 1)..bodies.len() {
-            let push = separation_offset(bodies[i].0, bodies[j].0, SEPARATION_RADIUS);
+            let radius = bodies[i].0.max(bodies[j].0);
+            let push = separation_offset(bodies[i].1.0, bodies[j].1.0, radius);
             if push != Vec2::ZERO {
-                bodies[i].0 += push;
-                bodies[j].0 -= push;
+                bodies[i].1.0 += push;
+                bodies[j].1.0 -= push;
             }
         }
     }
@@ -191,11 +201,11 @@ fn avoid_obstacles(
 /// e `enemies_never_enter_the_player_against_a_wall`).
 fn keep_out_of_player(
     player: Single<&Position, With<Player>>,
-    mut enemies: Query<&mut Position, (With<Enemy>, Without<Player>)>,
+    mut enemies: Query<(&Enemy, &mut Position), Without<Player>>,
 ) {
     let center = player.0;
-    for mut position in &mut enemies {
-        position.0 = push_outside(position.0, center, CONTACT_DISTANCE);
+    for (enemy, mut position) in &mut enemies {
+        position.0 = push_outside(position.0, center, enemy.contact_distance);
     }
 }
 

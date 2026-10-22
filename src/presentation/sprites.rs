@@ -1,9 +1,12 @@
 //! Aggancia gli sprite alle entità di gioco e ne sincronizza la posizione a schermo.
+//! Gli sprite di attori e proiettili vengono dai percorsi in `game-data/` (via `DataId`);
+//! quelli degli ostacoli sono parte del mondo e restano qui.
 
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 
 use super::{Z_ACTORS, Z_PROJECTILES};
+use crate::data::{DataId, GameConfig};
 use crate::gameplay::combat::{HitFlash, Projectile};
 use crate::gameplay::companions::Companion;
 use crate::gameplay::enemies::Enemy;
@@ -18,10 +21,6 @@ const HIT_TINT: Color = Color::srgb(1.0, 0.45, 0.45);
 
 #[derive(Resource)]
 pub struct SpriteAssets {
-    pub summoner: Handle<Image>,
-    pub ember_companion: Handle<Image>,
-    pub blob_enemy: Handle<Image>,
-    pub fireball: Handle<Image>,
     pub rock: Handle<Image>,
     pub tree: Handle<Image>,
 }
@@ -40,10 +39,6 @@ impl Plugin for SpritesPlugin {
     fn build(&self, app: &mut App) {
         let assets = app.world().resource::<AssetServer>();
         let sprites = SpriteAssets {
-            summoner: assets.load("sprites/summoner.png"),
-            ember_companion: assets.load("sprites/ember_companion.png"),
-            blob_enemy: assets.load("sprites/blob_enemy.png"),
-            fireball: assets.load("sprites/fireball.png"),
             rock: assets.load("sprites/rock.png"),
             tree: assets.load("sprites/tree.png"),
         };
@@ -72,42 +67,86 @@ pub fn screen_translation(previous: Vec2, current: Vec2, alpha: f32, depth: f32)
 }
 
 /// Sprite di un attore con i piedi sulla `Position`.
-fn actor_sprite(image: &Handle<Image>) -> (Sprite, Anchor) {
-    (Sprite::from_image(image.clone()), Anchor::BOTTOM_CENTER)
+fn actor_sprite(image: Handle<Image>) -> (Sprite, Anchor) {
+    (Sprite::from_image(image), Anchor::BOTTOM_CENTER)
 }
 
-fn attach_player_sprite(add: On<Add<Player>>, mut commands: Commands, art: Res<SpriteAssets>) {
-    commands
-        .entity(add.entity)
-        .insert(actor_sprite(&art.summoner));
+/// Percorso dello sprite di un'entità dai dati; `None` (con avviso) se l'id non esiste più,
+/// per esempio dopo una ricarica che l'ha rinominato.
+fn data_sprite(
+    kind: &str,
+    id: Option<&DataId>,
+    lookup: impl FnOnce(&str) -> Option<String>,
+) -> Option<String> {
+    let id = id?;
+    let path = lookup(&id.0);
+    if path.is_none() {
+        warn!("{kind} \"{}\" assente dai dati: nessuno sprite", id.0);
+    }
+    path
+}
+
+fn attach_player_sprite(
+    add: On<Add<Player>>,
+    mut commands: Commands,
+    assets: Res<AssetServer>,
+    config: Res<GameConfig>,
+) {
+    let image = assets.load(config.player.sprite.clone());
+    commands.entity(add.entity).insert(actor_sprite(image));
 }
 
 fn attach_companion_sprite(
     add: On<Add<Companion>>,
     mut commands: Commands,
-    art: Res<SpriteAssets>,
+    assets: Res<AssetServer>,
+    config: Res<GameConfig>,
+    ids: Query<&DataId>,
 ) {
-    commands
-        .entity(add.entity)
-        .insert(actor_sprite(&art.ember_companion));
+    let path = data_sprite("compagno", ids.get(add.entity).ok(), |id| {
+        config.companion(id).map(|c| c.sprite.clone())
+    });
+    if let Some(path) = path {
+        commands
+            .entity(add.entity)
+            .insert(actor_sprite(assets.load(path)));
+    }
 }
 
-fn attach_enemy_sprite(add: On<Add<Enemy>>, mut commands: Commands, art: Res<SpriteAssets>) {
-    commands
-        .entity(add.entity)
-        .insert(actor_sprite(&art.blob_enemy));
+fn attach_enemy_sprite(
+    add: On<Add<Enemy>>,
+    mut commands: Commands,
+    assets: Res<AssetServer>,
+    config: Res<GameConfig>,
+    ids: Query<&DataId>,
+) {
+    let path = data_sprite("nemico", ids.get(add.entity).ok(), |id| {
+        config.enemy(id).map(|e| e.sprite.clone())
+    });
+    if let Some(path) = path {
+        commands
+            .entity(add.entity)
+            .insert(actor_sprite(assets.load(path)));
+    }
 }
 
-/// I proiettili sono centrati sulla `Position` (6×6, lato pari) e sopra gli attori.
+/// I proiettili sono centrati sulla `Position` (lato pari) e disegnati sopra gli attori.
 fn attach_projectile_sprite(
     add: On<Add<Projectile>>,
     mut commands: Commands,
-    art: Res<SpriteAssets>,
+    assets: Res<AssetServer>,
+    config: Res<GameConfig>,
+    ids: Query<&DataId>,
 ) {
-    commands.entity(add.entity).insert((
-        Sprite::from_image(art.fireball.clone()),
-        DepthBase(Z_PROJECTILES),
-    ));
+    let path = data_sprite("attacco", ids.get(add.entity).ok(), |id| {
+        config.attack(id).map(|a| a.projectile_sprite.clone())
+    });
+    if let Some(path) = path {
+        commands.entity(add.entity).insert((
+            Sprite::from_image(assets.load(path)),
+            DepthBase(Z_PROJECTILES),
+        ));
+    }
 }
 
 /// Gli ostacoli condividono il y-sort degli attori: chi passa dietro un albero ne è coperto.
@@ -124,7 +163,9 @@ fn attach_obstacle_sprite(
         ObstacleKind::Rock => &art.rock,
         ObstacleKind::Tree => &art.tree,
     };
-    commands.entity(add.entity).insert(actor_sprite(image));
+    commands
+        .entity(add.entity)
+        .insert(actor_sprite(image.clone()));
 }
 
 fn tint_hit_enemies(mut enemies: Query<(&mut Sprite, Has<HitFlash>), With<Enemy>>) {

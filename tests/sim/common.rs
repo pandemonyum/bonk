@@ -2,10 +2,16 @@
 #![allow(dead_code)] // ogni file di test usa solo una parte di queste funzioni
 
 use bevy::prelude::*;
+use pixel_monster_survivor::data::GameConfig;
 use pixel_monster_survivor::gameplay::companions::Companion;
 use pixel_monster_survivor::gameplay::enemies::Enemy;
 use pixel_monster_survivor::gameplay::kinematics::Position;
 use pixel_monster_survivor::gameplay::player::Player;
+
+/// Configurazione in uso nella simulazione (i file di `game-data/`, salvo modifiche del test).
+pub fn config(app: &App) -> GameConfig {
+    app.world().resource::<GameConfig>().clone()
+}
 
 pub fn run_steps(app: &mut App, steps: usize) {
     for _ in 0..steps {

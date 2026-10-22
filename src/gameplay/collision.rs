@@ -7,11 +7,9 @@ use bevy::prelude::*;
 use crate::world::obstacles::ObstacleField;
 
 /// Raggio dell'impronta a terra di un corpo mobile, centrata sulla `Position` (piedi).
+/// Viene dai dati (`footprint_radius`), validato contro il varco minimo tra ostacoli.
 #[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub struct Footprint(pub f32);
-
-pub const PLAYER_FOOTPRINT: Footprint = Footprint(5.0);
-pub const ENEMY_FOOTPRINT: Footprint = Footprint(6.0);
 
 /// Riporta `point` sul bordo del cerchio `(center, radius)` se ci è entrato.
 pub fn push_outside(point: Vec2, center: Vec2, radius: f32) -> Vec2 {
