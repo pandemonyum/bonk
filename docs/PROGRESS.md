@@ -5,11 +5,38 @@ Stato corrente, ultimo aggiornamento: **2026-10-22**.
 | Fase | Stato |
 |---|---|
 | S0 — bootstrap e ambiente | **DONE** (gate S0 superato, prove sotto) |
-| P0 — core giocabile desktop | in corso: P0.2 DONE; ordine deciso dall'utente P0.2 → P0.1 → P0.0 |
+| P0 — core giocabile desktop | in corso: P0.2 e P0.1 DONE; ordine deciso dall'utente P0.2 → P0.1 → P0.0 |
 | P1 — web | non iniziata |
 | P2 / P3 | non iniziate |
 
-Prossimo task eseguibile: **P0.1** (ostacoli e collisioni nell'arena), vedi `docs/BACKLOG.md`.
+Prossimo task eseguibile: **P0.0** (dati esterni in `game-data/`), vedi `docs/BACKLOG.md`.
+
+## Report tranche P0.1 (2026-10-22)
+
+```text
+Task: P0.1 - Ostacoli procedurali e collisioni
+Owner: world-generation + gameplay-engineer + pixel-art-director (sequenziale)
+Stato: DONE
+File: src/world/obstacles.rs, src/gameplay/collision.rs (nuovi), src/world/mod.rs,
+       src/gameplay/{mod,player,enemies}.rs, src/presentation/sprites.rs,
+       tests/world_sim.rs, assets-src/sprites/{rock,tree}.px, assets/**, docs/*
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1                     OK: 65 test (46 unit + 8 + 7 + 4), 7 PNG
+  cargo run -- --autoplay --overlay ... (seed default e seed 7)   OK, exit 0
+Comportamento verificato:
+  - ~650 ostacoli per seed (test: 400-900), stesso seed = stessi ostacoli, zona di partenza
+    libera (128 px), varchi sempre ≥ 12 px, flood fill: tutti i tile liberi raggiungibili
+  - griglia spaziale: stessi risultati della ricerca esaustiva su 3 punti di prova
+  - player: mai dentro un'impronta, scivola attorno se arriva di lato, si ferma sul bordo
+    se punta dritto al centro
+  - nemici: entro il limite documentato (al più CONTACT_DISTANCE di penetrazione, D-021)
+  - 58-62 FPS con ~1150 entità in build dev (overlay, non benchmark)
+  - screenshot: docs/evidence/p01-ostacoli-alberi.png, p01-ostacoli-radura.png
+Problemi trovati e risolti: albero inizialmente più basso dell'evocatore → ridisegnato 24×26.
+Rischi noti: un nemico allineato esattamente player-ostacolo può fermarsi dietro l'ostacolo
+  (nessun pathfinding, D-022); i proiettili attraversano gli ostacoli per scelta.
+Prossimo task: P0.0
+```
 
 ## Report tranche P0.2 (2026-10-22)
 

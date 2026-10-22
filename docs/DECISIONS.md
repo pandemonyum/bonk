@@ -91,6 +91,14 @@ l'altezza del corpo, quello sud solo un piccolo margine. Ingombri costanti in S0
 Ordine: separazione → limiti arena → respinta dal player. Contro un muro un nemico può sforare
 i limiti di al massimo `CONTACT_DISTANCE`, ma non entra mai nel player (test dedicato).
 
+## D-022 Ostacoli sparsi con distanza minima invece di pathfinding
+Rocce e alberi su tile non adiacenti (nemmeno in diagonale): i varchi restano ≥ 18 px, più
+larghi di qualunque corpo, quindi l'arena è sempre attraversabile e i nemici possono inseguire
+in linea retta scivolando attorno agli ostacoli. Niente pathfinding finché il level design non
+richiede muri o corridoi. Collisione sull'impronta a terra (cerchio ai piedi); i proiettili
+passano sopra gli ostacoli (lettura del combattimento prima del realismo); il compagno, che
+fluttua, li ignora.
+
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale
 come seconda build separata dopo la P1.

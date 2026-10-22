@@ -1,13 +1,18 @@
-//! Arena "Prateria dei Germogli": dimensioni, limiti percorribili e generazione a seed.
+//! Arena "Prateria dei Germogli": dimensioni, limiti percorribili, ostacoli, generazione a seed.
 //!
 //! Decisione S0 (docs/DECISIONS.md): arena chiusa di 256×256 tile, centrata nell'origine,
 //! divisa in chunk da 64×64 tile. Niente streaming.
 
 pub mod generation;
+pub mod obstacles;
 pub mod render;
 pub mod tiles;
 
 use bevy::prelude::*;
+
+use crate::app::{AppState, RunSeed};
+use crate::gameplay::kinematics::body;
+use obstacles::{Obstacle, ObstacleField, generate_obstacles};
 
 pub const TILE_SIZE: u32 = 16;
 pub const CHUNK_TILES: u32 = 64;
@@ -57,8 +62,29 @@ pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<ArenaBounds>();
+        app.init_resource::<ArenaBounds>()
+            .add_systems(OnEnter(AppState::InRun), spawn_obstacles);
     }
+}
+
+/// Genera gli ostacoli della run: la griglia `ObstacleField` per le collisioni e un'entità
+/// per ostacolo per il rendering.
+fn spawn_obstacles(mut commands: Commands, seed: Res<RunSeed>) {
+    let field = ObstacleField::new(generate_obstacles(seed.0));
+    for obstacle in &field.obstacles {
+        commands.spawn((
+            Name::new(format!(
+                "{:?} {},{}",
+                obstacle.kind, obstacle.tile.x, obstacle.tile.y
+            )),
+            Obstacle {
+                kind: obstacle.kind,
+            },
+            body(obstacle.base),
+            DespawnOnExit(AppState::InRun),
+        ));
+    }
+    commands.insert_resource(field);
 }
 
 #[cfg(test)]

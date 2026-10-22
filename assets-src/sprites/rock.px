@@ -1,0 +1,15 @@
+# Roccia (ostacolo), placeholder P0.1. Luce in alto a sinistra, ombra in basso a destra.
+# Impronta di collisione: cerchio r=7 a 3 px sopra la base (src/world/obstacles.rs).
+out: sprites/rock.png
+mirror: false
+---
+......kkkk......
+....kkttttkk....
+...kttwtttttk...
+..kttwttttttTk..
+.kttttttttttTTk.
+.ktttttttttTTTk.
+kTtttttttttTTTTk
+kTTtttttttTTTTTk
+.kTTTTTTTTTTTTk.
+..kkkkkkkkkkkk..

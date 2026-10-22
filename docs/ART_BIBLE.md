@@ -14,6 +14,8 @@ Moodboard `references/pixel_art_concept.png`: non presente al 2026-10-22.
 | Nemici comuni | 16×~13–16 | silhouette bassa e larga (gelatina) |
 | Compagni | 16×17 (fuoco) | silhouette verticale/appuntita: mai la stessa forma dei nemici |
 | Proiettili | 6×6 | ancora al centro, nucleo chiaro, disegnati sopra gli attori |
+| Roccia | 16×10 | luce in alto a sinistra; impronta r=7 |
+| Albero | 24×26 | più alto dell'evocatore; chioma scura `A/B` per staccarsi dall'erba; impronta solo tronco r=4 |
 | Élite | 24–32 px | |
 | Boss | 48–64 px | massimo validato da `validate-assets.py` |
 

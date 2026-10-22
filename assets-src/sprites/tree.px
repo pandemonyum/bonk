@@ -1,0 +1,33 @@
+# Albero (ostacolo), placeholder P0.1, 24x26: più alto dell'evocatore (21 px) per leggersi
+# come ostacolo. Chioma scura (A/B) per staccarsi dall'erba (a).
+# Impronta di collisione: solo il tronco, cerchio r=4 a 2 px sopra la base: si passa
+# dietro la chioma (y-sort) come in una vista 3/4.
+out: sprites/tree.png
+mirror: true
+---
+........kkkk
+......kkbbaa
+.....kbbaaaa
+....kbaaaaAA
+...kbaaaAAAA
+..kbaaAAAAAA
+..kbaAAAAAAA
+.kbaAAAAAAAA
+.kaaAAAAAAAA
+kbaAAAAAAAAA
+kaaAAAAAAAAA
+kaAAAAAAAAAA
+kaAAAAAAAAAA
+kAAAAAAAAAAA
+kAAAAAAAAAAB
+.kAAAAAAAABB
+.kBAAAAABBBB
+..kBBBBBBBBB
+...kkBBBBBBB
+.....kkkkBBB
+.........kdD
+.........kdD
+.........kdD
+.........kdD
+........kddD
+........kkkk

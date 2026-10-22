@@ -23,7 +23,9 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `gameplay::companions` | `Companion`, scia dietro al player, attacco del compagno di fuoco | no |
 | `gameplay::combat` | `Health`, `Hurtbox`, `AutoAttack`, `Projectile`, `HitFlash`, `RunStats`; targeting, colpi, morti | no |
 | `gameplay::input` | tastiera → `MoveIntent`, Esc/P pausa, pausa su perdita focus | input (client) |
-| `world` | costanti arena, `ArenaBounds` (`min`/`max` sui piedi); `generation` (seed → tile, pura); `tiles` (indici) | no |
+| `world` | costanti arena, `ArenaBounds` (`min`/`max` sui piedi); `generation` (seed → tile, pura); `tiles` (indici); spawn degli ostacoli della run | no |
+| `world::obstacles` | rocce/alberi dal seed (pura), `ObstacleField` con griglia spaziale 32 px, entità `Obstacle` | no |
+| `gameplay::collision` | `Footprint`, `push_outside`, respinta dei corpi dagli ostacoli | no |
 | `world::render` | `TilemapChunk` per chunk | sì |
 | `presentation::camera` | canvas 480×270, camera mondo/schermo, scala intera, offset mezzo pixel, follow | sì |
 | `presentation::sprites` | observer `On<Add<Player/Enemy>>` → `Sprite`; interpolazione + snap al pixel + y-sort | sì |
@@ -35,8 +37,9 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 1. `PreUpdate`/`Update`: input o autoplay scrivono `MoveIntent` (risorsa).
 2. `FixedPreUpdate` (60 Hz): `PreviousPosition ← Position`.
 3. `FixedUpdate`, in catena e solo in `RunPhase::Playing`: `SimSet::Player` (movimento del
-   player) → `SimSet::Movement` (inseguimento, scia dei compagni, volo dei proiettili) →
-   `SimSet::Resolve` (separazione, limiti arena, respinta dal player per ultima) →
+   player con respinta dagli ostacoli e limiti) → `SimSet::Movement` (inseguimento, scia dei
+   compagni, volo dei proiettili) → `SimSet::Resolve` (separazione, ostacoli, limiti arena,
+   respinta dal player per ultima) →
    `SimSet::Combat` (spari, colpi, morti, scadenza proiettili, fine tinta) → `SimSet::Spawn`
    (rimpiazzo nemici). Una morte è contata una sola volta: il despawn è applicato prima del
    passo successivo e i colpi ignorano chi è a 0 HP.
@@ -62,8 +65,8 @@ P0.0: spostamento in `game-data/*.ron` caricati con l'AssetServer (compatibile W
 
 - Unit test accanto al codice per funzioni pure (direzioni, inseguimento, separazione, RNG,
   generazione, scala canvas, opzioni).
-- `tests/headless_sim.rs` (movimento, limiti, pausa) e `tests/combat_sim.rs` (compagno,
-  danni, morti, cadenza, popolazione) per i sistemi ECS completi senza GPU; helper in
-  `tests/common/`.
+- `tests/headless_sim.rs` (movimento, limiti, pausa), `tests/combat_sim.rs` (compagno,
+  danni, morti, cadenza, popolazione) e `tests/world_sim.rs` (ostacoli, collisioni) per i
+  sistemi ECS completi senza GPU; helper in `tests/common/`.
 - `tests/balance_probe.rs`: sonda di bilanciamento `#[ignore]`, stampa statistiche di 60 s.
 - `scripts/check-pixel-grid.py` per la verifica nearest-neighbor su screenshot reali.

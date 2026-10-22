@@ -4,12 +4,14 @@
 use bevy::prelude::*;
 
 use super::SimSet;
+use super::collision::{ENEMY_FOOTPRINT, Footprint, push_outside, resolve_against_obstacles};
 use super::combat::{Health, Hurtbox};
 use super::kinematics::{Position, body};
 use super::player::{PLAYER_SPAWN, Player};
 use crate::app::{AppState, RunSeed};
 use crate::rng::Pcg32;
 use crate::world::ArenaBounds;
+use crate::world::obstacles::ObstacleField;
 
 pub const ENEMY_SPEED: f32 = 40.0;
 /// Tre colpi del compagno di fuoco (12 danni).
@@ -80,21 +82,6 @@ pub fn separation_offset(a: Vec2, b: Vec2, min_distance: f32) -> Vec2 {
     direction * (min_distance - distance) * 0.5
 }
 
-/// Riporta `point` sul bordo del cerchio `(center, radius)` se ci è entrato.
-pub fn push_outside(point: Vec2, center: Vec2, radius: f32) -> Vec2 {
-    let delta = point - center;
-    let distance = delta.length();
-    if distance >= radius {
-        return point;
-    }
-    let direction = if distance > f32::EPSILON {
-        delta / distance
-    } else {
-        Vec2::X
-    };
-    center + direction * radius
-}
-
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
@@ -105,8 +92,14 @@ impl Plugin for EnemyPlugin {
                 FixedUpdate,
                 // La respinta dal player viene per ultima: contro un muro vale più non entrare
                 // nel player che restare dentro i limiti (si sfora di al massimo
-                // CONTACT_DISTANCE: lo sprite può sovrapporsi un poco alla siepe).
-                (separate_enemies, keep_enemies_in_arena, keep_out_of_player)
+                // CONTACT_DISTANCE: lo sprite può sovrapporsi un poco alla siepe o a un
+                // ostacolo).
+                (
+                    separate_enemies,
+                    avoid_obstacles,
+                    keep_enemies_in_arena,
+                    keep_out_of_player,
+                )
                     .chain()
                     .in_set(SimSet::Resolve),
             )
@@ -120,6 +113,7 @@ fn spawn_enemy(commands: &mut Commands, spawns: &mut SpawnRng, at: Vec2) {
         Enemy { speed: ENEMY_SPEED },
         Health::full(ENEMY_MAX_HP),
         ENEMY_HURTBOX,
+        ENEMY_FOOTPRINT,
         body(at),
         DespawnOnExit(AppState::InRun),
     ));
@@ -181,6 +175,17 @@ fn separate_enemies(mut enemies: Query<&mut Position, With<Enemy>>) {
     }
 }
 
+/// Scivolano attorno a rocce e alberi invece di attraversarli.
+fn avoid_obstacles(
+    field: Option<Res<ObstacleField>>,
+    mut enemies: Query<(&Footprint, &mut Position), With<Enemy>>,
+) {
+    let Some(field) = field else { return };
+    for (footprint, mut position) in &mut enemies {
+        position.0 = resolve_against_obstacles(position.0, footprint.0, &field);
+    }
+}
+
 /// La separazione tra nemici ammassati e il clamp ai bordi possono spingerne alcuni dentro il
 /// player: li si respinge sul raggio di contatto (test `enemies_chase_the_player_and_do_not_stack`
 /// e `enemies_never_enter_the_player_against_a_wall`).
@@ -229,20 +234,6 @@ mod tests {
             Vec2::ZERO
         );
         assert_ne!(separation_offset(Vec2::ONE, Vec2::ONE, 14.0), Vec2::ZERO);
-    }
-
-    #[test]
-    fn push_outside_only_moves_points_inside_the_circle() {
-        let pushed = push_outside(Vec2::new(3.0, 4.0), Vec2::ZERO, 10.0);
-        assert!((pushed - Vec2::new(6.0, 8.0)).length() < 1e-4);
-        assert_eq!(
-            push_outside(Vec2::new(30.0, 0.0), Vec2::ZERO, 10.0),
-            Vec2::new(30.0, 0.0)
-        );
-        assert_eq!(
-            push_outside(Vec2::ONE, Vec2::ONE, 10.0),
-            Vec2::new(11.0, 1.0)
-        );
     }
 
     #[test]

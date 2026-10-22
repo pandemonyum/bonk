@@ -3,9 +3,11 @@
 use bevy::prelude::*;
 
 use super::SimSet;
+use super::collision::{Footprint, PLAYER_FOOTPRINT, resolve_against_obstacles};
 use super::kinematics::{Position, body};
 use crate::app::AppState;
 use crate::world::ArenaBounds;
+use crate::world::obstacles::ObstacleField;
 
 /// Velocità S0 in px/s. Dalla P0 il valore arriva da `game-data/`.
 pub const PLAYER_SPEED: f32 = 75.0;
@@ -44,20 +46,28 @@ fn spawn_player(mut commands: Commands) {
         Player {
             speed: PLAYER_SPEED,
         },
+        PLAYER_FOOTPRINT,
         body(PLAYER_SPAWN),
         DespawnOnExit(AppState::InRun),
     ));
 }
 
+/// Movimento, poi respinta dagli ostacoli (si scivola lungo il bordo), poi limiti dell'arena.
+/// Gli ostacoli distano almeno un tile dalla siepe: il clamp finale non può riportare il
+/// player dentro un'impronta.
 fn move_player(
     time: Res<Time>,
     intent: Res<MoveIntent>,
     arena: Res<ArenaBounds>,
-    mut players: Query<(&Player, &mut Position)>,
+    field: Option<Res<ObstacleField>>,
+    mut players: Query<(&Player, &Footprint, &mut Position)>,
 ) {
     let direction = intent.clamp_length_max(1.0);
-    for (player, mut position) in &mut players {
-        let next = position.0 + direction * player.speed * time.delta_secs();
+    for (player, footprint, mut position) in &mut players {
+        let mut next = position.0 + direction * player.speed * time.delta_secs();
+        if let Some(field) = &field {
+            next = resolve_against_obstacles(next, footprint.0, field);
+        }
         position.0 = arena.clamp(next);
     }
 }

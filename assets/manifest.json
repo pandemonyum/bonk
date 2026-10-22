@@ -35,6 +35,17 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/rock.png",
+      "kind": "sprite",
+      "size": [
+        16,
+        10
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/rock.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "sprites/summoner.png",
       "kind": "sprite",
       "size": [
@@ -43,6 +54,17 @@
       ],
       "frames": 1,
       "source": "assets-src/sprites/summoner.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/tree.png",
+      "kind": "sprite",
+      "size": [
+        24,
+        26
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/tree.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {

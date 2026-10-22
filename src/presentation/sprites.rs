@@ -9,6 +9,7 @@ use crate::gameplay::companions::Companion;
 use crate::gameplay::enemies::Enemy;
 use crate::gameplay::kinematics::{Position, PreviousPosition};
 use crate::gameplay::player::Player;
+use crate::world::obstacles::{Obstacle, ObstacleKind};
 
 /// Profondità per pixel di y: chi sta più in basso è disegnato davanti.
 const Y_SORT: f32 = 1.0e-4;
@@ -21,6 +22,8 @@ pub struct SpriteAssets {
     pub ember_companion: Handle<Image>,
     pub blob_enemy: Handle<Image>,
     pub fireball: Handle<Image>,
+    pub rock: Handle<Image>,
+    pub tree: Handle<Image>,
 }
 
 /// Livello di profondità di base di uno sprite (default: `Z_ACTORS`).
@@ -41,12 +44,15 @@ impl Plugin for SpritesPlugin {
             ember_companion: assets.load("sprites/ember_companion.png"),
             blob_enemy: assets.load("sprites/blob_enemy.png"),
             fireball: assets.load("sprites/fireball.png"),
+            rock: assets.load("sprites/rock.png"),
+            tree: assets.load("sprites/tree.png"),
         };
         app.insert_resource(sprites)
             .add_observer(attach_player_sprite)
             .add_observer(attach_companion_sprite)
             .add_observer(attach_enemy_sprite)
             .add_observer(attach_projectile_sprite)
+            .add_observer(attach_obstacle_sprite)
             .add_systems(Update, tint_hit_enemies)
             .add_systems(
                 PostUpdate,
@@ -102,6 +108,23 @@ fn attach_projectile_sprite(
         Sprite::from_image(art.fireball.clone()),
         DepthBase(Z_PROJECTILES),
     ));
+}
+
+/// Gli ostacoli condividono il y-sort degli attori: chi passa dietro un albero ne è coperto.
+fn attach_obstacle_sprite(
+    add: On<Add<Obstacle>>,
+    mut commands: Commands,
+    art: Res<SpriteAssets>,
+    obstacles: Query<&Obstacle>,
+) {
+    let Ok(obstacle) = obstacles.get(add.entity) else {
+        return;
+    };
+    let image = match obstacle.kind {
+        ObstacleKind::Rock => &art.rock,
+        ObstacleKind::Tree => &art.tree,
+    };
+    commands.entity(add.entity).insert(actor_sprite(image));
 }
 
 fn tint_hit_enemies(mut enemies: Query<(&mut Sprite, Has<HitFlash>), With<Enemy>>) {
