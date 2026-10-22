@@ -3,12 +3,13 @@
 //!
 //! Versioni: 1 (P0.0) → 2 (P0.3: ondate dello spawn director negli stage, HP e invulnerabilità
 //! del player, danno da contatto dei nemici) → 3 (P0.4: XP dei nemici, raggio di raccolta,
-//! `progression.ron` e `upgrades.ron`).
+//! `progression.ron` e `upgrades.ron`) → 4 (P0.5: attacchi con `pattern` proiettile / onda /
+//! orbita, slot dei compagni nel player, carte che aggiungono un compagno).
 
 use serde::Deserialize;
 
 /// Versione dello schema supportata da questo codice.
-pub const SCHEMA_VERSION: u32 = 3;
+pub const SCHEMA_VERSION: u32 = 4;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -22,6 +23,16 @@ pub struct PlayerFile {
     pub invulnerability_s: f32,
     /// Distanza dai piedi entro cui le gemme XP vengono attirate.
     pub pickup_radius: f32,
+    /// Posti per i compagni, il primo è del compagno iniziale. Ognuno ha la sua posizione nella
+    /// formazione dietro al player.
+    pub companion_slots: Vec<SlotData>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SlotData {
+    /// Gradi di rotazione rispetto a "dritto dietro al player" (positivi = verso sinistra).
+    pub angle_deg: f32,
 }
 
 /// XP per passare dal livello `n` al `n + 1`: `base + per_level × (n − 1)`.
@@ -82,15 +93,17 @@ pub struct ProgressionFile {
 }
 
 /// Effetto di uno stack di upgrade. Le percentuali si sommano tra stack (due stack di +15% =
-/// +30% sul valore base dei dati). Gli effetti "Companion" valgono per tutti i compagni.
-#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+/// +30% sul valore base dei dati). Gli effetti "Companion" valgono per tutti i compagni e
+/// per tutti i pattern di attacco, dove hanno senso.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub enum Effect {
     CompanionDamagePct(f32),
-    /// Negativo = attacchi più frequenti.
+    /// Negativo = attacchi più frequenti (per le foglie: colpi più ravvicinati sullo stesso nemico).
     CompanionIntervalPct(f32),
+    /// Proiettili per raffica, o foglie in orbita.
     CompanionProjectiles(u32),
     CompanionPierce(u32),
-    /// Allunga anche la durata del proiettile, così la portata cresce con la gittata.
+    /// Gittata dei proiettili (ne allunga anche la durata), raggio dell'onda, raggio dell'orbita.
     CompanionRangePct(f32),
     ProjectileSpeedPct(f32),
     /// HP massimi in più; cura della stessa quantità.
@@ -100,6 +113,9 @@ pub enum Effect {
     PickupRadiusPct(f32),
     /// Cura immediata, nessun effetto permanente.
     Heal(f32),
+    /// Il compagno con questo id (in `companions.ron`) si unisce alla squadra nel primo posto
+    /// libero. La carta è proposta solo se c'è un posto libero.
+    JoinCompanion(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -157,22 +173,107 @@ pub struct CompanionsFile {
     pub companions: Vec<CompanionData>,
 }
 
+/// Un attacco automatico. Danno, intervallo e portata sono comuni a tutti i pattern, così gli
+/// upgrade "Companion" valgono per tutti.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AttackData {
     pub id: String,
     pub damage: f32,
+    /// Proiettile e onda: secondi tra due attacchi. Orbita: secondi prima che le foglie possano
+    /// colpire di nuovo lo stesso nemico.
     pub interval_s: f32,
+    /// Proiettile: distanza massima del bersaglio. Onda: raggio finale. Orbita: raggio dell'orbita.
     pub range: f32,
-    pub projectile_speed: f32,
-    pub projectile_radius: f32,
+    pub pattern: AttackPattern,
+}
+
+impl AttackData {
+    pub fn projectile(&self) -> Option<&ProjectileData> {
+        match &self.pattern {
+            AttackPattern::Projectile(p) => Some(p),
+            _ => None,
+        }
+    }
+
+    pub fn pulse(&self) -> Option<&PulseData> {
+        match &self.pattern {
+            AttackPattern::Pulse(p) => Some(p),
+            _ => None,
+        }
+    }
+
+    pub fn orbit(&self) -> Option<&OrbitData> {
+        match &self.pattern {
+            AttackPattern::Orbit(o) => Some(o),
+            _ => None,
+        }
+    }
+
+    /// Sprite dei colpi (proiettile, goccia dell'onda, foglia).
+    pub fn sprite(&self) -> &str {
+        match &self.pattern {
+            AttackPattern::Projectile(p) => &p.sprite,
+            AttackPattern::Pulse(p) => &p.sprite,
+            AttackPattern::Orbit(o) => &o.sprite,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub enum AttackPattern {
+    /// Proiettili mirati sul nemico più vicino entro `range`.
+    Projectile(ProjectileData),
+    /// Onda che si allarga attorno al player fino a `range`, colpisce e rallenta.
+    Pulse(PulseData),
+    /// Foglie che girano attorno al player a distanza `range`.
+    Orbit(OrbitData),
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProjectileData {
+    /// px/s.
+    pub speed: f32,
+    pub radius: f32,
     /// Secondi di volo prima che un proiettile mancato sparisca (portata = velocità × durata).
-    pub projectile_lifetime_s: f32,
-    pub projectile_sprite: String,
-    pub projectiles: u32,
+    pub lifetime_s: f32,
+    pub sprite: String,
+    /// Proiettili per attacco, a ventaglio.
+    pub count: u32,
     pub spread_deg: f32,
+    /// Nemici extra attraversati da ogni proiettile.
     pub pierce: u32,
+    /// Altezza di partenza del colpo sopra i piedi di chi attacca.
     pub muzzle_height: f32,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PulseData {
+    /// px/s a cui il fronte dell'onda si allarga.
+    pub speed: f32,
+    /// Frazione della velocità che resta ai nemici colpiti (0,6 = rallentati del 40%).
+    pub slow: f32,
+    pub slow_s: f32,
+    /// Altezza del centro dell'onda sopra i piedi del player.
+    pub center_height: f32,
+    /// Sprite delle gocce che disegnano il fronte.
+    pub sprite: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OrbitData {
+    /// Foglie in orbita, equidistanti.
+    pub count: u32,
+    /// Gradi al secondo (positivi = senso antiorario).
+    pub angular_speed_deg: f32,
+    /// Raggio colpibile di una foglia.
+    pub radius: f32,
+    /// Altezza del centro dell'orbita sopra i piedi del player.
+    pub center_height: f32,
+    pub sprite: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]

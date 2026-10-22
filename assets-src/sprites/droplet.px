@@ -1,0 +1,8 @@
+# Goccia del fronte dell'onda di Gocci, 4x4, senza contorno: tante in cerchio disegnano l'anello
+# senza scurire l'orda che attraversano.
+out: sprites/droplet.png
+---
+.ll.
+lwwl
+lccl
+.cc.

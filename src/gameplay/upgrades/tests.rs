@@ -2,7 +2,13 @@
 //! le liste costruite apposta per provare una regola.
 
 use super::*;
-use crate::data::schema::Rarity;
+use crate::data::schema::{AttackData, Rarity};
+
+/// Squadra vuota e senza posti: per le liste di carte costruite dai test senza compagni.
+const NO_PARTY: PartyView = PartyView {
+    members: Vec::new(),
+    free_slots: 0,
+};
 
 fn upgrade(
     id: &str,
@@ -34,10 +40,22 @@ fn choices_are_distinct_eligible_and_at_most_the_draft_size() {
     let stacks = UpgradeStacks(vec![0; config.upgrades.len()]);
     let mut rng = Pcg32::new(1, DRAFT_STREAM);
     for _ in 0..200 {
-        let choices = draw_choices(&mut rng, &config.upgrades, &stacks, &WEIGHTS, 3);
+        let choices = draw_choices(
+            &mut rng,
+            &config.upgrades,
+            &stacks,
+            &PartyView::of(&config, &stacks),
+            &WEIGHTS,
+            3,
+        );
         assert_eq!(choices.len(), 3);
         for (k, &i) in choices.iter().enumerate() {
-            assert!(is_eligible(&config.upgrades, &stacks, i));
+            assert!(is_eligible(
+                &config.upgrades,
+                &stacks,
+                i,
+                &PartyView::of(&config, &stacks)
+            ));
             assert!(!choices[..k].contains(&i), "doppione in {choices:?}");
         }
     }
@@ -57,16 +75,19 @@ fn requirements_max_stacks_and_zero_weights_are_respected() {
     let mut rng = Pcg32::new(3, DRAFT_STREAM);
     // all'inizio solo "a": "b" richiede "a", "c" ha peso 0
     let fresh = UpgradeStacks(vec![0, 0, 0]);
-    assert_eq!(draw_choices(&mut rng, &upgrades, &fresh, &no_rare, 3), [0]);
+    assert_eq!(
+        draw_choices(&mut rng, &upgrades, &fresh, &NO_PARTY, &no_rare, 3),
+        [0]
+    );
     // "a" al massimo: resta "b"
     let after_a = UpgradeStacks(vec![1, 0, 0]);
     assert_eq!(
-        draw_choices(&mut rng, &upgrades, &after_a, &no_rare, 3),
+        draw_choices(&mut rng, &upgrades, &after_a, &NO_PARTY, &no_rare, 3),
         [1]
     );
     // tutto al massimo: draft vuoto
     let maxed = UpgradeStacks(vec![1, 2, 0]);
-    assert!(draw_choices(&mut rng, &upgrades, &maxed, &no_rare, 3).is_empty());
+    assert!(draw_choices(&mut rng, &upgrades, &maxed, &NO_PARTY, &no_rare, 3).is_empty());
 }
 
 #[test]
@@ -79,7 +100,7 @@ fn rarer_cards_come_up_less_often() {
     let mut rng = Pcg32::new(7, DRAFT_STREAM);
     let draws = 6000;
     let rare = (0..draws)
-        .filter(|_| draw_choices(&mut rng, &upgrades, &stacks, &WEIGHTS, 1) == [1])
+        .filter(|_| draw_choices(&mut rng, &upgrades, &stacks, &NO_PARTY, &WEIGHTS, 1) == [1])
         .count();
     let expected = draws as f32 * WEIGHTS.rare / (WEIGHTS.common + WEIGHTS.rare);
     assert!(
@@ -95,7 +116,16 @@ fn the_same_seed_draws_the_same_cards() {
     let draw = |seed| {
         let mut rng = Pcg32::new(seed, DRAFT_STREAM);
         (0..20)
-            .map(|_| draw_choices(&mut rng, &config.upgrades, &stacks, &WEIGHTS, 3))
+            .map(|_| {
+                draw_choices(
+                    &mut rng,
+                    &config.upgrades,
+                    &stacks,
+                    &PartyView::of(&config, &stacks),
+                    &WEIGHTS,
+                    3,
+                )
+            })
             .collect::<Vec<_>>()
     };
     assert_eq!(draw(5), draw(5));
@@ -141,10 +171,19 @@ fn stacks_add_up_on_the_base_values() {
     );
 }
 
+fn attack_with(config: &GameConfig, has: impl Fn(&AttackData) -> bool) -> &AttackData {
+    config
+        .attacks
+        .iter()
+        .find(|a| has(a))
+        .expect("i dati hanno un attacco con questo pattern")
+}
+
 #[test]
 fn a_modified_attack_still_reaches_its_range() {
     let config = GameConfig::embedded();
-    let data = &config.attacks[0];
+    let data = attack_with(&config, |a| a.projectile().is_some());
+    let p = data.projectile().unwrap();
     let m = Modifiers {
         range: 1.6,
         projectile_speed: 1.4,
@@ -152,12 +191,108 @@ fn a_modified_attack_still_reaches_its_range() {
         extra_pierce: 2,
         ..Modifiers::default()
     };
-    let attack = m.attack(data);
+    let attack = m.projectile(data, p);
     assert_eq!(attack.range, data.range * 1.6);
     assert_eq!(attack.damage, data.damage * 2.0);
-    assert_eq!(attack.pierce, data.pierce + 2);
+    assert_eq!(attack.pierce, p.pierce + 2);
     let travel = attack.projectile_speed * attack.projectile_lifetime;
-    let base_travel = data.projectile_speed * data.projectile_lifetime_s;
+    let base_travel = p.speed * p.lifetime_s;
     assert!((travel - base_travel * 1.6).abs() < 1e-3);
     assert!(travel >= attack.range);
+}
+
+/// Gli upgrade "Companion" valgono anche per onda e foglie: area e orbita crescono con la
+/// gittata, le foglie in più vengono da "+1 proiettile".
+#[test]
+fn companion_upgrades_apply_to_every_pattern() {
+    let config = GameConfig::embedded();
+    let m = Modifiers {
+        damage: 1.5,
+        interval: 0.8,
+        range: 1.2,
+        extra_projectiles: 2,
+        ..Modifiers::default()
+    };
+    let wave = attack_with(&config, |a| a.pulse().is_some());
+    let pulse = m.pulse(wave, wave.pulse().unwrap());
+    assert_eq!(pulse.damage, wave.damage * 1.5);
+    assert_eq!(pulse.interval, wave.interval_s * 0.8);
+    assert_eq!(pulse.radius, wave.range * 1.2);
+    let leaves = attack_with(&config, |a| a.orbit().is_some());
+    let orbit = m.orbit(leaves, leaves.orbit().unwrap());
+    assert_eq!(orbit.damage, leaves.damage * 1.5);
+    assert_eq!(orbit.rehit_interval, leaves.interval_s * 0.8);
+    assert_eq!(orbit.radius, leaves.range * 1.2);
+    assert_eq!(orbit.leaves, leaves.orbit().unwrap().count + 2);
+}
+
+/// Le carte "nuovo compagno" escono solo con un posto libero e una volta sola.
+#[test]
+fn companion_cards_need_a_free_slot() {
+    let upgrades = vec![
+        upgrade(
+            "join",
+            Rarity::Common,
+            1,
+            &[],
+            Effect::JoinCompanion("x".into()),
+        ),
+        upgrade("snack", Rarity::Common, 9, &[], Effect::Heal(1.0)),
+    ];
+    let party = |members: &[&str], free_slots| PartyView {
+        members: members.iter().map(|m| m.to_string()).collect(),
+        free_slots,
+    };
+    let fresh = UpgradeStacks(vec![0, 0]);
+    assert!(is_eligible(&upgrades, &fresh, 0, &party(&["a"], 1)));
+    assert!(
+        !is_eligible(&upgrades, &fresh, 0, &party(&["a"], 0)),
+        "nessun posto libero"
+    );
+    assert!(
+        is_eligible(&upgrades, &fresh, 1, &party(&["a"], 0)),
+        "le altre carte non dipendono dai posti"
+    );
+    // rilievo del code review P0.5: il compagno è già in squadra (per esempio è quello iniziale)
+    assert!(
+        !is_eligible(&upgrades, &fresh, 0, &party(&["x"], 2)),
+        "già in squadra"
+    );
+    let joined = UpgradeStacks(vec![1, 0]);
+    assert!(
+        !is_eligible(&upgrades, &joined, 0, &party(&["a"], 1)),
+        "già arrivato"
+    );
+}
+
+#[test]
+fn the_party_view_follows_the_data_and_the_cards() {
+    let config = GameConfig::embedded();
+    let none = UpgradeStacks(vec![0; config.upgrades.len()]);
+    let slots = config.player.companion_slots.len();
+    let start = PartyView::of(&config, &none);
+    assert_eq!(
+        start.members,
+        std::slice::from_ref(&config.stage.starting_companion)
+    );
+    assert_eq!(start.free_slots, slots - 1);
+    let (first_join, id) = config
+        .upgrades
+        .iter()
+        .enumerate()
+        .find_map(|(i, u)| match &u.effect {
+            Effect::JoinCompanion(id) => Some((i, id.clone())),
+            _ => None,
+        })
+        .expect("i dati hanno una carta nuovo compagno");
+    let mut one = none.clone();
+    one.0[first_join] = 1;
+    let after = PartyView::of(&config, &one);
+    assert_eq!(after.free_slots, slots - 2);
+    assert!(after.members.contains(&id));
+    // una carta per il compagno iniziale non occupa un posto in più
+    let mut same = config.clone();
+    same.stage.starting_companion = id.clone();
+    let view = PartyView::of(&same, &one);
+    assert_eq!((view.members.len(), view.free_slots), (1, slots - 1));
 }

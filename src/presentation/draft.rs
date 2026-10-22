@@ -44,10 +44,10 @@ pub fn rarity_style(rarity: Rarity) -> (&'static str, Color) {
     }
 }
 
-/// Riga in fondo alla carta: tasto e stack che si otterrebbe ("[1]   Lv 2/5"). La cura è
-/// immediata e non lascia stack: niente livello.
+/// Riga in fondo alla carta: tasto e stack che si otterrebbe ("[1]   Lv 2/5"). Cura e nuovo
+/// compagno non hanno livelli: solo il tasto.
 pub fn card_footer(key: usize, upgrade: &UpgradeData, stacks_now: u32) -> String {
-    if matches!(upgrade.effect, Effect::Heal(_)) {
+    if matches!(upgrade.effect, Effect::Heal(_) | Effect::JoinCompanion(_)) {
         format!("[{key}]")
     } else {
         format!("[{key}]   Lv {}/{}", stacks_now + 1, upgrade.max_stack)
@@ -218,8 +218,13 @@ mod tests {
     #[test]
     fn the_footer_shows_the_key_and_the_next_stack() {
         let damage = Effect::CompanionDamagePct(15.0);
-        assert_eq!(card_footer(1, &upgrade(5, damage), 0), "[1]   Lv 1/5");
+        assert_eq!(
+            card_footer(1, &upgrade(5, damage.clone()), 0),
+            "[1]   Lv 1/5"
+        );
         assert_eq!(card_footer(3, &upgrade(5, damage), 4), "[3]   Lv 5/5");
         assert_eq!(card_footer(2, &upgrade(99, Effect::Heal(30.0)), 7), "[2]");
+        let join = Effect::JoinCompanion("tide".into());
+        assert_eq!(card_footer(1, &upgrade(1, join), 0), "[1]");
     }
 }

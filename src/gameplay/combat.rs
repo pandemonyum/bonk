@@ -10,7 +10,9 @@ use super::SimSet;
 use super::attacks::fire_auto_attacks;
 use super::enemies::Enemy;
 use super::kinematics::Position;
+use super::orbit::{leaf_hits, move_leaves, sync_leaves};
 use super::progression::drop_xp_gems;
+use super::pulse::{expand_pulses, fire_pulses, pulse_hits, wear_off_slow};
 use super::spatial::EnemyGrid;
 use crate::app::AppState;
 use crate::world::inside_arena;
@@ -67,13 +69,17 @@ pub struct Projectile {
 pub struct RunStats {
     pub defeated: u32,
     pub projectiles_fired: u32,
-    /// Colpi andati a segno (un proiettile perforante può contarne più d'uno).
+    /// Colpi andati a segno di tutti gli attacchi (un proiettile perforante o un'onda possono
+    /// contarne più d'uno).
     pub hits: u32,
+    /// Colpi andati a segno dei soli proiettili, da confrontare con `projectiles_fired`.
+    pub projectile_hits: u32,
     /// Danni subiti dal player.
     pub damage_taken: f32,
 }
 
-/// La catena del combattimento in `SimSet::Combat` (spari → colpi → morti → scadenze).
+/// La catena del combattimento in `SimSet::Combat` (spari e onde → colpi di proiettili, onde
+/// e foglie → gemme → morti → scadenze).
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CombatSteps;
 
@@ -87,16 +93,28 @@ impl Plugin for CombatPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<RunStats>()
             .add_systems(OnEnter(AppState::InRun), reset_stats)
-            .add_systems(FixedUpdate, move_projectiles.in_set(SimSet::Movement))
+            .add_systems(
+                FixedUpdate,
+                (
+                    move_projectiles,
+                    expand_pulses,
+                    (sync_leaves, move_leaves).chain(),
+                )
+                    .in_set(SimSet::Movement),
+            )
             .add_systems(
                 FixedUpdate,
                 (
                     fire_auto_attacks,
+                    fire_pulses,
                     projectile_hits,
+                    pulse_hits,
+                    leaf_hits,
                     drop_xp_gems,
                     resolve_deaths,
                     expire_projectiles,
                     fade_hit_flash,
+                    wear_off_slow,
                 )
                     .chain()
                     .in_set(CombatSteps)
@@ -146,6 +164,7 @@ fn projectile_hits(
                 projectile.already_hit.push(enemy);
                 projectile.hits_left -= 1;
                 stats.hits += 1;
+                stats.projectile_hits += 1;
             }
         }
         if projectile.hits_left == 0 {

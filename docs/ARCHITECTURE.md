@@ -26,8 +26,10 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `gameplay::spatial` | `EnemyGrid`: griglia 32 px ordinata per cella, ricostruita prima di `Resolve` e di `Combat` | no |
 | `gameplay::damage` | danno da contatto al player, `Invulnerability`, `GodMode`, passaggio a `Defeated` | no |
 | `gameplay::run` | `RunClock` (tempo di gioco, fermo in pausa e da sconfitti) | no |
-| `gameplay::companions` | `Companion`, scia dietro al player, attacco del compagno di fuoco | no |
-| `gameplay::attacks` | `AutoAttack`, carica e cadenza (`attack_tick`), scelta del bersaglio, raffiche | no |
+| `gameplay::companions` | `Companion` (posto e angolo di formazione), `spawn_companion` con l'attacco del suo pattern e gli upgrade correnti, `join_companions` dalle carte `JoinCompanion` | no |
+| `gameplay::attacks` | pattern `Projectile`: `AutoAttack`, carica e cadenza (`attack_tick`, riusata dall'onda), scelta del bersaglio, raffiche | no |
+| `gameplay::pulse` | pattern `Pulse`: `PulseAttack`, onde (`Pulse`) che si allargano dal player, colpo una volta per onda, `Slowed` | no |
+| `gameplay::orbit` | pattern `Orbit`: `OrbitAttack`, foglie (`Leaf`) equidistanti attorno al player, intervallo per nemico | no |
 | `gameplay::combat` | `Health`, `Hurtbox`, `Projectile`, `HitFlash`, `RunStats`; volo dei proiettili, colpi, morti | no |
 | `gameplay::progression` | `XpGem`, `Attracted`, `PickupRadius`, `Progression` (livello, XP, livelli in attesa); gemme lasciate dai morti, limite con fusione, attrazione e raccolta | no |
 | `gameplay::upgrades` | `UpgradeStacks`, `Draft`, `ChooseUpgrade`, `AutoPick`; estrazione pesata, apertura del draft, scelta, ricalcolo a caldo, rigenerazione; `upgrades::modifiers`: `Modifiers` (dati base + stack), `pct_factor` | no |
@@ -38,7 +40,8 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `gameplay::collision` | `Footprint`, `push_outside`, respinta dei corpi dagli ostacoli | no |
 | `world::render` | `TilemapChunk` per chunk | sì |
 | `presentation::camera` | canvas 480×270, camera mondo/schermo, scala intera, offset mezzo pixel, follow | sì |
-| `presentation::sprites` | observer `On<Add<Player/Enemy>>` → `Sprite`; interpolazione + snap al pixel + y-sort | sì |
+| `presentation::sprites` | observer `On<Add<Player/Enemy>>` → `Sprite`; interpolazione + snap al pixel + y-sort; tinte di colpo e rallentamento | sì |
+| `presentation::attacks` | foglie come sprite; anello di gocce figlie dell'onda, al raggio interpolato e arrotondato al pixel | sì |
 | `presentation::hud` | livello, HP, tempo, barra XP, promemoria comandi, banner pausa e sconfitta, errori dei dati | sì |
 | `presentation::draft` | schermata del draft: carte con rarità, testo e stack, evidenziate al passaggio, clic → `ChooseUpgrade` | sì |
 | `diagnostics` | overlay F3, screenshot F12/programmati, autoplay, uscita automatica | sì |
@@ -48,10 +51,13 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 1. `PreUpdate`/`Update`: input o autoplay scrivono `MoveIntent` (risorsa).
 2. `FixedPreUpdate` (60 Hz): `PreviousPosition ← Position`.
 3. `FixedUpdate`, in catena e solo in `RunPhase::Playing`: `SimSet::Player` (movimento del
-   player con respinta dagli ostacoli e limiti) → `SimSet::Movement` (inseguimento, scia dei
-   compagni, volo dei proiettili) → `SimSet::Resolve` (separazione, ostacoli, limiti arena,
-   respinta dal player per ultima; la griglia viene ricostruita all'inizio) →
-   `SimSet::Combat` (griglia ricostruita, spari, colpi, morti, scadenza proiettili, fine tinta) →
+   player con respinta dagli ostacoli e limiti) → `SimSet::Movement` (inseguimento, a velocità
+   ridotta se `Slowed`; formazione dei compagni; volo dei proiettili; fronte delle onde; foglie
+   create o tolte secondo l'attacco, poi spostate attorno al player) → `SimSet::Resolve`
+   (separazione, ostacoli, limiti arena, respinta dal player per ultima; la griglia viene
+   ricostruita all'inizio) → `SimSet::Combat` (griglia ricostruita; spari e onde in partenza;
+   colpi di proiettili, onde e foglie; gemme; morti; scadenza proiettili, fine tinta e
+   rallentamento) →
    `SimSet::Damage` (danno da contatto al player dai nemici vivi) → `SimSet::Pickup` (gemme
    attirate e raccolte, rigenerazione) → `SimSet::Spawn` (spawn director). Una morte è contata
    una sola volta e lascia una sola gemma: `drop_xp_gems` gira tra i colpi e `resolve_deaths`,
@@ -76,13 +82,13 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
   la scala di `n = floor(min(Wfis/480, Hfis/270))` con `ortho.scale = scale_factor / n`.
 - `ImagePlugin::default_nearest()` per tutte le texture. Ancora degli sprite in basso al centro
   con larghezza pari: i bordi cadono sulla griglia dei texel.
-- Profondità: suolo z=0, gemme z = 5 − y·10⁻⁴, attori z = 10 − y·10⁻⁴, proiettili
-  z = 20 − y·10⁻⁴ (`DepthBase`).
+- Profondità: suolo z=0, gemme z = 5 − y·10⁻⁴, attori z = 10 − y·10⁻⁴, proiettili, foglie e
+  onde z = 20 − y·10⁻⁴ (`DepthBase`; le gocce dell'onda ereditano la z dell'entità `Pulse`).
 
 ## Dati
 
 Tutti i valori di bilanciamento sono in `game-data/` (`player`, `companions`, `attacks`,
-`enemies`, `stages`, `progression`, `upgrades`, schema versione 3). Restano nel codice solo le costanti strutturali
+`enemies`, `stages`, `progression`, `upgrades`, schema versione 4). Restano nel codice solo le costanti strutturali
 (dimensioni dell'arena e dei tile, frequenza della simulazione, densità degli ostacoli).
 
 ```text

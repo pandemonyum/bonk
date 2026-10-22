@@ -1,0 +1,23 @@
+# Compagno natura (nome di lavorazione "Frond"), placeholder P0.5. Seme dorato con due foglie
+# che spuntano in alto: la sagoma a "V" non somiglia a nessun nemico. Lime "natura-alleato",
+# più chiaro e giallo dell'erba perché non si perda sul prato.
+out: sprites/sprout_companion.png
+mirror: true
+---
+..kk....
+.keek...
+.keeek..
+..keeek.
+...kEeek
+....kkEk
+......kE
+....kkkk
+...kgggg
+..kggggg
+.kgwkggg
+.kgwkggg
+.kGggggg
+.kGGgggg
+..kGGggg
+..kkGGGG
+....kkkk

@@ -33,8 +33,8 @@ fn print_hit_rate_over_one_minute() {
             println!(
                 "seed {seed} autoplay {autoplay:5}: sparati {:3} colpi {:3} ({:4.0}%) sconfitti {:3}",
                 s.projectiles_fired,
-                s.hits,
-                100.0 * s.hits as f32 / s.projectiles_fired.max(1) as f32,
+                s.projectile_hits,
+                100.0 * s.projectile_hits as f32 / s.projectiles_fired.max(1) as f32,
                 s.defeated
             );
         }

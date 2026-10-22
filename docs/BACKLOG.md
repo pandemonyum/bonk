@@ -23,7 +23,7 @@ seguenti (handoff §10: il companion che attacca è il primo elemento ludico dif
 | ~~P0.0~~ **DONE** | Loader `game-data/*.ron` via AssetServer (funziona anche su WASM) + validazione all'avvio con messaggio d'errore; spostare in RON i valori oggi costanti (velocità, raggi, n. nemici, attacco) | gameplay-engineer | test di parsing e di validazione (dato errato → errore leggibile); `cargo run` (ricarica a caldo) applica i valori salvati |
 | ~~P0.3~~ **DONE** | Spawn director: 3 archetipi nemici da dati, curva per minuto, cap per archetipo, spawn fuori camera e mai sul player; HP, danno al player, morte, hit feedback, despawn; griglia spaziale al posto della separazione O(n²) | gameplay-engineer + game-designer (valori) | test: nessuno spawn dentro la camera/il player, cap rispettato, restart non accumula entità; overlay con conteggi |
 | ~~P0.4~~ **DONE** | Gemme XP (drop una sola volta), raccolta per prossimità, livelli, draft di 3 carte con pausa, effetti applicati a caldo | gameplay-engineer + game-designer | test: +1 proiettile cambia i proiettili visibili, +danno cambia il danno effettivo; screenshot del draft |
-| P0.5 | Secondo e terzo companion (onda in area, foglie orbitanti), slot da dati; un compagno aggiunto a metà run deve nascere con gli upgrade già presi (oggi `refresh_modifiers` gira solo quando cambiano gli stack) | gameplay-engineer | test per ciascun pattern di attacco; test: compagno nuovo con i modificatori correnti; screenshot |
+| ~~P0.5~~ **DONE** | Secondo e terzo companion (onda in area, foglie orbitanti), slot da dati; un compagno aggiunto a metà run deve nascere con gli upgrade già presi (oggi `refresh_modifiers` gira solo quando cambiano gli stack) | gameplay-engineer | test per ciascun pattern di attacco; test: compagno nuovo con i modificatori correnti; screenshot |
 | P0.6 | Timer 10 min, scala difficoltà, élite, boss con telegraph, stati MainMenu/GameOver/Victory, restart | gameplay-engineer | test headless: run completa a seed fisso con autoplay arriva a fine senza panic; restart pulisce lo stato |
 | P0.7 | HUD (HP, compagni, tempo, risorse, abilità, XP) leggibile; test formule e bilanciamento base | gameplay-engineer + qa-performance | screenshot HUD; test formule XP/danno/cooldown |
 
@@ -54,10 +54,16 @@ opzioni, browser, release candidate).
 - ~~Separazione nemici O(n²)~~: sostituita dalla griglia spaziale in P0.3.
 - Il player si perde dentro l'orda a 200+ nemici: contorno/ombra più marcati o un indicatore
   sotto i piedi (P2, pixel-art-director); HP visibili anche vicino al player (P0.7).
-- Bilanciamento: con autoplay e prima carta scelta a caso la run dura 1:08–1:24 (senza
-  upgrade 1:06–1:16); riverificare dopo P0.5 (compagni) e P0.6 (difficoltà), anche con una
-  prova umana, che una run di 10 minuti sia possibile ma non scontata. Una sonda con scelte
-  sensate (non la prima carta) darebbe una misura più vicina a un giocatore.
+- Bilanciamento: con autoplay e prima carta scelta a caso la run dura 1:08–1:22 anche con i
+  tre compagni (P0.5): si muore all'arrivo dello sciame (1:00), prima che i compagni nuovi
+  pesino; con il player invulnerabile la squadra porta al livello 33–36 in 10 minuti. Da
+  rivedere con la difficoltà della P0.6 (primo minuto più morbido, crescita più graduale) e
+  con una prova umana. Una sonda con scelte sensate (non la prima carta) darebbe una misura
+  più vicina a un giocatore.
+- Scelta del compagno iniziale tra i tre archetipi (handoff, loop §1): oggi è in
+  `stages.ron`; va nel menu della P0.6.
+- Foglie di Frond (6×6, lime) poco leggibili sull'erba: valutare contorno più marcato o una
+  scia (P2, pixel-art-director).
 - Replay identici tra nativo e WASM: valutare la feature `libm` di Bevy/glam per `sin`/`cos`
   deterministici e misurarne il costo (serve solo se si vogliono seed condivisi tra piattaforme).
 - Valutare `rust-lld` come linker su Windows per accorciare i link incrementali (misurare prima/dopo).

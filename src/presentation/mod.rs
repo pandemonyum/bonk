@@ -1,5 +1,6 @@
 //! Presentazione (solo client): camera pixel-perfect, sprite, interpolazione, HUD, draft.
 
+pub mod attacks;
 pub mod camera;
 pub mod draft;
 pub mod hud;
@@ -23,6 +24,7 @@ impl Plugin for PresentationPlugin {
             sprites::SpritesPlugin,
             hud::HudPlugin,
             draft::DraftUiPlugin,
+            attacks::AttackArtPlugin,
         ));
     }
 }

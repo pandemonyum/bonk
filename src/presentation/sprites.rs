@@ -13,12 +13,15 @@ use crate::gameplay::enemies::Enemy;
 use crate::gameplay::kinematics::{Position, PreviousPosition};
 use crate::gameplay::player::Player;
 use crate::gameplay::progression::XpGem;
+use crate::gameplay::pulse::Slowed;
 use crate::world::obstacles::{Obstacle, ObstacleKind};
 
 /// Profondità per pixel di y: chi sta più in basso è disegnato davanti.
 const Y_SORT: f32 = 1.0e-4;
 /// Tinta di un nemico appena colpito (lo sprite viene moltiplicato per questo colore).
 const HIT_TINT: Color = Color::srgb(1.0, 0.45, 0.45);
+/// Tinta di un nemico rallentato dall'onda: azzurrata, il colpo ha la precedenza.
+const SLOW_TINT: Color = Color::srgb(0.6, 0.85, 1.0);
 
 #[derive(Resource)]
 pub struct SpriteAssets {
@@ -75,7 +78,7 @@ fn actor_sprite(image: Handle<Image>) -> (Sprite, Anchor) {
 
 /// Percorso dello sprite di un'entità dai dati; `None` (con avviso) se l'id non esiste più,
 /// per esempio dopo una ricarica che l'ha rinominato.
-fn data_sprite(
+pub(super) fn data_sprite(
     kind: &str,
     id: Option<&DataId>,
     lookup: impl FnOnce(&str) -> Option<String>,
@@ -141,7 +144,7 @@ fn attach_projectile_sprite(
     ids: Query<&DataId>,
 ) {
     let path = data_sprite("attacco", ids.get(add.entity).ok(), |id| {
-        config.attack(id).map(|a| a.projectile_sprite.clone())
+        config.attack(id).map(|a| a.sprite().to_string())
     });
     if let Some(path) = path {
         commands.entity(add.entity).insert((
@@ -183,12 +186,19 @@ fn attach_obstacle_sprite(
         .insert(actor_sprite(image.clone()));
 }
 
-/// Tinta di colpo su nemici e player (stesso segnale: "questo ha appena preso danno").
+/// Tinta di colpo su nemici e player (stesso segnale: "questo ha appena preso danno"), tinta
+/// fredda sui nemici rallentati.
 fn tint_hit_enemies(
-    mut enemies: Query<(&mut Sprite, Has<HitFlash>), Or<(With<Enemy>, With<Player>)>>,
+    mut enemies: Query<(&mut Sprite, Has<HitFlash>, Has<Slowed>), Or<(With<Enemy>, With<Player>)>>,
 ) {
-    for (mut sprite, flashing) in &mut enemies {
-        let wanted = if flashing { HIT_TINT } else { Color::WHITE };
+    for (mut sprite, flashing, slowed) in &mut enemies {
+        let wanted = if flashing {
+            HIT_TINT
+        } else if slowed {
+            SLOW_TINT
+        } else {
+            Color::WHITE
+        };
         if sprite.color != wanted {
             sprite.color = wanted;
         }

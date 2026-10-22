@@ -6,8 +6,9 @@
 use std::collections::HashSet;
 
 use super::Report;
+use super::attacks::{leaf_step, smallest_hurtbox};
 use crate::data::GameConfig;
-use crate::data::schema::{Effect, Rarity};
+use crate::data::schema::{AttackPattern, Effect, Rarity};
 use crate::gameplay::SIM_HZ;
 use crate::gameplay::attacks::MAX_PROJECTILES;
 use crate::gameplay::progression::MAX_ENEMY_XP;
@@ -130,6 +131,7 @@ pub(super) fn check(r: &mut Report, config: &GameConfig) {
         }
         effect(r, &at("effect"), &u.effect);
     }
+    join_cards(r, config);
     reachability(r, config);
     limits_at_max(r, config);
 }
@@ -155,6 +157,43 @@ fn effect(r: &mut Report, at: &str, effect: &Effect) {
         }
         Effect::RegenPerSecond(v) => r.positive(at, v),
         Effect::Heal(v) => r.positive(at, v),
+        Effect::JoinCompanion(_) => {} // vedi `join_cards`
+    }
+}
+
+/// Carte "nuovo compagno": il compagno esiste, non è già in squadra dall'inizio, arriva una
+/// volta sola e c'è almeno un posto oltre a quello del compagno iniziale.
+fn join_cards(r: &mut Report, config: &GameConfig) {
+    let starting = &config.stage.starting_companion;
+    let mut seen: Vec<&str> = Vec::new();
+    for u in &config.upgrades {
+        let Effect::JoinCompanion(id) = &u.effect else {
+            continue;
+        };
+        let at = format!("upgrades.ron: {}.effect", u.id);
+        let exists = config.companion(id).is_some();
+        r.reference(&at, id, exists, "companions.ron");
+        if id == starting {
+            r.0.push(format!(
+                "{at}: \"{id}\" è il compagno iniziale dello stage, è già in squadra"
+            ));
+        }
+        if u.max_stack != 1 {
+            r.0.push(format!(
+                "upgrades.ron: {}.max_stack = {}: un compagno arriva una volta sola, serve 1",
+                u.id, u.max_stack
+            ));
+        }
+        if seen.contains(&id.as_str()) {
+            r.0.push(format!("{at}: \"{id}\" ha già un'altra carta"));
+        }
+        seen.push(id);
+        if config.player.companion_slots.len() < 2 {
+            r.0.push(format!(
+                "{at}: player.ron ha un solo posto (companion_slots), la carta non verrà mai \
+                 proposta"
+            ));
+        }
     }
 }
 
@@ -235,23 +274,10 @@ fn limits_at_max(r: &mut Report, config: &GameConfig) {
             _ => 0,
         })
         .sum();
-    let smallest_hurtbox = config
-        .enemies
-        .iter()
-        .map(|e| e.hurtbox.radius)
-        .fold(f32::INFINITY, f32::min);
+    let (_, range) = pct_extremes(config, "CompanionRangePct");
+    let smallest = smallest_hurtbox(config);
     let step = 1.0 / SIM_HZ as f32;
     for a in &config.attacks {
-        let fastest = a.projectile_speed * speed;
-        let max_step = a.projectile_radius + smallest_hurtbox;
-        if fastest * step > max_step {
-            r.0.push(format!(
-                "upgrades.ron: con tutti gli upgrade di velocità {}.projectile_speed arriva a \
-                 {fastest:.0} px/s = {:.1} px per passo, oltre {max_step} attraversa i nemici",
-                a.id,
-                fastest * step
-            ));
-        }
         // fattore <= 0 già segnalato sopra
         if interval > 0.0 && a.interval_s * interval < step {
             r.0.push(format!(
@@ -261,13 +287,55 @@ fn limits_at_max(r: &mut Report, config: &GameConfig) {
                 a.interval_s * interval
             ));
         }
-        let most = u64::from(a.projectiles) + extra_projectiles;
-        if most > u64::from(MAX_PROJECTILES) {
+        let base_count = match &a.pattern {
+            AttackPattern::Projectile(p) => Some(p.count),
+            AttackPattern::Orbit(o) => Some(o.count),
+            AttackPattern::Pulse(_) => None,
+        };
+        let most = base_count.map(|n| u64::from(n) + extra_projectiles);
+        if let Some(most) = most.filter(|&n| n > u64::from(MAX_PROJECTILES)) {
             r.0.push(format!(
-                "upgrades.ron: con tutti gli upgrade {} spara {most} proiettili per raffica, al \
+                "upgrades.ron: con tutti gli upgrade {} arriva a {most} proiettili o foglie, al \
                  massimo {MAX_PROJECTILES}",
                 a.id
             ));
+        }
+        if let AttackPattern::Pulse(p) = &a.pattern {
+            // un'onda finisce prima che parta la successiva: più onde insieme moltiplicano
+            // colpi e gocce a schermo
+            let longest = a.range * range / p.speed;
+            let shortest = a.interval_s * interval;
+            if interval > 0.0 && longest >= shortest {
+                r.0.push(format!(
+                    "attacks.ron: {}: con gli upgrade al massimo l'onda dura {longest:.2} s, non \
+                     meno dell'intervallo più breve {shortest:.2} s (alza pattern.speed)",
+                    a.id
+                ));
+            }
+        }
+        if let AttackPattern::Projectile(p) = &a.pattern {
+            let fastest = p.speed * speed;
+            let max_step = p.radius + smallest;
+            if fastest * step > max_step {
+                r.0.push(format!(
+                    "upgrades.ron: con tutti gli upgrade di velocità {}.pattern.speed arriva a \
+                     {fastest:.0} px/s = {:.1} px per passo, oltre {max_step} attraversa i nemici",
+                    a.id,
+                    fastest * step
+                ));
+            }
+        }
+        if let AttackPattern::Orbit(o) = &a.pattern {
+            // l'orbita più larga fa correre di più le foglie
+            let fastest = leaf_step(o.angular_speed_deg, a.range * range);
+            let max_step = o.radius + smallest;
+            if fastest > max_step {
+                r.0.push(format!(
+                    "upgrades.ron: con tutti gli upgrade di gittata le foglie di {} fanno \
+                     {fastest:.1} px per passo, oltre {max_step} attraversano i nemici",
+                    a.id
+                ));
+            }
         }
     }
     let player = &config.player;

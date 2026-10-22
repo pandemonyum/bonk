@@ -19,7 +19,7 @@ use pixel_monster_survivor::gameplay::player::MoveIntent;
 use pixel_monster_survivor::gameplay::progression::XpGem;
 use pixel_monster_survivor::gameplay::run::RunClock;
 use pixel_monster_survivor::gameplay::upgrades::{
-    ChooseUpgrade, Draft, UpgradeStacks, is_eligible,
+    ChooseUpgrade, Draft, PartyView, UpgradeStacks, is_eligible,
 };
 
 /// Un punto fuori dal raggio di raccolta, con margine.
@@ -150,7 +150,10 @@ fn a_level_up_freezes_the_run_on_a_draft_until_a_card_is_chosen() {
     let stacks = app.world().resource::<UpgradeStacks>().clone();
     let weights = c.progression.rarity_weights;
     let available = (0..c.upgrades.len())
-        .filter(|&i| is_eligible(&c.upgrades, &stacks, i) && weights.of(c.upgrades[i].rarity) > 0.0)
+        .filter(|&i| {
+            let party = PartyView::of(&c, &stacks);
+            is_eligible(&c.upgrades, &stacks, i, &party) && weights.of(c.upgrades[i].rarity) > 0.0
+        })
         .count();
     let choices = app.world().resource::<Draft>().choices.clone();
     let draft_size = c.progression.draft_size as usize;

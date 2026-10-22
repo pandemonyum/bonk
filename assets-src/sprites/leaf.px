@@ -1,0 +1,9 @@
+# Foglia orbitante di Frond, 6x6, in diagonale: si legge "foglia" anche mentre gira.
+out: sprites/leaf.png
+---
+...kk.
+..keek
+.keeek
+keeek.
+kEek..
+.kk...

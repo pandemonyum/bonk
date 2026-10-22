@@ -5,12 +5,49 @@ Stato corrente, ultimo aggiornamento: **2026-10-22**.
 | Fase | Stato |
 |---|---|
 | S0 — bootstrap e ambiente | **DONE** (gate S0 superato, prove sotto) |
-| P0 — core giocabile desktop | in corso: P0.0–P0.4 DONE |
+| P0 — core giocabile desktop | in corso: P0.0–P0.5 DONE |
 | P1 — web | non iniziata |
 | P2 / P3 | non iniziate |
 
-Prossimo task eseguibile: **P0.5** (secondo e terzo compagno: onda in area, foglie orbitanti;
-slot da dati), vedi `docs/BACKLOG.md`.
+Prossimo task eseguibile: **P0.6** (timer di 10 minuti, scala di difficoltà, élite, boss con
+telegraph, stati MainMenu/GameOver/Victory, restart), vedi `docs/BACKLOG.md`.
+
+## Report tranche P0.5 (2026-10-22)
+
+```text
+Task: P0.5 - Secondo e terzo compagno (onda in area, foglie orbitanti), slot da dati
+Owner: gameplay-engineer + game-designer (valori) + pixel-art-director (sprite)
+Stato: DONE (code review: APPROVE, nessun bloccante; 3 rilievi da correggere e 9 minori
+       gestiti, dettaglio in docs/QA_REPORT.md)
+File: src/gameplay/{pulse,orbit}.rs, src/presentation/attacks.rs, src/data/validate/attacks.rs
+       (+ tests), tests/sim/{patterns,party}.rs, assets-src/sprites/{tide_companion,
+       sprout_companion,leaf,droplet}.px (nuovi); src/data/{schema,validate}.rs,
+       src/data/validate/progression.rs (+ tests), src/gameplay/{companions,attacks,combat,
+       enemies,mod,upgrades}.rs, src/gameplay/upgrades/{modifiers,tests}.rs,
+       src/presentation/{sprites,draft,mod}.rs, game-data/*.ron (schema v4), palette.txt,
+       tests/sim/{common,combat,progression,upgrades,balance,main}.rs
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1                       OK: 186 test (121 unit + 65 integrazione), 4 sonde
+  controprove (13 regole rotte apposta)     falliscono esattamente i test mirati (QA_REPORT)
+  sonda livelli (5 seed)                    invulnerabile: livello finale 33-36 a 10:00
+  sonda sopravvivenza con autoplay          1:08-1:22, livello 2-3 (invariata)
+  cargo run -- --seed 20 --autoplay --god --time-scale 3/4 --overlay
+                                            Frond e Gocci ai livelli 2 e 3; onda e 4 foglie
+                                            visibili, livello 9 a 2:41, 60 FPS
+Comportamento verificato:
+  - onda: un colpo per onda a ogni nemico raggiunto, solo dentro il raggio, rallentamento
+    del valore e della durata dei dati, parte solo con un bersaglio, cadenza esatta
+  - foglie: equidistanti sul raggio, seguono il player, stesso nemico al massimo ogni intervallo
+  - carta "nuovo compagno": posto libero, upgrade già presi, direzione della squadra
+  - upgrade successivi su tutti i pattern (gittata = area e orbita, +1 proiettile = +1 foglia)
+  - squadra piena: niente carte; restart: solo il compagno iniziale, nessuna foglia o onda
+  - stesso seed, stessa run anche con onda e foglie
+Problemi trovati e risolti: conteggio delle onde con Added<> dall'esterno dello schedule
+  vacuo (riscritto con entità distinte); i rilievi del code review (vedi QA_REPORT).
+Rischi noti: la run con autoplay finisce ancora a ~1:10 (sciame al minuto 1); foglie poco
+  leggibili sull'erba; scelta del compagno iniziale solo nei dati fino al menu della P0.6.
+Prossimo task: P0.6
+```
 
 ## Report tranche P0.4 (2026-10-22)
 

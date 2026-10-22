@@ -4,6 +4,7 @@ use std::collections::HashSet;
 
 use super::GameConfig;
 use crate::gameplay::SIM_HZ;
+use crate::gameplay::companions::MAX_COMPANION_SLOTS;
 use crate::world::ArenaBounds;
 use crate::world::obstacles::{MIN_FOOTPRINT_RADIUS, MIN_OBSTACLE_GAP};
 use crate::world::view::VIEW_HALF_DIAGONAL;
@@ -101,6 +102,20 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
     r.positive("player.ron: max_hp", p.max_hp);
     r.non_negative("player.ron: invulnerability_s", p.invulnerability_s);
     r.sprite("player.ron: sprite", &p.sprite);
+    let slots = p.companion_slots.len();
+    if !(1..=MAX_COMPANION_SLOTS).contains(&slots) {
+        r.0.push(format!(
+            "player.ron: companion_slots ha {slots} posti: servono da 1 (il compagno iniziale) \
+             a {MAX_COMPANION_SLOTS}"
+        ));
+    }
+    for (i, slot) in p.companion_slots.iter().enumerate() {
+        if !slot.angle_deg.is_finite() {
+            r.0.push(format!(
+                "player.ron: companion_slots[{i}].angle_deg non è un numero"
+            ));
+        }
+    }
 
     r.unique_ids("companions.ron", config.companions.iter().map(|c| &c.id));
     for c in &config.companions {
@@ -113,47 +128,7 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
         r.reference(&at("attack"), &c.attack, exists, "attacks.ron");
     }
 
-    // Il proiettile non deve attraversare la hurtbox più piccola tra due passi da 1/60 s.
-    let smallest_hurtbox = config
-        .enemies
-        .iter()
-        .map(|e| e.hurtbox.radius)
-        .fold(f32::INFINITY, f32::min);
-    r.unique_ids("attacks.ron", config.attacks.iter().map(|a| &a.id));
-    for a in &config.attacks {
-        let at = |field: &str| format!("attacks.ron: {}.{field}", a.id);
-        r.positive(&at("damage"), a.damage);
-        r.positive(&at("interval_s"), a.interval_s);
-        r.positive(&at("range"), a.range);
-        r.positive(&at("projectile_speed"), a.projectile_speed);
-        r.positive(&at("projectile_radius"), a.projectile_radius);
-        r.positive(&at("projectile_lifetime_s"), a.projectile_lifetime_s);
-        let travel = a.projectile_speed * a.projectile_lifetime_s;
-        if travel < a.range {
-            r.0.push(format!(
-                "{}: il proiettile percorre {travel:.0} px, meno della gittata {} px: sparisce \
-                 prima di raggiungere i nemici in raggio",
-                at("projectile_lifetime_s"),
-                a.range
-            ));
-        }
-        r.non_negative(&at("spread_deg"), a.spread_deg);
-        r.non_negative(&at("muzzle_height"), a.muzzle_height);
-        r.sprite(&at("projectile_sprite"), &a.projectile_sprite);
-        if a.projectiles == 0 {
-            r.0.push(format!("{} deve essere >= 1", at("projectiles")));
-        }
-        let step = a.projectile_speed / SIM_HZ as f32;
-        let max_step = a.projectile_radius + smallest_hurtbox;
-        if step > max_step {
-            r.0.push(format!(
-                "{}: {} px/s = {step:.1} px per passo, oltre {max_step} attraversa i nemici \
-                 senza colpirli",
-                at("projectile_speed"),
-                a.projectile_speed
-            ));
-        }
-    }
+    attacks::check(&mut r, config);
 
     r.unique_ids("enemies.ron", config.enemies.iter().map(|e| &e.id));
     for e in &config.enemies {
@@ -259,6 +234,7 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
     r.0
 }
 
+mod attacks;
 mod progression;
 #[cfg(test)]
 mod tests;

@@ -2,7 +2,7 @@
 // gelatina = base, sciame = veloce e fragile, corazzato = lento e resistente.
 // Élite e boss arrivano con la P0.6.
 (
-    version: 3,
+    version: 4,
     enemies: [
         (
             id: "blob",

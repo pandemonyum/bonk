@@ -4,8 +4,10 @@
 use bevy::prelude::*;
 
 use super::UpgradeStacks;
-use crate::data::schema::{AttackData, Effect, UpgradeData};
+use crate::data::schema::{AttackData, Effect, OrbitData, ProjectileData, PulseData, UpgradeData};
 use crate::gameplay::attacks::AutoAttack;
+use crate::gameplay::orbit::OrbitAttack;
+use crate::gameplay::pulse::PulseAttack;
 
 /// Fattore di un bonus percentuale sommato: +30 → 1,3; −50 → 0,5.
 pub fn pct_factor(total_pct: f32) -> f32 {
@@ -67,7 +69,8 @@ impl Modifiers {
                 }
                 Effect::MaxHp(v) => m.max_hp_bonus += v * k,
                 Effect::RegenPerSecond(v) => m.regen_per_s += v * k,
-                Effect::Heal(_) => {} // immediato, nessun effetto permanente
+                // immediato o un compagno nuovo: nessun valore da modificare
+                Effect::Heal(_) | Effect::JoinCompanion(_) => {}
             }
         }
         m.damage = pct_factor(damage);
@@ -79,10 +82,10 @@ impl Modifiers {
         m
     }
 
-    /// Attacco dai dati base con gli upgrade. La durata del proiettile segue gittata e
+    /// Proiettili dai dati base con gli upgrade. La durata del proiettile segue gittata e
     /// velocità, così la portata cresce con la gittata e resta almeno pari a essa.
-    pub fn attack(&self, data: &AttackData) -> AutoAttack {
-        let mut attack = AutoAttack::from_data(data);
+    pub fn projectile(&self, data: &AttackData, p: &ProjectileData) -> AutoAttack {
+        let mut attack = AutoAttack::from_data(data, p);
         attack.damage *= self.damage;
         attack.interval *= self.interval;
         attack.range *= self.range;
@@ -91,6 +94,26 @@ impl Modifiers {
         attack.projectiles = attack.projectiles.saturating_add(self.extra_projectiles);
         // saturating: `pierce` enorme (es. u32::MAX = "infinito") resta tale
         attack.pierce = attack.pierce.saturating_add(self.extra_pierce);
+        attack
+    }
+
+    /// Onda: danno, cadenza e raggio (la "gittata" dell'onda).
+    pub fn pulse(&self, data: &AttackData, p: &PulseData) -> PulseAttack {
+        let mut attack = PulseAttack::from_data(data, p);
+        attack.damage *= self.damage;
+        attack.interval *= self.interval;
+        attack.radius *= self.range;
+        attack
+    }
+
+    /// Foglie: danno, intervallo tra due colpi sullo stesso nemico, raggio dell'orbita, foglie
+    /// in più (come i proiettili in più di una raffica).
+    pub fn orbit(&self, data: &AttackData, o: &OrbitData) -> OrbitAttack {
+        let mut attack = OrbitAttack::from_data(data, o);
+        attack.damage *= self.damage;
+        attack.rehit_interval *= self.interval;
+        attack.radius *= self.range;
+        attack.leaves = attack.leaves.saturating_add(self.extra_projectiles);
         attack
     }
 }

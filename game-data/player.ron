@@ -1,6 +1,6 @@
 // Evocatore controllato dal giocatore. Unità: pixel di mondo (1 px = 1 texel a 480x270), secondi.
 (
-    version: 3,
+    version: 4,
     sprite: "sprites/summoner.png",
     // 75 px/s: attraversa lo schermo (480 px) in ~6 s, orde leggibili.
     speed: 75.0,
@@ -11,4 +11,12 @@
     invulnerability_s: 0.6,
     // Gemme XP entro questa distanza volano verso il player.
     pickup_radius: 28.0,
+    // Posti per i compagni (il primo è del compagno iniziale): angolo rispetto a "dritto
+    // dietro al player", positivo verso sinistra. Gli altri si riempiono con le carte
+    // "Nuovo compagno" di upgrades.ron, nell'ordine in cui vengono scelte.
+    companion_slots: [
+        (angle_deg: 0.0),
+        (angle_deg: 55.0),
+        (angle_deg: -55.0),
+    ],
 )

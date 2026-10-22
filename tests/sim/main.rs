@@ -8,6 +8,8 @@ mod combat;
 mod common;
 mod damage;
 mod movement;
+mod party;
+mod patterns;
 mod progression;
 mod spawning;
 mod upgrades;

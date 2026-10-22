@@ -3,6 +3,7 @@
 
 use super::super::GameConfig;
 use super::*;
+use crate::data::schema::{AttackPattern, ProjectileData};
 
 pub(super) fn embedded() -> GameConfig {
     GameConfig::embedded()
@@ -12,6 +13,22 @@ pub(super) fn errors_after(change: impl FnOnce(&mut GameConfig)) -> Vec<String> 
     let mut config = embedded();
     change(&mut config);
     validate(&config)
+}
+
+/// Indice del primo attacco a proiettili dei dati.
+pub(super) fn projectile_attack(c: &GameConfig) -> usize {
+    c.attacks
+        .iter()
+        .position(|a| a.projectile().is_some())
+        .expect("almeno un attacco a proiettili")
+}
+
+/// Parametri del proiettile dell'attacco `index` (che deve essere a proiettili).
+pub(super) fn projectile_mut(c: &mut GameConfig, index: usize) -> &mut ProjectileData {
+    match &mut c.attacks[index].pattern {
+        AttackPattern::Projectile(p) => p,
+        _ => unreachable!("attacco {index} non a proiettili"),
+    }
 }
 
 pub(super) fn assert_error(change: impl FnOnce(&mut GameConfig), expected: &str) {
@@ -30,7 +47,8 @@ fn the_embedded_data_has_no_errors() {
 #[test]
 fn numbers_out_of_range_are_reported_with_file_and_field() {
     let c = embedded();
-    let (enemy, attack) = (&c.enemies[0].id, &c.attacks[0].id);
+    let shot = projectile_attack(&c);
+    let (enemy, attack) = (&c.enemies[0].id, &c.attacks[shot].id);
     assert_error(
         |c| c.player.speed = 0.0,
         "player.ron: speed deve essere > 0",
@@ -44,8 +62,8 @@ fn numbers_out_of_range_are_reported_with_file_and_field() {
         &format!("attacks.ron: {attack}.interval_s"),
     );
     assert_error(
-        |c| c.attacks[0].projectiles = 0,
-        &format!("{attack}.projectiles"),
+        |c| projectile_mut(c, shot).count = 0,
+        &format!("{attack}.pattern.count deve essere >= 1"),
     );
     assert_error(
         |c| c.player.max_hp = 0.0,
@@ -94,8 +112,9 @@ fn physical_limits_are_enforced() {
         "non passa tra gli ostacoli",
     );
     // proiettile che salterebbe oltre un nemico in un passo
+    let shot = projectile_attack(&c);
     assert_error(
-        |c| c.attacks[0].projectile_speed *= 50.0,
+        |c| projectile_mut(c, shot).speed *= 50.0,
         "attraversa i nemici",
     );
     // corpi abbastanza veloci da saltare oltre un tronco in un passo
@@ -114,10 +133,13 @@ fn physical_limits_are_enforced() {
         &format!("{}.speed = ", enemy.id),
     );
     // proiettile che sparisce prima della gittata
-    let a = &c.attacks[0];
+    let (range, speed) = (
+        c.attacks[shot].range,
+        c.attacks[shot].projectile().unwrap().speed,
+    );
     assert_error(
-        |c| c.attacks[0].projectile_lifetime_s = a.range / a.projectile_speed * 0.5,
-        &format!("meno della gittata {} px", a.range),
+        |c| projectile_mut(c, shot).lifetime_s = range / speed * 0.5,
+        &format!("meno della gittata {range} px"),
     );
 }
 

@@ -1,5 +1,63 @@
 # QA REPORT
 
+## 2026-10-22 — P0.5 (secondo e terzo compagno, slot da dati)
+
+### Automatici
+
+| Controllo | Esito |
+|---|---|
+| `./scripts/check.ps1` | OK: 186 test (121 unitari + 65 integrazione) + 4 sonde ignorate, 14 PNG, 11 sprite citati dai dati |
+| Sonda livelli (5 seed, prima carta automatica) | primo level-up 0:30–0:41; invulnerabile: livello 10 a 2:47–5:01, finale 33–36 a 10:00 (P0.4: 14–25) |
+| Sonda sopravvivenza (autoplay, danni attivi) | 1:08–1:22, livello 2–3: invariata, si muore all'arrivo dello sciame |
+
+Controprove (regola rotta apposta → test che falliscono, poi ripristino e verde):
+
+| Regola rotta | Test che falliscono |
+|---|---|
+| compagno nuovo senza upgrade | `a_new_companion_arrives_with_the_upgrades_already_taken` |
+| onda esclusa dal ricalcolo degli upgrade | `upgrades_taken_later_reach_every_companion` |
+| carte compagno senza posti liberi | `a_full_party_gets_no_more_companion_cards` |
+| formazione senza angolo del posto | `companions_keep_separate_places_in_the_formation` |
+| onda che colpisce più volte lo stesso nemico | `the_wave_hits_each_enemy_in_reach_once_and_slows_it` |
+| inseguimento che ignora il rallentamento | `slowed_enemies_chase_slower_until_the_slow_wears_off` |
+| foglie senza intervallo per nemico | `a_leaf_hits_the_same_enemy_at_most_once_per_interval` |
+| compagno nuovo con direzione fissa | `a_new_companion_starts_behind_the_player` |
+| carta per un compagno già in squadra | `companion_cards_need_a_free_slot` |
+| foglie non controllate con l'orbita più larga | `leaves_are_checked_with_the_widest_orbit` |
+| durata dell'onda non controllata | `a_wave_ends_before_the_next_one` |
+| rallentamento che scade al doppio | `slowed_enemies_chase_slower_until_the_slow_wears_off` |
+| durata del rallentamento sbagliata | `the_wave_hits_each_enemy_in_reach_once_and_slows_it` |
+
+### Prove sul gioco reale
+
+| Prova | Osservato | Prova |
+|---|---|---|
+| `--seed 20 --autoplay --god --time-scale 3 --overlay` | Frond (posto 2) e Gocci (posto 3) ai livelli 2 e 3, tre compagni in formazione distinti | `docs/evidence/p05-tre-compagni.png` |
+| `--seed 20 --autoplay --god --time-scale 4 --overlay` | anello di gocce dell'onda, 4 foglie dopo "+1 proiettile", livello 9 e 155 sconfitti a 2:41, 60 FPS / 16,7 ms | `docs/evidence/p05-squadra-onda-foglie.png` |
+
+Il seed 20 è stato scelto perché la prima carta automatica porta presto entrambi i compagni:
+la sequenza dei draft dipende solo dal seed e dalle carte prese, quindi è la stessa in headless
+e nel client.
+
+### Code review P0.5
+
+Verdetto APPROVE con correzioni consigliate, nessun bloccante:
+
+| # | Rilievo | Correzione | Verifica |
+|---|---|---|---|
+| 1 | Regola delle foglie con l'orbita più larga e tetto delle foglie senza test propri | test dedicati con messaggi distinti | controprova |
+| 2 | Test del rallentamento debole (durata e valore scritto dall'onda non controllati) | durata al passo, `remaining` controllato dopo l'onda | 2 controprove |
+| 3 | Compagno nuovo nato con direzione fissa: davanti al player che andava verso ovest | direzione di marcia della squadra | test nuovo con controprova |
+| 4 | Intervallo delle foglie arrotondato per eccesso con gli upgrade (0,54 s → 33 passi) | arrotondato al passo più vicino | codice + test dell'intervallo |
+| 5 | Posti liberi dagli stack: carta per il compagno iniziale sprecata (P0.6 con il menu) | `PartyView` dal compagno iniziale e dalle carte, esclusi i presenti | 2 test unitari, controprova |
+| 6 | Due onde nello stesso passo: il rallentamento più forte poteva perdersi; onde lunghe senza limite | rallentamenti del passo combinati; onda più breve dell'intervallo, validato | test di validazione con controprova |
+| 7 | Percentuale di colpi della sonda oltre il 100% con onde e foglie | `RunStats.projectile_hits` | sonda |
+| 8 | Ricerca dei bersagli dell'onda anche in ricarica | uscita anticipata come i proiettili | test di cadenza |
+| 9 | Campi validati senza test (`slow_s`, `center_height`, `radius`) | test di validazione | gate verde |
+| 10 | Foglie ferme e congelamento vietati | restano vietati, motivo in D-035 | — |
+| 11 | Determinismo non coperto per onda e foglie | test a parità di seed con nemici veri | gate verde |
+| 12 | Restart senza controllo di foglie, onde e rallentamenti | test esteso | gate verde |
+
 ## 2026-10-22 — P0.4 (gemme XP, livelli, draft, upgrade a caldo)
 
 ### Automatici

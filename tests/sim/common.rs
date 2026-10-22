@@ -4,7 +4,7 @@
 use bevy::prelude::*;
 use pixel_monster_survivor::app::RunPhase;
 use pixel_monster_survivor::data::GameConfig;
-use pixel_monster_survivor::data::schema::Effect;
+use pixel_monster_survivor::data::schema::{AttackData, Effect};
 use pixel_monster_survivor::gameplay::attacks::AutoAttack;
 use pixel_monster_survivor::gameplay::combat::Health;
 use pixel_monster_survivor::gameplay::companions::Companion;
@@ -208,4 +208,30 @@ pub fn take(app: &mut App, index: usize) {
     app.world_mut().write_message(ChooseUpgrade(0));
     run_steps(app, 2);
     assert_eq!(phase(app), RunPhase::Playing);
+}
+
+// --- Compagni e pattern di attacco (P0.5) ---
+
+/// Id del primo compagno dei dati il cui attacco soddisfa `has` (es. `|a| a.pulse().is_some()`).
+pub fn companion_with(config: &GameConfig, has: impl Fn(&AttackData) -> bool) -> String {
+    config
+        .companions
+        .iter()
+        .find(|c| config.attack(&c.attack).is_some_and(&has))
+        .expect("i dati hanno un compagno con questo attacco")
+        .id
+        .clone()
+}
+
+/// Run tranquilla e invulnerabile, senza nemici e senza XP, con `companion` come compagno
+/// iniziale al posto di quello dello stage.
+pub fn app_starting_with(companion: &str, change: impl FnOnce(&mut GameConfig)) -> App {
+    let mut config = quiet_config();
+    config.stage.starting_companion = companion.into();
+    change(&mut config);
+    let mut app = headless_app_with(1, config);
+    god(&mut app);
+    app.update();
+    despawn_all::<Enemy>(&mut app);
+    app
 }

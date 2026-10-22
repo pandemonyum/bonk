@@ -1,6 +1,10 @@
-// Attacchi automatici. P0.2: proiettile mirato sul nemico più vicino entro `range`.
+// Attacchi automatici dei compagni. Comuni a tutti i pattern: danno, intervallo, portata (gli
+// upgrade "Companion" li modificano tutti). Il pattern dice come colpiscono:
+// - Projectile: proiettili mirati sul nemico più vicino entro `range` (P0.2);
+// - Pulse: onda che si allarga attorno al player fino a `range`, colpisce e rallenta (P0.5);
+// - Orbit: foglie che girano attorno al player a distanza `range` (P0.5).
 (
-    version: 3,
+    version: 4,
     attacks: [
         (
             id: "ember_bolt",
@@ -8,19 +12,54 @@
             // secondi tra due attacchi
             interval_s: 1.1,
             range: 150.0,
-            // px/s; il validatore impedisce velocità che attraversano un nemico in un passo
-            projectile_speed: 220.0,
-            projectile_radius: 3.0,
-            // 0,85 s × 220 px/s ≈ 187 px: un po' oltre la gittata, per raggiungere chi si sposta
-            projectile_lifetime_s: 0.85,
-            projectile_sprite: "sprites/fireball.png",
-            // proiettili per attacco, a ventaglio di `spread_deg` gradi l'uno dall'altro
-            projectiles: 1,
-            spread_deg: 11.5,
-            // nemici extra attraversati da ogni proiettile
-            pierce: 0,
-            // altezza di partenza del colpo sopra i piedi di chi attacca
-            muzzle_height: 8.0,
+            pattern: Projectile((
+                // px/s; il validatore impedisce velocità che attraversano un nemico in un passo
+                speed: 220.0,
+                radius: 3.0,
+                // 0,85 s × 220 px/s ≈ 187 px: un po' oltre la gittata, per chi si sposta
+                lifetime_s: 0.85,
+                sprite: "sprites/fireball.png",
+                // proiettili per attacco, a ventaglio di `spread_deg` gradi l'uno dall'altro
+                count: 1,
+                spread_deg: 11.5,
+                // nemici extra attraversati da ogni proiettile
+                pierce: 0,
+                // altezza di partenza del colpo sopra i piedi di chi attacca
+                muzzle_height: 8.0,
+            )),
+        ),
+        (
+            id: "tide_pulse",
+            // colpisce tutti i nemici nell'area: meno danno, più bersagli
+            damage: 8.0,
+            interval_s: 2.0,
+            // raggio finale dell'onda: la calca attorno al player, non lo schermo intero
+            range: 56.0,
+            pattern: Pulse((
+                // il fronte arriva al bordo in ~0,35 s: si vede allargarsi
+                speed: 160.0,
+                // i nemici colpiti vanno al 55% della velocità per 1,5 s
+                slow: 0.55,
+                slow_s: 1.5,
+                center_height: 8.0,
+                sprite: "sprites/droplet.png",
+            )),
+        ),
+        (
+            id: "leaf_orbit",
+            damage: 6.0,
+            // secondi prima che le foglie colpiscano di nuovo lo stesso nemico
+            interval_s: 0.6,
+            // raggio dell'orbita: appena fuori dal contatto, tiene lontani i più vicini
+            range: 34.0,
+            pattern: Orbit((
+                count: 3,
+                // mezzo giro al secondo abbondante: 34 px × 3,1 rad/s ≈ 105 px/s
+                angular_speed_deg: 180.0,
+                radius: 5.0,
+                center_height: 8.0,
+                sprite: "sprites/leaf.png",
+            )),
         ),
     ],
 )

@@ -3,7 +3,7 @@
 // Nomi e testi sono originali e provvisori. Nei testi delle carte solo caratteri ASCII (niente
 // lettere accentate): il font provvisorio non le ha (vedi D-013, la validazione lo controlla).
 (
-    version: 3,
+    version: 4,
     upgrades: [
         (
             id: "ember_damage",
@@ -26,7 +26,7 @@
         (
             id: "ember_multishot",
             name: "Scintille gemelle",
-            description: "+1 proiettile per attacco, a ventaglio",
+            description: "+1 proiettile per raffica, o +1 foglia in orbita",
             rarity: Rare,
             max_stack: 3,
             // prima un po' di potenza, poi la quantità
@@ -45,7 +45,7 @@
         (
             id: "ember_range",
             name: "Vista lunga",
-            description: "Gittata dei compagni +20%",
+            description: "Gittata, area dell'onda e raggio delle foglie +20%",
             rarity: Common,
             max_stack: 3,
             requires: [],
@@ -95,6 +95,25 @@
             max_stack: 3,
             requires: [],
             effect: PickupRadiusPct(25.0),
+        ),
+        (
+            id: "join_tide",
+            name: "Nuovo compagno: Gocci",
+            description: "Gocci si unisce: onda d'acqua attorno a te che ferisce e rallenta",
+            rarity: Uncommon,
+            // una sola volta; proposta solo se c'è un posto libero (player.ron)
+            max_stack: 1,
+            requires: [],
+            effect: JoinCompanion("tide"),
+        ),
+        (
+            id: "join_sprout",
+            name: "Nuovo compagno: Frond",
+            description: "Frond si unisce: foglie che ti girano attorno e tagliano",
+            rarity: Uncommon,
+            max_stack: 1,
+            requires: [],
+            effect: JoinCompanion("sprout"),
         ),
         (
             id: "snack",

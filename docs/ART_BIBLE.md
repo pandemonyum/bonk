@@ -12,9 +12,11 @@ Moodboard `references/pixel_art_concept.png`: non presente al 2026-10-22.
 | Tile | 16×16 | tileset a colonna (array texture) |
 | Evocatore (player) | 16×21 | ancora in basso al centro |
 | Nemici comuni | gelatina 16×13, sciame 12×8, corazzato 20×15 | la taglia dice il ruolo: piccolo = veloce e fragile, grande = lento e resistente; silhouette diverse (tonda, alata, a cupola) |
-| Compagni | 16×17 (fuoco) | silhouette verticale/appuntita: mai la stessa forma dei nemici |
+| Compagni | Brasa 16×17, Gocci 16×14, Frond 16×17 | tre sagome diverse tra loro e dai nemici: fiamma alta e appuntita, bolla tonda con cresta d'onda, seme con due foglie a "V" |
 | Proiettili | 6×6 | ancora al centro, nucleo chiaro, disegnati sopra gli attori |
 | Gemma XP | 6×8 | rombo blu `u/U` con riflesso `w`; a terra, sotto gli attori |
+| Foglia orbitante | 6×6 | diagonale, lime `e/E` con contorno |
+| Goccia dell'onda | 4×4 | teal `l/c` e bianco, **senza contorno**: in tante disegnano l'anello senza scurire l'orda |
 | Roccia | 16×10 | luce in alto a sinistra; impronta r=7 |
 | Albero | 24×26 | più alto dell'evocatore; chioma scura `A/B` per staccarsi dall'erba; impronta solo tronco r=4 |
 | Élite | 24–32 px | |
@@ -30,7 +32,7 @@ Colori per ruolo, per distinguere a colpo d'occhio:
 | Ruolo | Colori |
 |---|---|
 | Contorno | `k` #1b1428 (tutti gli attori hanno contorno scuro) |
-| Alleati (player, compagni) | teal `c/C/l` #2f8f9d #1f5a6b #6cc7c2, oro `g/G`; fuoco alleato `o/O` #f08a3c #b85a2a |
+| Alleati (player, compagni) | teal `c/C/l` #2f8f9d #1f5a6b #6cc7c2 (anche l'acqua di Gocci), oro `g/G`; fuoco alleato `o/O` #f08a3c #b85a2a; natura alleato `e/E` #b8e05a #74a83c (più chiaro e giallo dell'erba) |
 | Nemici | viola `p/P/q` #8e5bc8 #5b3a8c #c79bf0 |
 | Pericoli e danni | rosso `r/R` #e2574c #a8323a |
 | Gemme XP | blu `u/U` #4fa4e0 #2f6fb0 |

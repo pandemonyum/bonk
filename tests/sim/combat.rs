@@ -33,11 +33,12 @@ fn first_enemy(app: &mut App) -> (Entity, Vec2) {
 fn projectile_at(app: &App, at: Vec2, damage: f32, velocity: Vec2, secs: f32) -> impl Bundle {
     let config = config(app);
     let attack = config.companion_attack(config.starting_companion());
+    let pattern = attack.projectile().expect("compagno iniziale a proiettili");
     (
         Projectile {
             velocity,
             damage,
-            radius: attack.projectile_radius,
+            radius: pattern.radius,
             remaining_secs: secs,
             hits_left: 1,
             already_hit: Vec::new(),
@@ -181,6 +182,8 @@ fn shots_fired_along_the_north_hedge_still_hit() {
     let arena = *app.world().resource::<ArenaBounds>();
     let muzzle = config(&app)
         .companion_attack(config(&app).starting_companion())
+        .projectile()
+        .expect("compagno iniziale a proiettili")
         .muzzle_height;
     let (enemy, _) = first_enemy(&mut app);
     // Nemico fermo con i piedi sul limite nord, 40 px a est del punto di sparo.

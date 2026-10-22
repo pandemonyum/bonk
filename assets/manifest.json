@@ -24,6 +24,17 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/droplet.png",
+      "kind": "sprite",
+      "size": [
+        4,
+        4
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/droplet.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "sprites/ember_companion.png",
       "kind": "sprite",
       "size": [
@@ -46,6 +57,17 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/leaf.png",
+      "kind": "sprite",
+      "size": [
+        6,
+        6
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/leaf.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "sprites/rock.png",
       "kind": "sprite",
       "size": [
@@ -54,6 +76,17 @@
       ],
       "frames": 1,
       "source": "assets-src/sprites/rock.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/sprout_companion.png",
+      "kind": "sprite",
+      "size": [
+        16,
+        17
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/sprout_companion.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -76,6 +109,17 @@
       ],
       "frames": 1,
       "source": "assets-src/sprites/swarm_enemy.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/tide_companion.png",
+      "kind": "sprite",
+      "size": [
+        16,
+        14
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/tide_companion.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {

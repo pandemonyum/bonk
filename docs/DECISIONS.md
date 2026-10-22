@@ -203,6 +203,37 @@ insieme faceva compensare una carta +50% con una −30%. Tetti nel codice, contr
 nemico; perforazione e XP usano somme saturanti (`pierce` enorme resta "infinito"). I compagni
 devono stare dietro al player anche alla sua velocità massima.
 
+## D-035 Attacchi con campi comuni e un `pattern` per tipo
+`attacks.ron` (schema 4) ha `damage`, `interval_s` e `range` per tutti gli attacchi, più il
+`pattern`: `Projectile`, `Pulse` (onda), `Orbit` (foglie), ognuno con i suoi parametri. Così le
+carte "Companion" valgono per tutti senza casi speciali: la gittata è anche il raggio dell'onda
+e dell'orbita, "+1 proiettile" è anche "+1 foglia", la cadenza delle foglie è l'intervallo tra
+due colpi sullo stesso nemico. Onda e foglie sono centrate sul player (come nel GDD), non sul
+compagno: si leggono meglio e proteggono dove serve. L'onda è un disco pieno che si allarga
+(chi è dentro il fronte è raggiunto, niente tunnel) e colpisce una volta per onda; parte solo
+con un nemico nel raggio, con la stessa carica dei proiettili. Il rallentamento non si somma:
+vale il più forte e il più lungo, anche tra due onde nello stesso passo. Un'onda deve finire
+prima della successiva (validato con gli upgrade al massimo). Per le foglie la validazione
+controlla che il passo lungo l'orbita, anche con l'orbita più larga, non salti oltre un nemico;
+l'intervallo tra due colpi sullo stesso nemico si arrotonda al passo più vicino. Restano vietati
+foglie ferme (`angular_speed_deg: 0`) e congelamento (`slow: 0`): sarebbero pattern diversi.
+
+## D-036 Squadra: posti nel player, compagni dalle carte del draft
+`player.ron: companion_slots` è la lista dei posti (il primo è del compagno iniziale), ognuno con
+l'angolo nella formazione dietro al player (±55°: tre compagni distinti). Gli altri compagni
+arrivano con le carte `JoinCompanion` ("nuovo slot compagno" dell'handoff), proposte solo con
+un posto libero e se il compagno non è già in squadra (`PartyView`, calcolata dal compagno
+iniziale e dalle carte prese); il posto è il primo libero nell'ordine di scelta. Il compagno
+nuovo nasce con gli upgrade già presi (rilievo P4 del code review P0.4) e con la direzione di
+marcia della squadra, quindi già dietro al player. La scelta del compagno iniziale resta
+in `stages.ron` finché il menu della P0.6 non la propone al giocatore.
+
+## D-037 Onda disegnata con gocce figlie, niente scale
+L'anello dell'onda non è uno sprite scalato (vietato dalla regola pixel-perfect): è fatto di
+8–40 gocce 4×4, figlie dell'entità `Pulse`, spostate ogni fotogramma sul raggio interpolato e
+arrotondato al pixel. Il numero di gocce dipende dal raggio finale (una ogni ~9 px). Le gocce
+non hanno contorno per non scurire l'orda che attraversano.
+
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale
 come seconda build separata dopo la P1.

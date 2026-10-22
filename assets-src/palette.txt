@@ -29,5 +29,7 @@ d b9875a terra
 D 8a5d3b terra-ombra
 t 9aa0a8 pietra
 T 5f6670 pietra-ombra
+e b8e05a natura-alleato
+E 74a83c natura-alleato-ombra
 u 4fa4e0 xp-blu
 U 2f6fb0 xp-blu-ombra

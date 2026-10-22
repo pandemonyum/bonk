@@ -8,8 +8,11 @@ use bevy::prelude::*;
 use super::SimSet;
 use super::attacks::AutoAttack;
 use super::combat::Health;
+use super::companions::join_companions;
+use super::orbit::OrbitAttack;
 use super::player::Player;
 use super::progression::{PickupRadius, Progression};
+use super::pulse::PulseAttack;
 use crate::app::{AppState, RunPhase, RunSeed};
 use crate::data::GameConfig;
 use crate::data::schema::{Effect, RarityWeights, UpgradeData};
@@ -53,10 +56,50 @@ pub struct AutoPick {
 #[derive(Resource, Debug, Clone)]
 struct DraftRng(Pcg32);
 
-/// Un upgrade si può proporre se non è al massimo e ha già tutti i requisiti.
-pub fn is_eligible(upgrades: &[UpgradeData], stacks: &UpgradeStacks, index: usize) -> bool {
+/// La squadra secondo i dati e le carte prese: il compagno iniziale, poi chi è arrivato con le
+/// carte `JoinCompanion`, fino ai posti di `player.ron`. Serve al draft (stessa regola di
+/// `companions::join_companions`, che crea davvero i compagni).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PartyView {
+    pub members: Vec<String>,
+    pub free_slots: usize,
+}
+
+impl PartyView {
+    pub fn of(config: &GameConfig, stacks: &UpgradeStacks) -> Self {
+        let slots = config.player.companion_slots.len();
+        let mut members = vec![config.stage.starting_companion.clone()];
+        for (i, upgrade) in config.upgrades.iter().enumerate() {
+            if let Effect::JoinCompanion(id) = &upgrade.effect
+                && stacks.of(i) > 0
+                && !members.contains(id)
+                && members.len() < slots
+            {
+                members.push(id.clone());
+            }
+        }
+        let free_slots = slots.saturating_sub(members.len());
+        Self {
+            members,
+            free_slots,
+        }
+    }
+}
+
+/// Un upgrade si può proporre se non è al massimo e ha già tutti i requisiti; una carta
+/// "nuovo compagno" solo se c'è un posto libero e il compagno non è già in squadra.
+pub fn is_eligible(
+    upgrades: &[UpgradeData],
+    stacks: &UpgradeStacks,
+    index: usize,
+    party: &PartyView,
+) -> bool {
     let upgrade = &upgrades[index];
-    stacks.of(index) < upgrade.max_stack
+    let room = match &upgrade.effect {
+        Effect::JoinCompanion(id) => party.free_slots > 0 && !party.members.contains(id),
+        _ => true,
+    };
+    room && stacks.of(index) < upgrade.max_stack
         && upgrade.requires.iter().all(|required| {
             upgrades
                 .iter()
@@ -71,11 +114,12 @@ pub fn draw_choices(
     rng: &mut Pcg32,
     upgrades: &[UpgradeData],
     stacks: &UpgradeStacks,
+    party: &PartyView,
     weights: &RarityWeights,
     count: usize,
 ) -> Vec<usize> {
     let mut pool: Vec<(usize, f32)> = (0..upgrades.len())
-        .filter(|&i| is_eligible(upgrades, stacks, i))
+        .filter(|&i| is_eligible(upgrades, stacks, i, party))
         .map(|i| (i, weights.of(upgrades[i].rarity)))
         .filter(|&(_, weight)| weight > 0.0)
         .collect();
@@ -117,7 +161,8 @@ impl Plugin for UpgradesPlugin {
                         .run_if(resource_exists::<AutoPick>),
                     apply_choice.run_if(in_state(RunPhase::LevelUp)),
                     // in `Loading` la configurazione può non esserci ancora (client)
-                    refresh_modifiers
+                    (refresh_modifiers, join_companions)
+                        .chain()
                         .run_if(in_state(AppState::InRun))
                         .run_if(resource_changed::<UpgradeStacks>),
                 )
@@ -148,8 +193,10 @@ fn open_draft(
         return; // da sconfitti decide `declare_defeat`
     }
     let weights = &config.progression.rarity_weights;
+    let party = PartyView::of(&config, &stacks);
     let available = (0..config.upgrades.len()).any(|i| {
-        is_eligible(&config.upgrades, &stacks, i) && weights.of(config.upgrades[i].rarity) > 0.0
+        is_eligible(&config.upgrades, &stacks, i, &party)
+            && weights.of(config.upgrades[i].rarity) > 0.0
     });
     if !available {
         info!(
@@ -175,6 +222,7 @@ fn deal_draft(
         &mut rng.0,
         &config.upgrades,
         &stacks,
+        &PartyView::of(&config, &stacks),
         &p.rarity_weights,
         p.draft_size as usize,
     );
@@ -248,6 +296,7 @@ fn apply_choice(
             &mut rng.0,
             &config.upgrades,
             &stacks,
+            &PartyView::of(&config, &stacks),
             &p.rarity_weights,
             p.draft_size as usize,
         )
@@ -279,19 +328,52 @@ fn refresh_modifiers(
     config: Res<GameConfig>,
     stacks: Res<UpgradeStacks>,
     mut modifiers: ResMut<Modifiers>,
-    mut attacks: Query<&mut AutoAttack>,
+    mut projectiles: Query<&mut AutoAttack>,
+    mut pulses: Query<&mut PulseAttack>,
+    mut orbits: Query<&mut OrbitAttack>,
     mut player: Query<(&mut Player, &mut Health, &mut PickupRadius)>,
 ) {
     let m = Modifiers::from_stacks(&config.upgrades, &stacks);
     *modifiers = m;
-    for mut attack in &mut attacks {
-        let Some(data) = config.attack(&attack.id) else {
+    // lo stato in corso (carica, angolo, colpi recenti) resta quello di prima
+    for mut attack in &mut projectiles {
+        let Some((data, p)) = config
+            .attack(&attack.id)
+            .and_then(|a| Some((a, a.projectile()?)))
+        else {
             continue;
         };
         let charge = attack.charge;
         *attack = AutoAttack {
             charge,
-            ..m.attack(data)
+            ..m.projectile(data, p)
+        };
+    }
+    for mut attack in &mut pulses {
+        let Some((data, p)) = config
+            .attack(&attack.id)
+            .and_then(|a| Some((a, a.pulse()?)))
+        else {
+            continue;
+        };
+        let charge = attack.charge;
+        *attack = PulseAttack {
+            charge,
+            ..m.pulse(data, p)
+        };
+    }
+    for mut attack in &mut orbits {
+        let Some((data, o)) = config
+            .attack(&attack.id)
+            .and_then(|a| Some((a, a.orbit()?)))
+        else {
+            continue;
+        };
+        let (angle, recent) = (attack.angle, std::mem::take(&mut attack.recent));
+        *attack = OrbitAttack {
+            angle,
+            recent,
+            ..m.orbit(data, o)
         };
     }
     let base = &config.player;

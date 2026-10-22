@@ -8,6 +8,7 @@ use super::collision::{Footprint, push_outside, resolve_against_obstacles};
 use super::combat::{Health, Hurtbox};
 use super::kinematics::{Position, body};
 use super::player::Player;
+use super::pulse::Slowed;
 use super::spatial::EnemyGrid;
 use crate::app::AppState;
 use crate::data::DataId;
@@ -106,15 +107,17 @@ impl Plugin for EnemyPlugin {
     }
 }
 
+/// Inseguimento; un nemico rallentato dall'onda va a `speed × factor`.
 fn chase_player(
     time: Res<Time>,
     player: Single<&Position, With<Player>>,
-    mut enemies: Query<(&Enemy, &mut Position), Without<Player>>,
+    mut enemies: Query<(&Enemy, Option<&Slowed>, &mut Position), Without<Player>>,
 ) {
     let target = player.0;
     let dt = time.delta_secs();
-    for (enemy, mut position) in &mut enemies {
-        position.0 = chase_step(position.0, target, enemy.speed, dt, enemy.contact_distance);
+    for (enemy, slowed, mut position) in &mut enemies {
+        let speed = enemy.speed * slowed.map_or(1.0, |s| s.factor);
+        position.0 = chase_step(position.0, target, speed, dt, enemy.contact_distance);
     }
 }
 

@@ -1,5 +1,6 @@
-//! Attacchi automatici dei compagni: carica e cadenza, scelta del bersaglio, raffica di
-//! proiettili. Cosa succede quando un proiettile colpisce è in `combat`.
+//! Attacco a proiettili mirati (pattern `Projectile`): carica e cadenza, scelta del bersaglio,
+//! raffica. Cosa succede quando un proiettile colpisce è in `combat`; onda e foglie sono in
+//! `pulse` e `orbit`, che riusano la carica di [`attack_tick`].
 
 use bevy::prelude::*;
 
@@ -10,13 +11,13 @@ use super::kinematics::{Position, body};
 use super::spatial::EnemyGrid;
 use crate::app::AppState;
 use crate::data::DataId;
-use crate::data::schema::AttackData;
+use crate::data::schema::{AttackData, ProjectileData};
 
 /// Tolleranza sulla carica: sommare 1/60 s a ogni passo accumula errore di arrotondamento,
 /// e senza tolleranza un intervallo di 1,1 s potrebbe durare 67 passi invece di 66.
-const CHARGE_EPSILON: f32 = 1.0e-4;
+pub(super) const CHARGE_EPSILON: f32 = 1.0e-4;
 /// Durata di un passo fisso.
-const STEP: f32 = 1.0 / SIM_HZ as f32;
+pub(super) const STEP: f32 = 1.0 / SIM_HZ as f32;
 /// Proiettili al massimo per raffica, upgrade compresi (validato nei dati): oltre, un refuso
 /// creerebbe migliaia di entità per colpo.
 pub const MAX_PROJECTILES: u32 = 32;
@@ -64,20 +65,20 @@ pub struct AutoAttack {
 
 impl AutoAttack {
     /// Attacco armato (spara al primo passo con un bersaglio) con i valori di `attacks.ron`.
-    pub fn from_data(data: &AttackData) -> Self {
+    pub fn from_data(data: &AttackData, p: &ProjectileData) -> Self {
         Self {
             id: data.id.clone(),
             damage: data.damage,
             interval: data.interval_s,
             charge: data.interval_s - STEP,
             range: data.range,
-            projectile_speed: data.projectile_speed,
-            projectile_radius: data.projectile_radius,
-            projectile_lifetime: data.projectile_lifetime_s,
-            projectiles: data.projectiles,
-            spread: data.spread_deg.to_radians(),
-            pierce: data.pierce,
-            muzzle_height: data.muzzle_height,
+            projectile_speed: p.speed,
+            projectile_radius: p.radius,
+            projectile_lifetime: p.lifetime_s,
+            projectiles: p.count,
+            spread: p.spread_deg.to_radians(),
+            pierce: p.pierce,
+            muzzle_height: p.muzzle_height,
         }
     }
 }

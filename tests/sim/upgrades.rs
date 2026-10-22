@@ -54,7 +54,11 @@ fn the_multishot_upgrade_fires_one_more_projectile_per_attack() {
         take(&mut app, r);
     }
     take(&mut app, index);
-    let base = c.companion_attack(c.starting_companion()).projectiles;
+    let base = c
+        .companion_attack(c.starting_companion())
+        .projectile()
+        .expect("compagno iniziale a proiettili")
+        .count;
     assert_eq!(companion_attack(&mut app).projectiles, base + extra);
     let near = in_companion_range(&mut app);
     enemy_at(&mut app, near, 1.0e6, 0);
@@ -83,9 +87,9 @@ fn health_upgrades_raise_the_maximum_heal_and_regenerate() {
     let heal = upgrade_index(&app, |e| matches!(e, Effect::Heal(_)));
     let regen = upgrade_index(&app, |e| matches!(e, Effect::RegenPerSecond(_)));
     let (Effect::MaxHp(bonus), Effect::Heal(amount), Effect::RegenPerSecond(per_s)) = (
-        c.upgrades[max_hp].effect,
-        c.upgrades[heal].effect,
-        c.upgrades[regen].effect,
+        c.upgrades[max_hp].effect.clone(),
+        c.upgrades[heal].effect.clone(),
+        c.upgrades[regen].effect.clone(),
     ) else {
         unreachable!()
     };
@@ -117,9 +121,10 @@ fn movement_and_magnet_upgrades_change_the_player() {
     let c = config(&app);
     let swift = upgrade_index(&app, |e| matches!(e, Effect::MoveSpeedPct(_)));
     let magnet = upgrade_index(&app, |e| matches!(e, Effect::PickupRadiusPct(_)));
-    let (Effect::MoveSpeedPct(speed_pct), Effect::PickupRadiusPct(radius_pct)) =
-        (c.upgrades[swift].effect, c.upgrades[magnet].effect)
-    else {
+    let (Effect::MoveSpeedPct(speed_pct), Effect::PickupRadiusPct(radius_pct)) = (
+        c.upgrades[swift].effect.clone(),
+        c.upgrades[magnet].effect.clone(),
+    ) else {
         unreachable!()
     };
     take(&mut app, swift);

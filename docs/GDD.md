@@ -23,8 +23,10 @@ attacchi sono automatici.
 | Evocatore | 75 px/s, 100 HP, 0,6 s di invulnerabilità dopo un colpo | attraversa lo schermo in ~6 s; il tempo di uscire dalla calca |
 | Arena | 4096×4096 px, bordo di siepe | ~55 s per attraversarla: spazio per fuggire senza perdersi |
 | Simulazione | 60 Hz fissi | riproducibile con seed |
-| Compagno di fuoco | 12 danni, 1 colpo ogni 1,1 s, gittata 150 px, proiettile 220 px/s per 0,85 s | valori dell'handoff §7 |
-| Compagno: scia | 18 px dietro il player, max 120 px/s | non intralcia la lettura del player |
+| Brasa (fuoco, iniziale) | proiettile: 12 danni, 1 colpo ogni 1,1 s, gittata 150 px, 220 px/s per 0,85 s | valori dell'handoff §7: il bersaglio singolo più lontano |
+| Gocci (acqua) | onda: 8 danni a tutti entro 56 px ogni 2 s, fronte a 160 px/s, nemici al 55% di velocità per 1,5 s | difesa della calca: meno danno, tanti bersagli, rallenta chi ti stringe |
+| Frond (natura) | 3 foglie a 34 px, mezzo giro al secondo, 6 danni, stesso nemico al massimo ogni 0,6 s | danno continuo appena fuori dal contatto: tiene lontani i più vicini |
+| Squadra | 3 posti (`player.ron`): dietro, dietro-sinistra e dietro-destra a ±55°; scia 18–22 px, max 120 px/s | tre compagni visibili senza sovrapporsi né coprire il player |
 | Ostacoli | densità 1,2%, zona libera 128 px, 60% alberi sull'erba | ~650 per arena, mai un vicolo cieco |
 
 **Nemici (`enemies.ron`)**
@@ -55,17 +57,21 @@ tutto si ricalcola dai dati base più gli stack a ogni scelta.
 |---|---|---|---|---|
 | Fiamma viva | danno dei compagni +15% | comune | 5 | — |
 | Respiro rapido | intervallo tra gli attacchi −10% | comune | 5 | — |
-| Scintille gemelle | +1 proiettile a ventaglio | rara | 3 | Fiamma viva |
+| Scintille gemelle | +1 proiettile a ventaglio, o +1 foglia | rara | 3 | Fiamma viva |
 | Fuoco perforante | perforazione +1 | non comune | 3 | — |
-| Vista lunga | gittata +20% (la durata del proiettile cresce con lei) | comune | 3 | — |
+| Vista lunga | gittata +20% (la durata del proiettile cresce con lei), area dell'onda e raggio delle foglie +20% | comune | 3 | — |
 | Vampa veloce | velocità dei proiettili +20% | comune | 2 | — |
 | Scorza robusta | HP massimi +20, cura 20 | comune | 5 | — |
 | Germoglio | rigenera 0,5 HP/s | non comune | 3 | — |
 | Passo leggero | movimento +10% | non comune | 3 | — |
 | Richiamo | raggio di raccolta +25% | comune | 3 | — |
+| Nuovo compagno: Gocci | Gocci entra nel primo posto libero, con gli upgrade già presi | non comune | 1 | un posto libero |
+| Nuovo compagno: Frond | Frond entra nel primo posto libero, con gli upgrade già presi | non comune | 1 | un posto libero |
 | Merenda | cura 30 HP, nessuno stack permanente | comune | 99 | — (il draft non resta vuoto) |
 
-"Nuovo slot compagno" arriva con i compagni della P0.5. La validazione controlla i limiti fisici
+Danno e cadenza valgono per tutti i pattern (per le foglie la "cadenza" è l'intervallo tra due
+colpi sullo stesso nemico); velocità dei proiettili e perforazione solo per i proiettili. La
+validazione controlla i limiti fisici
 con tutti gli upgrade al massimo (proiettili che attraversano i nemici, corpi che saltano oltre
 un tronco, cadenza sotto un passo, gemme più lente del player).
 
@@ -91,6 +97,12 @@ nell'anello 290–360 px dal player, sempre fuori vista.
   upgrade della P0.4.
 - **P0.3, carico:** 220 nemici a 59 FPS / 16,9 ms nel gioco (build dev, vsync); simulazione
   0,45–0,62 ms per passo con 50–500 nemici.
+- **P0.5, squadra (5 seed, prima carta automatica):** con il player invulnerabile il livello
+  finale a 10:00 passa da 14–25 a **33–36** (livello 10 a 2:47–5:01): tre compagni sconfiggono
+  molti più nemici. Con l'autoplay e i danni la run dura ancora **1:08–1:22** (livello 2–3): si
+  muore all'arrivo dello sciame (1:00), prima che i compagni nuovi arrivino o pesino. Il primo
+  minuto va ribilanciato con la difficoltà della P0.6. Nel gioco, seed 20 con autoplay: Frond e
+  Gocci ai livelli 2 e 3, a 2:41 livello 9 e 155 sconfitti con 13 nemici a schermo.
 - **P0.4, livelli (5 seed, prima carta scelta in automatico):** primo level-up con l'autoplay a
   **0:30–0:41** (obiettivo 30–45 s: centrato). Con il player invulnerabile, per misurare il solo
   ritmo: livello 5 a ~2:20, livello 10 a 4:39–5:56, livello finale 14–25 a 10:00. Da fermi si
