@@ -1,15 +1,14 @@
 //! Stato del giocatore nell'HUD, nello stile dell'art pass v1: in alto a sinistra cuori (uno
-//! ogni 20 HP) con gli HP in numeri, barra XP e la fila delle icone dei compagni in squadra; in
+//! ogni 20 HP) con gli HP in numeri, barra XP e sotto la fila delle abilità (`abilities`); in
 //! alto a destra livello e nemici sconfitti con il teschio. Nascono entrando in `InRun`.
 
 use bevy::prelude::*;
 
+use super::abilities::AbilityRow;
 use super::fonts;
-use super::icons::{element_icon_path, ui_icon};
+use super::icons::ui_icon;
 use crate::app::AppState;
-use crate::data::{DataId, GameConfig};
 use crate::gameplay::combat::{Health, RunStats};
-use crate::gameplay::companions::Companion;
 use crate::gameplay::player::Player;
 use crate::gameplay::progression::Progression;
 
@@ -69,9 +68,6 @@ struct HpText;
 struct XpFill;
 
 #[derive(Component)]
-struct PartyRow;
-
-#[derive(Component)]
 struct LevelText;
 
 #[derive(Component)]
@@ -87,7 +83,6 @@ impl Plugin for StatusPlugin {
                 (
                     show_hearts,
                     show_xp.run_if(resource_changed::<Progression>),
-                    show_party,
                     show_right,
                 ),
             );
@@ -137,8 +132,8 @@ fn spawn_left(mut commands: Commands) {
             (
                 Node {
                     width: px(240),
-                    height: px(9),
-                    border: UiRect::all(px(1)),
+                    height: px(10),
+                    border: UiRect::all(px(2)),
                     ..default()
                 },
                 BorderColor::all(OUTLINE),
@@ -154,7 +149,7 @@ fn spawn_left(mut commands: Commands) {
                 )],
             ),
             (
-                PartyRow,
+                AbilityRow,
                 Node {
                     flex_direction: FlexDirection::Row,
                     column_gap: px(4),
@@ -179,7 +174,7 @@ fn spawn_right(mut commands: Commands, assets: Res<AssetServer>) {
         },
         DespawnOnExit(AppState::InRun),
         children![
-            (LevelText, label("", 24.0, GOLD)),
+            (LevelText, label("", 32.0, GOLD)),
             (
                 Node {
                     flex_direction: FlexDirection::Row,
@@ -196,14 +191,15 @@ fn spawn_right(mut commands: Commands, assets: Res<AssetServer>) {
     ));
 }
 
-/// Cuori ricostruiti solo quando cambiano (HP o massimo); gli HP in numeri accanto.
+/// Cuori ricostruiti solo quando cambiano (HP o massimo) o quando la fila è nuova (run
+/// ricominciata con gli stessi HP); gli HP in numeri accanto.
 fn show_hearts(
     mut commands: Commands,
     assets: Res<AssetServer>,
     player: Query<&Health, With<Player>>,
     row: Single<Entity, With<HeartsRow>>,
     mut text: Single<&mut Text, With<HpText>>,
-    mut shown: Local<Vec<Heart>>,
+    mut shown: Local<Option<(Entity, Vec<Heart>)>>,
 ) {
     let Ok(health) = player.single() else {
         return;
@@ -212,52 +208,22 @@ fn show_hearts(
     if text.0 != line {
         text.0 = line;
     }
-    let wanted = hearts(health.current, health.max);
-    if *shown == wanted {
+    let wanted = (*row, hearts(health.current, health.max));
+    if shown.as_ref() == Some(&wanted) {
         return;
     }
     commands.entity(*row).despawn_related::<Children>();
-    for heart in &wanted {
+    for heart in &wanted.1 {
         let icon = commands
             .spawn(ui_icon(&assets, heart_path(*heart), 10.0, 9.0))
             .id();
         commands.entity(*row).add_child(icon);
     }
-    *shown = wanted;
+    *shown = Some(wanted);
 }
 
 fn show_xp(progression: Res<Progression>, mut fill: Single<&mut Node, With<XpFill>>) {
     fill.width = percent(100.0 * progression.fraction().clamp(0.0, 1.0));
-}
-
-/// Un'icona dell'elemento per ogni compagno, in ordine di posto.
-fn show_party(
-    mut commands: Commands,
-    assets: Res<AssetServer>,
-    config: Option<Res<GameConfig>>,
-    companions: Query<(&DataId, &Companion)>,
-    row: Single<Entity, With<PartyRow>>,
-    mut shown: Local<Vec<String>>,
-) {
-    let Some(config) = config else { return };
-    let mut members: Vec<(usize, String)> = companions
-        .iter()
-        .map(|(id, c)| (c.slot, id.0.clone()))
-        .collect();
-    members.sort();
-    let ids: Vec<String> = members.into_iter().map(|(_, id)| id).collect();
-    if *shown == ids {
-        return;
-    }
-    commands.entity(*row).despawn_related::<Children>();
-    for id in &ids {
-        if let Some(data) = config.companion(id) {
-            let path = element_icon_path(data.element);
-            let icon = commands.spawn(ui_icon(&assets, path, 16.0, 16.0)).id();
-            commands.entity(*row).add_child(icon);
-        }
-    }
-    *shown = ids;
 }
 
 fn show_right(

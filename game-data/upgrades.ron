@@ -72,11 +72,12 @@
         (
             id: "regen",
             name: "Germoglio",
-            description: "Rigenera 0,5 HP al secondo",
+            // P0.7: da 0,5. Con 3 stack erano 90 HP al minuto, quasi tutti i danni di una run
+            description: "Rigenera 0,3 HP al secondo",
             rarity: Uncommon,
             max_stack: 3,
             requires: [],
-            effect: RegenPerSecond(0.5),
+            effect: RegenPerSecond(0.3),
         ),
         (
             id: "swift",

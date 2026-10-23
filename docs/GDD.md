@@ -15,7 +15,24 @@ restart immediato.
 Menu: 1/2/3, frecce o clic per il compagno, Invio per iniziare. WASD/frecce: movimento 8
 direzioni. Esc o P: pausa. F5: ricomincia. Sui risultati: Invio o F5 nuova run con lo stesso
 compagno, M menu. 1/2/3 o clic: carta del draft. F3: overlay debug. F12: screenshot. Nessun tasto d'attacco: gli
-attacchi sono automatici.
+attacchi sono automatici. In gioco l'HUD ricorda solo "Esc: pausa e comandi": l'elenco dei
+comandi è nella schermata di pausa (con i potenziamenti presi) e in breve nel menu.
+
+## HUD (P0.7)
+
+Tutta l'interfaccia è disegnata per 960×540 e cresce con la scala intera del canvas, con lo
+stesso pixel del mondo (D-045): a 1920×1080 è doppia, mai sfocata.
+
+| Dove | Cosa | Perché |
+|---|---|---|
+| In alto a sinistra | cuori (uno ogni 20 HP) e HP in numeri; barra XP; fila delle abilità: un posto per ogni posto della squadra, con l'icona dell'elemento e la barra di ricarica dell'attacco, il lucchetto sui posti liberi | vita, crescita e squadra in un colpo d'occhio; il lucchetto ricorda che un compagno può arrivare dal draft |
+| Sotto il player | barra degli HP di 16×2 texel, sempre visibile | si legge la vita senza staccare gli occhi dalla calca |
+| In alto al centro | tempo che manca al boss (rosso negli ultimi 30 s), poi "BOSS" con nome e barra degli HP | l'arco della run |
+| In alto a destra | livello, nemici sconfitti | progressi della run |
+| Bordo dello schermo | teschio su un riquadro rosso nella direzione del boss, finché il boss non è a schermo | il boss nasce fuori vista: senza indicatore lo si cercava a caso |
+| In basso a sinistra | "Esc: pausa e comandi" | unico promemoria fisso |
+
+Testi in Tiny5 (numeri, etichette) e Pixelify Sans (titoli, frasi), D-044.
 
 ## Valori attuali
 
@@ -38,7 +55,7 @@ attacchi sono automatici.
 | Sciame | 12 (1 colpo) | 68 px/s | 2 | quasi veloce come il player: non si semina, va abbattuto |
 | Corazzato | 120 (10 colpi) | 28 px/s | 6 | lento, blocca la strada mentre gli altri arrivano |
 | Gelatina Gigante (élite) | 400 | 34 px/s | 8 | ogni 5 s, se sei entro 160 px, si ferma 0,8 s con la linea rossa a terra e scatta ~115 px; 25 XP |
-| Gran Corazzato (boss) | 3800 | 30 px/s | 15 | ogni 4 s segna un cerchio di 44 px dove sei: dopo 1 s colpisce per 25 chi è ancora dentro |
+| Gran Corazzato (boss) | 5500 (P0.7, da 3800) | 30 px/s | 15 | ogni 4 s segna un cerchio di 44 px dove sei: dopo 1 s colpisce per 25 chi è ancora dentro |
 
 **Danni al player:** a ogni finestra di invulnerabilità si somma il danno di tutti i nemici a
 contatto. Essere circondati costa caro, uscirne in tempo no: muoversi è la difesa principale.
@@ -52,6 +69,7 @@ contatto. Essere circondati costa caro, uscirne in tempo no: muoversi è la dife
 | Raccolta | raggio 28 px dai piedi; poi la gemma vola a 220 px/s e si prende a 6 px | bisogna avvicinarsi alle gemme: muoversi rende |
 | Gemme a terra | al massimo 300, oltre l'XP si somma alla gemma più vicina | nessuna XP persa, nessuna esplosione di entità |
 | Draft | 3 carte, pesi di rarità comune 10, non comune 5, rara 2 | scelte frequenti, le rare si notano |
+| Compagno garantito | nei draft dei livelli 2 e 3, con un posto libero, almeno una carta "nuovo compagno" (`companion_card_until_level: 3`, P0.7) | un'estrazione sfortunata lasciava Brasa da sola all'arrivo dello sciame: run deboli fino alla fine |
 
 **Upgrade (`upgrades.ron`).** Le percentuali si sommano sul valore base (2 × +15% = +30%) e
 tutto si ricalcola dai dati base più gli stack a ogni scelta.
@@ -65,7 +83,7 @@ tutto si ricalcola dai dati base più gli stack a ogni scelta.
 | Vista lunga | gittata +20% (la durata del proiettile cresce con lei), area dell'onda e raggio delle foglie +20% | comune | 3 | — |
 | Vampa veloce | velocità dei proiettili +20% | comune | 2 | — |
 | Scorza robusta | HP massimi +20, cura 20 | comune | 5 | — |
-| Germoglio | rigenera 0,5 HP/s | non comune | 3 | — |
+| Germoglio | rigenera 0,3 HP/s (P0.7, da 0,5) | non comune | 3 | — |
 | Passo leggero | movimento +10% | non comune | 3 | — |
 | Richiamo | raggio di raccolta +25% | comune | 3 | — |
 | Nuovo compagno: Gocci | Gocci entra nel primo posto libero, con gli upgrade già presi | non comune | 1 | un posto libero |
@@ -95,13 +113,36 @@ quando di solito la squadra ha un secondo compagno.
 | Parametro | Valore | Motivo |
 |---|---|---|
 | Durata | 10:00, poi le ondate si fermano ed entra il boss; sconfiggerlo è la vittoria | handoff: run di 10 minuti con boss finale |
-| Difficoltà | nemici di ondate ed élite +15% HP e +8% danno per minuto, alla nascita (a 10:00 ×2,5 e ×1,8) | la squadra cresce, le orde anche |
+| Difficoltà | nemici di ondate ed élite +15% HP e +12% danno per minuto, alla nascita (a 10:00 ×2,5 e ×2,2; P0.7, danno da +8%) | la squadra cresce, le orde anche; la seconda metà deve far paura |
 | Élite | Gelatina Gigante a 2:30, poi ogni 75 s (~6 a run) | un pericolo da leggere, non da subire: si ferma e mostra la carica |
 | Boss | Gran Corazzato, non scalato | tarato per la fine della run |
 | Preavvisi | almeno 0,5 s (validato), lampeggio sempre più rapido | "telegraph chiaro" dell'handoff |
 | Carte compagno | comuni (P0.6, prima non comuni) | la squadra arriva nei primi livelli |
 
 ## Misure
+
+- **P0.7, "giocatore medio" (`print_survival_medium_player`, `tests/sim/bot.rs`, 8 seed per
+  ognuno dei tre compagni iniziali, run riproducibili dopo D-047).** Il bot si allontana dai
+  nemici girando loro attorno, esce dai segni di pericolo, prende le gemme più convenienti e
+  sceglie compagni, poi danno e cadenza. Passi:
+  1. *Prima versione del bot* (fuga dritta): 22/24 vittorie ma crescita bimodale (livello
+     14–20 o 36–37 a 10:00). La traccia minuto per minuto mostra la causa: inseguito
+     dall'orda attraversava l'arena e non raccoglieva più (XP ferma da 6:59, 300 gemme a
+     terra). Con Brasa iniziale pesava anche la sfortuna del draft: 3 run su 8 con 1–2
+     compagni a 2:00 → compagno garantito nei draft dei livelli 2 e 3.
+  2. *Bot che gira attorno e raccoglie di passaggio*, valori della P0.6: 24/24 vittorie,
+     livello 36–37 a 10:00, boss in 39–79 s (mediana ~50 s), mai vicino a morire: la
+     rigenerazione (fino a 1,5 HP/s, ~90 HP al minuto) copriva quasi tutti i danni.
+  3. *Valori della P0.7* (rigenerazione 0,3 HP/s per stack, danno +12% al minuto, boss 5500
+     HP): **23/24 vittorie** (Brasa 7/8 con una sconfitta a 9:08, Gocci 8/8, Frond 8/8),
+     primo level-up 0:19–0:44, livello 14–18 a 5:00, **boss in 50–95 s (mediana ~66 s)**,
+     danni subiti 155–508 a run.
+  Il bot reagisce a ogni passo a tutti i nemici vicini: un giocatore vero schiva peggio e
+  sceglie meglio. Il prossimo passo è una prova umana, non un'altra taratura sul bot.
+- **P0.7, autoplay cieco e fermi (`print_survival_with_upgrades`, 5 seed):** fermi si muore a
+  0:18–0:19; l'autoplay con la scelta automatica arriva a 2:39–3:11, sempre con tre compagni
+  (prima 1:37–2:53). Run completa con l'autoplay invulnerabile (gioco vero, seed 5, ×10):
+  vittoria a 12:01, livello 37.
 
 - **P0.2, colpi (`tests/sim/balance.rs`, 60 s, 5 seed):** 100% a segno, 14–18 nemici sconfitti
   al minuto con un compagno. La mira predittiva non serve.
@@ -157,8 +198,11 @@ formula, testo UI.
 ## Obiettivi di bilanciamento
 
 - Senza upgrade, il giocatore che resta fermo muore entro 90 s (non invincibile). **Oggi: 18–19 s.**
-- Il primo level-up arriva entro 30–45 s (progressione percepibile). **Oggi: 0:30–0:41.**
+- Il primo level-up arriva entro 30–45 s (progressione percepibile). **Oggi: 0:30–0:41 con
+  l'autoplay, 0:19–0:44 con il giocatore medio** (Gocci iniziale è il più rapido).
 - A metà run almeno due build elementali diverse sono praticabili (scelte significative).
-- Il boss è sconfiggibile da una build media in 60–120 s. **Oggi: 109 s** (run completa con
-  l'autoplay e 3800 HP; con 6000 erano 122 s, con 5000 138 s dopo il cambio della scelta
-  automatica).
+  **Oggi: tutti e tre i compagni iniziali portano il giocatore medio alla vittoria (7–8 su 8).**
+- Il boss è sconfiggibile da una build media in 60–120 s. **Oggi: mediana ~66 s (50–95 s) con
+  il giocatore medio e 5500 HP; 121 s con l'autoplay invulnerabile.**
+- Il giocatore medio vince quasi sempre, ma la seconda metà della run lo mette in difficoltà.
+  **Oggi: 23/24 vittorie, danni subiti fino a 508.** Da verificare con una prova umana.

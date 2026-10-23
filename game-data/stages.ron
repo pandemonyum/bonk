@@ -25,9 +25,10 @@
             run: (
                 // 10 minuti di orde, poi le ondate si fermano e arriva il boss
                 duration_s: 600.0,
-                // nemici di ondate ed élite: +15% HP e +8% danno per minuto (a 10:00 ×2,5 e ×1,8)
+                // nemici di ondate ed élite: +15% HP e +12% danno per minuto (a 10:00 ×2,5 e ×2,2;
+                // P0.7: danno da +8%, la seconda metà della run non metteva in pericolo)
                 hp_growth_per_min: 0.15,
-                damage_growth_per_min: 0.08,
+                damage_growth_per_min: 0.12,
                 // una gelatina gigante a 2:30, poi ogni 75 s (circa 6 a run)
                 elites: (enemy: "elite_blob", first_s: 150.0, every_s: 75.0),
                 boss: "boss_king",

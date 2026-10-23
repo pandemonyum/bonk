@@ -4,9 +4,11 @@
 //! `TextFont::from_font_size(size)`: l'hook di `Typeface` mette il font giusto appena il testo
 //! nasce, senza passare handle a ogni funzione dell'interfaccia.
 //!
-//! Dimensioni nitide: Tiny5 ha 8 pixel di disegno per em (maiuscole alte 5), quindi a 16 e 24
-//! px ogni suo pixel diventa un quadrato di 2 e 3 pixel; si rasterizza senza antialiasing e con
-//! un'ombra di un pixel del font, per leggerlo sopra l'erba.
+//! Dimensioni nitide: Tiny5 ha 8 pixel di disegno per em (maiuscole alte 5). L'interfaccia
+//! scala con il canvas (`UiScale` = scala del canvas / 2, D-045), quindi a 16 px ogni pixel del
+//! font è un texel del canvas e a 32 px due, a qualunque scala; 24 px darebbe mezzi pixel con
+//! il canvas ×3. Si rasterizza senza antialiasing e con un'ombra di un pixel del font, per
+//! leggerlo sopra l'erba.
 //! Pixelify Sans ha circa 11 pixel per em e contorni non tutti sulla griglia: resta con
 //! l'antialiasing, più pulito a 22 e 33 px.
 
@@ -67,8 +69,8 @@ impl Typeface {
     }
 }
 
-/// Testo dell'HUD in Tiny5 (`size` multiplo di 8 per pixel netti), con l'ombra spostata di un
-/// pixel del font in basso a destra.
+/// Testo dell'HUD in Tiny5 (`size` multiplo di 16 per pixel netti a ogni scala del canvas), con
+/// l'ombra spostata di un pixel del font in basso a destra.
 pub fn hud(size: f32) -> impl Bundle {
     (
         Typeface::Hud,

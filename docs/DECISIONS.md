@@ -300,7 +300,53 @@ Sans per titoli e frasi. Un testo sceglie il font con `fonts::hud(size)` o `font
 l'hook del componente `Typeface` mette handle e antialiasing appena il testo nasce. Il vincolo
 ASCII (D-033) diventa "solo caratteri che i due font disegnano" (`data::ui_drawable`), con un
 test che lo confronta con il cmap dei file; le carte del draft passano a 212×252 px perché
-nome su due righe e descrizione su tre entrino.
+nome su due righe e descrizione su tre entrino. Dipendenza nuova solo per i test: `skrifa` 0.44
+(MIT OR Apache-2.0, il lettore di font di Google usato da parley), come dev-dependency alla
+stessa versione e con le stesse feature che Bevy compila già: nessun crate nuovo nel lockfile.
+
+## D-045 Tutta l'interfaccia alla scala intera del canvas (`UiScale`)
+Sostituisce `PixelScale` della D-043, che ingrandiva solo le icone: a finestra grande i testi e
+i pannelli restavano piccoli accanto a icone doppie. La camera imposta `UiScale` = scala intera
+del canvas / fattore DPI / 2, quindi l'interfaccia si disegna una volta per 960×540 (2 unità per
+texel del canvas) e a ogni finestra testi, pannelli e icone crescono insieme al mondo con lo
+stesso pixel e le icone restano a texel interi. Due regole nuove (rilievi della revisione):
+Tiny5 solo a 16 o 32 px, perché i 24 px della D-044 davano pixel del font da 4,5 pixel con il
+canvas ×3; misure, bordi e spazi dell'interfaccia sempre pari (1 texel = 2 unità). L'HUD resta
+fuori dal canvas (D-013), solo scalato come lui. Sotto la scala 1 (finestre più piccole del
+canvas) l'interfaccia non si riduce oltre. Il layout in pixel (carte, pannelli) non cambia.
+
+## D-046 HUD della P0.7: abilità, HP sotto il player, boss fuori schermo, comandi in pausa
+Seguendo l'handoff dell'art pass, la fila sotto la barra XP diventa la fila delle abilità: un
+posto per ogni posto della squadra dei dati, icona dell'elemento con la barra di ricarica
+dell'attacco a texel interi (le foglie girano sempre: barra piena), lucchetto sui posti liberi.
+Sotto i piedi del player una barra degli HP di 16×2 texel nel mondo, sempre visibile. Il boss
+fuori vista ha un indicatore al bordo (teschio su riquadro rosso) nella sua direzione. La riga
+fissa dei comandi in basso diventa "Esc: pausa e comandi": l'elenco completo e i potenziamenti
+presi sono nella schermata di pausa, una riga breve nel menu. Cuori e fila delle abilità si
+ricostruiscono anche quando la loro fila è nuova: prima lo stato ricordato era solo la lista dei
+cuori, quindi una run ricominciata con gli stessi HP poteva restare con la fila nuova vuota.
+
+## D-047 Niente `HashMap` nell'ordine degli effetti della simulazione
+Le prime sonde del "giocatore medio" davano risultati diversi con la stessa seed. Causa: l'onda
+di Gocci raccoglieva i rallentamenti del passo in una `HashMap` e li inseriva nell'ordine della
+mappa, che in Rust è casuale a ogni istanza; l'ordine degli inserimenti decide l'ordine dei
+nemici nelle tabelle dell'ECS, quindi bersagli a pari distanza e separazioni cambiavano. Ora i
+rallentamenti si scrivono nell'ordine dei colpi (un `Vec`). Regola: nella simulazione nessuna
+iterazione su `HashMap`/`HashSet` che produca comandi o effetti; il test
+`the_whole_party_in_a_crowd_is_deterministic` (tre compagni in un'orda fitta, 90 s) fallisce con
+il codice vecchio e passa con quello nuovo.
+
+## D-048 Bilanciamento base della P0.7: giocatore medio come riferimento, compagno garantito
+Le sonde di prima misuravano due estremi (autoplay cieco che muore a ~2 minuti, bot che scappa
+e non cresce). Il riferimento diventa il "giocatore medio" di `tests/sim/bot.rs`: gira attorno
+ai nemici, esce dai segni di pericolo, raccoglie e sceglie carte sensate, su 8 seed per ognuno
+dei tre compagni iniziali. Cambi ai dati, ciascuno con la misura che lo motiva (GDD, Misure):
+nei draft dei livelli 2 e 3 c'è sempre una carta "nuovo compagno" se un posto è libero
+(campo nuovo `progression.ron: companion_card_until_level`, 0 = nessuna garanzia, validato:
+serve almeno una carta compagno), rigenerazione 0,5 → 0,3 HP/s per stack, danno dei nemici
++8% → +12% al minuto, boss 3800 → 5500 HP. Risultato: 23/24 vittorie, boss in 50–95 s. Il
+bot reagisce meglio di una persona: la taratura successiva si fa dopo una prova umana, non
+spingendo oltre sul bot.
 
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale

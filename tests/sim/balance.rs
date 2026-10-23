@@ -3,6 +3,7 @@
 
 use std::time::Instant;
 
+use crate::bot;
 use crate::common::{god, quiet_config, run_steps};
 use bevy::prelude::*;
 use pixel_monster_survivor::app::RunPhase;
@@ -234,4 +235,115 @@ fn print_survival_kiting() {
         let level = app.world().resource::<Progression>().level;
         println!("seed {seed} kiting: {phase:?} a {clock}, livello {level:2}");
     }
+}
+
+/// Run vera (danni attivi) del "giocatore medio" (`bot`): come finisce, livello a 5:00 e a
+/// 10:00, compagni, durata dello scontro con il boss e danni subiti. È il termine di paragone
+/// per la difficoltà (GDD, obiettivi di bilanciamento): l'autoplay cieco muore presto, il bot
+/// che scappa da tutto non cresce. `PMS_SEEDS=1,2` sceglie le seed, `PMS_START=tide` il
+/// compagno iniziale.
+#[test]
+#[ignore = "sonda manuale di bilanciamento"]
+fn print_survival_medium_player() {
+    use pixel_monster_survivor::gameplay::companions::Companion;
+    use pixel_monster_survivor::gameplay::spawning::SpawnDirector;
+    let seeds: Vec<u64> = std::env::var("PMS_SEEDS")
+        .ok()
+        .map(|s| s.split(',').filter_map(|v| v.trim().parse().ok()).collect())
+        .unwrap_or_else(|| (1..=8).collect());
+    // `PMS_START=tide` (o un altro id di companions.ron) cambia il compagno iniziale
+    let mut config = GameConfig::embedded();
+    if let Ok(start) = std::env::var("PMS_START") {
+        config.stage.starting_companion = start;
+    }
+    println!("compagno iniziale: {}", config.stage.starting_companion);
+    let mut wins = 0;
+    for &seed in &seeds {
+        let mut app = headless_app_with(seed, config.clone());
+        bot::take_over(&mut app);
+        app.update();
+        let (mut at5, mut at10, mut boss_at) = (None, None, None);
+        let (mut lv2_at, mut xp5, mut party2) = (None, 0, 0);
+        let trace = std::env::var("PMS_TRACE").is_ok();
+        let mut last_pos = Vec2::ZERO;
+        for step in 0..60 * 60 * 14 {
+            bot::drive(&mut app, step as f32 / 60.0);
+            app.update();
+            let clock = app.world().resource::<RunClock>().elapsed;
+            let level = app.world().resource::<Progression>().level;
+            if lv2_at.is_none() && level >= 2 {
+                lv2_at = Some(app.world().resource::<RunClock>().label());
+            }
+            if trace && step % 3600 == 0 {
+                trace_minute(&mut app, &mut last_pos);
+            }
+            if party2 == 0 && clock >= 120.0 {
+                let world = app.world_mut();
+                party2 = world.query::<&Companion>().iter(world).count();
+            }
+            if at5.is_none() && clock >= 300.0 {
+                at5 = Some(level);
+                xp5 = app.world().resource::<Progression>().total_xp;
+            }
+            if at10.is_none() && clock >= 600.0 {
+                at10 = Some(level);
+            }
+            if boss_at.is_none() && app.world().resource::<SpawnDirector>().boss_spawned {
+                boss_at = Some(clock);
+            }
+            let phase = *app.world().resource::<State<RunPhase>>().get();
+            if matches!(phase, RunPhase::Defeated | RunPhase::Victory) {
+                break;
+            }
+        }
+        let phase = *app.world().resource::<State<RunPhase>>().get();
+        let clock = app.world().resource::<RunClock>();
+        let end = clock.elapsed;
+        let label = clock.label();
+        let level = app.world().resource::<Progression>().level;
+        let stats = app.world().resource::<RunStats>().clone();
+        let world = app.world_mut();
+        let party = world.query::<&Companion>().iter(world).count();
+        let fight = boss_at.map_or("  -  ".to_string(), |b| format!("{:5.0} s", end - b));
+        let lv = |l: Option<u32>| l.map_or(" -".to_string(), |l| format!("{l:2}"));
+        if phase == RunPhase::Victory {
+            wins += 1;
+        }
+        println!(
+            "seed {seed:2} medio: {phase:?} a {label}, Lv2 a {}, compagni a 2:00 {party2}, \
+             Lv5:00 {} (XP {xp5:3}) Lv10:00 {} finale {level:2}, compagni {party}, \
+             boss {fight}, danni subiti {:.0}, sconfitti {}",
+            lv2_at.unwrap_or("  -  ".into()),
+            lv(at5),
+            lv(at10),
+            stats.damage_taken,
+            stats.defeated
+        );
+    }
+    println!("vittorie {wins}/{}", seeds.len());
+}
+
+/// Una riga al minuto per `PMS_TRACE`: posizione, strada fatta nell'ultimo minuto, XP, gemme a
+/// terra e nemici vivi (per capire se il bot si incastra o non raccoglie).
+fn trace_minute(app: &mut App, last: &mut Vec2) {
+    use pixel_monster_survivor::gameplay::kinematics::Position;
+    use pixel_monster_survivor::gameplay::player::Player;
+    use pixel_monster_survivor::gameplay::progression::XpGem;
+    let clock = app.world().resource::<RunClock>().label();
+    let total_xp = app.world().resource::<Progression>().total_xp;
+    let world = app.world_mut();
+    let me = world
+        .query_filtered::<&Position, With<Player>>()
+        .single(world)
+        .map_or(Vec2::ZERO, |p| p.0);
+    let gems = world.query::<&XpGem>().iter(world).count();
+    let enemies = world.query::<&Enemy>().iter(world).count();
+    println!(
+        "  {clock}: player ({:5.0},{:5.0}), spostato {:5.0} px, XP {total_xp:4}, gemme {gems:3}, \
+         nemici {enemies:3}",
+        me.x,
+        me.y,
+        me.distance(*last)
+    );
+    *last = me;
 }

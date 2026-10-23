@@ -49,6 +49,7 @@ fn choices_are_distinct_eligible_and_at_most_the_draft_size() {
             &PartyView::of(&config, &stacks, &config.stage.starting_companion),
             &WEIGHTS,
             3,
+            false,
         );
         assert_eq!(choices.len(), 3);
         for (k, &i) in choices.iter().enumerate() {
@@ -78,18 +79,18 @@ fn requirements_max_stacks_and_zero_weights_are_respected() {
     // all'inizio solo "a": "b" richiede "a", "c" ha peso 0
     let fresh = UpgradeStacks(vec![0, 0, 0]);
     assert_eq!(
-        draw_choices(&mut rng, &upgrades, &fresh, &NO_PARTY, &no_rare, 3),
+        draw_choices(&mut rng, &upgrades, &fresh, &NO_PARTY, &no_rare, 3, false),
         [0]
     );
     // "a" al massimo: resta "b"
     let after_a = UpgradeStacks(vec![1, 0, 0]);
     assert_eq!(
-        draw_choices(&mut rng, &upgrades, &after_a, &NO_PARTY, &no_rare, 3),
+        draw_choices(&mut rng, &upgrades, &after_a, &NO_PARTY, &no_rare, 3, false),
         [1]
     );
     // tutto al massimo: draft vuoto
     let maxed = UpgradeStacks(vec![1, 2, 0]);
-    assert!(draw_choices(&mut rng, &upgrades, &maxed, &NO_PARTY, &no_rare, 3).is_empty());
+    assert!(draw_choices(&mut rng, &upgrades, &maxed, &NO_PARTY, &no_rare, 3, false).is_empty());
 }
 
 #[test]
@@ -102,7 +103,9 @@ fn rarer_cards_come_up_less_often() {
     let mut rng = Pcg32::new(7, DRAFT_STREAM);
     let draws = 6000;
     let rare = (0..draws)
-        .filter(|_| draw_choices(&mut rng, &upgrades, &stacks, &NO_PARTY, &WEIGHTS, 1) == [1])
+        .filter(|_| {
+            draw_choices(&mut rng, &upgrades, &stacks, &NO_PARTY, &WEIGHTS, 1, false) == [1]
+        })
         .count();
     let expected = draws as f32 * WEIGHTS.rare / (WEIGHTS.common + WEIGHTS.rare);
     assert!(
@@ -126,6 +129,7 @@ fn the_same_seed_draws_the_same_cards() {
                     &PartyView::of(&config, &stacks, &config.stage.starting_companion),
                     &WEIGHTS,
                     3,
+                    false,
                 )
             })
             .collect::<Vec<_>>()
@@ -359,4 +363,62 @@ fn cards_only_appear_when_someone_can_use_them() {
         .unwrap();
     assert!(is_eligible(&config.upgrades, &none, pierce, &shooter));
     assert!(!is_eligible(&config.upgrades, &none, pierce, &wave));
+}
+
+/// Nei primi draft, con un posto libero, c'è sempre un "nuovo compagno"; a squadra piena la
+/// garanzia non inventa carte, e senza garanzia l'estrazione resta quella di sempre.
+#[test]
+fn early_drafts_always_offer_a_companion_while_a_slot_is_free() {
+    let config = GameConfig::embedded();
+    let stacks = UpgradeStacks(vec![0; config.upgrades.len()]);
+    let party = PartyView::of(&config, &stacks, &config.stage.starting_companion);
+    assert!(party.free_slots > 0);
+    let is_join = |i: &usize| matches!(config.upgrades[*i].effect, Effect::JoinCompanion(_));
+    let mut without = 0;
+    for seed in 0..400 {
+        let draw = |guaranteed| {
+            let mut rng = Pcg32::new(seed, 2);
+            draw_choices(
+                &mut rng,
+                &config.upgrades,
+                &stacks,
+                &party,
+                &WEIGHTS,
+                3,
+                guaranteed,
+            )
+        };
+        let plain = draw(false);
+        let guaranteed = draw(true);
+        assert_eq!(guaranteed.len(), 3);
+        assert!(
+            guaranteed.iter().any(is_join),
+            "seed {seed}: {guaranteed:?}"
+        );
+        if plain.iter().any(is_join) {
+            assert_eq!(plain, guaranteed, "seed {seed}: cambia solo se serve");
+        } else {
+            without += 1;
+            assert_eq!(
+                plain[..2],
+                guaranteed[..2],
+                "seed {seed}: cambia solo l'ultima"
+            );
+        }
+    }
+    assert!(
+        without > 0,
+        "senza garanzia qualche draft resta senza compagni"
+    );
+    // squadra piena: nessuna carta compagno da garantire
+    let full: Vec<u32> = config
+        .upgrades
+        .iter()
+        .map(|u| u32::from(matches!(u.effect, Effect::JoinCompanion(_))))
+        .collect();
+    let full = UpgradeStacks(full);
+    let party = PartyView::of(&config, &full, &config.stage.starting_companion);
+    let mut rng = Pcg32::new(7, 2);
+    let choices = draw_choices(&mut rng, &config.upgrades, &full, &party, &WEIGHTS, 3, true);
+    assert!(!choices.iter().any(is_join));
 }

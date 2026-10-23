@@ -77,9 +77,9 @@
             // colosso a cupola della famiglia del corazzato (art pass v1)
             display_name: "Gran Corazzato",
             sprite: "sprites/boss_enemy.png",
-            // obiettivo GDD: sconfitto da una build media in 60-120 s (run completa con
-            // l'autoplay: 5000 HP = 138 s, quindi 3800)
-            max_hp: 3800.0,
+            // obiettivo GDD: sconfitto da una build media in 60-120 s. P0.7: con il "giocatore
+            // medio" delle sonde 3800 HP cadevano in ~50 s, quindi 5500
+            max_hp: 5500.0,
             speed: 30.0,
             hurtbox: (radius: 22.0, center_offset: 22.0),
             // impronta piccola: passa tra gli ostacoli come gli altri (varco minimo 18 px)

@@ -170,7 +170,7 @@ fn spawn_results(mut commands: Commands, s: Summary) {
                 align_items: AlignItems::Center,
                 row_gap: px(10),
                 padding: UiRect::all(px(18)),
-                border: UiRect::all(px(3)),
+                border: UiRect::all(px(4)),
                 ..default()
             },
             BorderColor::all(accent),

@@ -129,8 +129,12 @@ Le icone vanno disegnate alla **stessa scala intera del mondo** (1 texel UI = 1 
 canvas), non a pixel doppi: icone a 2× accanto a sprite a 1× danno pixel di misure diverse.
 Elenco e uso previsto in `docs/art/STYLE_HANDOFF.md`.
 
-Font (D-044): **Tiny5** per HUD, numeri, tasti ed etichette, solo a 16 o 24 px (2 o 3 pixel
-per pixel del font), senza antialiasing e con ombra `#1b1428` di un pixel del font; **Pixelify
+L'interfaccia intera è disegnata per 960×540 e scala con il canvas (D-045): 1 texel = 2 unità
+dell'interfaccia, quindi misure, bordi e spazi vanno tenuti pari (un bordo dispari diventa
+mezzo pixel con il canvas ×3).
+
+Font (D-044): **Tiny5** per HUD, numeri, tasti ed etichette, solo a 16 o 32 px (1 o 2 texel per
+pixel del font a ogni scala), senza antialiasing e con ombra `#1b1428` di un pixel del font; **Pixelify
 Sans** per titoli (22/33/44 px) e frasi (16 px) di menu, draft e risultati. Lettere accentate e
 segni Latin-1 sono disegnati da entrambi. Il carattere 3×5 delle anteprime resta un segnaposto
 dello script `preview-scene.py`.

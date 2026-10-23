@@ -1,52 +1,33 @@
-//! Icone dell'interfaccia (`assets/ui/`) alla stessa scala intera del canvas: l'HUD resta a
-//! risoluzione nativa (D-013), quindi un'icona di 16 texel occupa 16 × scala pixel fisici, come
-//! uno sprite del mondo, e con il sampler nearest resta nitida. La scala la aggiorna la camera
-//! (`PixelScale`), le icone si ridimensionano da sole.
+//! Interfaccia alla stessa scala intera del canvas. L'HUD resta a risoluzione nativa (D-013), ma
+//! la camera imposta `UiScale` a "pixel logici per texel del canvas / 2": tutta l'interfaccia è
+//! disegnata per la finestra di default (960×540, canvas ×2, cioè 2 unità per texel) e a ogni
+//! finestra testi, pannelli e icone crescono insieme al mondo, con lo stesso pixel (D-045).
+//! Un'icona di `assets/ui/` di 16 texel misura quindi sempre 32 unità dell'interfaccia.
 
 use bevy::prelude::*;
 
 use crate::data::schema::Element;
 
-/// Pixel logici dell'interfaccia per un texel del canvas: scala intera del canvas divisa per il
-/// fattore di scala della finestra (DPI).
-#[derive(Resource, Debug, Clone, Copy, PartialEq)]
-pub struct PixelScale(pub f32);
+/// Unità dell'interfaccia (`px`) per texel del canvas.
+pub const UI_PX_PER_TEXEL: f32 = 2.0;
 
-impl Default for PixelScale {
-    /// Finestra di default 960×540 a DPI 100%: canvas ×2.
-    fn default() -> Self {
-        Self(2.0)
-    }
+/// `UiScale` per un canvas ingrandito `canvas_scale` volte in una finestra con fattore di scala
+/// `scale_factor` (DPI): ogni texel delle icone copre gli stessi pixel fisici del mondo. Sotto
+/// la scala 1 (finestre minuscole) l'interfaccia non si riduce oltre.
+pub fn ui_scale(canvas_scale: f32, scale_factor: f32) -> f32 {
+    canvas_scale.max(1.0) / scale_factor / UI_PX_PER_TEXEL
 }
 
-/// Icona disegnata a `width` × `height` texel.
-#[derive(Component, Debug, Clone, Copy, PartialEq)]
-pub struct PixelIcon {
-    pub width: f32,
-    pub height: f32,
-}
-
-pub struct IconsPlugin;
-
-impl Plugin for IconsPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_resource::<PixelScale>()
-            .add_systems(PostUpdate, size_icons);
-    }
-}
-
-/// Immagine dell'interfaccia di `width` × `height` texel (la dimensione vera la mette
-/// `size_icons` appena nasce e a ogni cambio di scala).
+/// Immagine dell'interfaccia di `width` × `height` texel.
 pub fn ui_icon(assets: &AssetServer, path: &str, width: f32, height: f32) -> impl Bundle {
     (
         ImageNode::new(assets.load(path.to_string())),
         Node {
-            width: px(width * PixelScale::default().0),
-            height: px(height * PixelScale::default().0),
+            width: px(width * UI_PX_PER_TEXEL),
+            height: px(height * UI_PX_PER_TEXEL),
             flex_shrink: 0.0,
             ..default()
         },
-        PixelIcon { width, height },
     )
 }
 
@@ -59,11 +40,24 @@ pub fn element_icon_path(element: Element) -> &'static str {
     }
 }
 
-fn size_icons(scale: Res<PixelScale>, mut icons: Query<(Ref<PixelIcon>, &mut Node)>) {
-    for (icon, mut node) in &mut icons {
-        if scale.is_changed() || icon.is_added() {
-            node.width = px(icon.width * scale.0);
-            node.height = px(icon.height * scale.0);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_interface_keeps_the_canvas_pixel() {
+        // finestra di default: canvas ×2 a DPI 100% → nessuna scala
+        assert_eq!(ui_scale(2.0, 1.0), 1.0);
+        // 1920×1080: canvas ×4, interfaccia doppia
+        assert_eq!(ui_scale(4.0, 1.0), 2.0);
+        // 960×540 logici a DPI 150%: canvas ×3 su 1440×810 fisici, stessa interfaccia
+        assert_eq!(ui_scale(3.0, 1.5), 1.0);
+        // un texel di icona copre sempre `scala del canvas` pixel fisici
+        for (canvas, dpi) in [(2.0, 1.25), (3.0, 1.0), (4.0, 2.0)] {
+            let physical = UI_PX_PER_TEXEL * ui_scale(canvas, dpi) * dpi;
+            assert!((physical - canvas).abs() < 1e-6, "{canvas} {dpi}");
         }
+        // finestre minuscole: come a scala 1
+        assert_eq!(ui_scale(0.5, 1.0), 0.5);
     }
 }

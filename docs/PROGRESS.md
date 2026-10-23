@@ -5,13 +5,49 @@ Stato corrente, ultimo aggiornamento: **2026-10-23**.
 | Fase | Stato |
 |---|---|
 | S0 — bootstrap e ambiente | **DONE** (gate S0 superato, prove sotto) |
-| P0 — core giocabile desktop | in corso: P0.0–P0.6 DONE |
+| P0 — core giocabile desktop | in corso: P0.0–P0.7 DONE, manca la prova umana del gate |
 | P1 — web | non iniziata |
 | P2 / P3 | non iniziate |
 
-Prossimo task eseguibile: **P0.7** (HUD leggibile con HP, compagni, tempo, abilità, XP; test di
-formule e bilanciamento base), vedi `docs/BACKLOG.md`. Art pass v1 e font pixel sono integrati
-in `main`.
+Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la prova umana
+del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
+sono integrati in `main`.
+
+## Report tranche P0.7 (2026-10-23)
+
+```text
+Task: P0.7 - HUD leggibile, test delle formule, bilanciamento base
+Owner: orchestrator (integrazione) + gameplay-engineer (HUD) + qa-performance (test, sonde) +
+       game-designer (valori, GDD); revisione: code-reviewer (sola lettura)
+Stato: DONE (la prova umana resta per il gate P0)
+Assunzioni: il "giocatore medio" delle sonde è un riferimento, non un giocatore vero; i valori
+  sono tarati su di lui con margine e vanno riverificati da una persona.
+File modificati: src/presentation/{abilities,health_bar,boss_pointer}.rs (nuovi),
+  src/presentation/{icons,camera,status,hud,menu,boss_bar,results,fonts,mod}.rs,
+  src/gameplay/pulse.rs (determinismo), src/gameplay/upgrades.rs, src/gameplay/upgrades/{rules,
+  tests}.rs, src/data/schema.rs, src/data/validate/progression.rs (+ tests),
+  game-data/{progression,upgrades,stages,enemies}.ron, tests/sim/{formulas,bot}.rs (nuovi),
+  tests/sim/{balance,patterns,main}.rs, docs/{GDD,DECISIONS,BACKLOG,ARCHITECTURE,PROGRESS,
+  QA_REPORT}.md, docs/evidence/p07-*.png
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1   OK (fmt, clippy, 153 unit + 82 integrazione, 7 sonde ignorate,
+                        43 PNG e 2 font)
+  test di determinismo nuovo: FALLISCE con il codice vecchio (HashMap), passa con il nuovo
+  sonda giocatore medio, 24 run per ogni passo (vedi GDD, Misure): 22/24 → 24/24 → 23/24
+  print_survival_with_upgrades: fermi 0:18–0:19, autoplay 2:39–3:11
+  gioco vero: HUD, pausa, draft, boss e vittoria a 960×540 e 1440×810; restart con F5
+Comportamento verificato: interfaccia intera ×1,5 a 1440×810 con lo stesso pixel (Tiny5 a
+  6 px per pixel del font misurato sullo screenshot); fila delle abilità con ricarica e
+  lucchetti; barra HP sotto il player; indicatore del boss fuori schermo; cuori e abilità
+  presenti dopo F5 a HP pieni; carta "Nuovo compagno" nel draft del livello 3
+Problemi trovati e risolti: run non riproducibili con la stessa seed (HashMap nell'onda,
+  D-047); revisione: Tiny5 a 24 px e bordi dispari a mezzo pixel con il canvas ×3, barra di
+  ricarica mai piena, indicatore del boss sotto la fascia dell'HUD; primo bot che fuggiva
+  dritto e falsava le misure
+Rischi noti: bilanciamento tarato su un bot; livello finale quasi sempre al massimo (tutti i
+  nemici sconfitti); Pixelify Sans a 16 px leggermente morbido
+Prossimo task: prova umana (gate P0), poi P1
+```
 
 ## Report tranche "font pixel" (2026-10-23)
 

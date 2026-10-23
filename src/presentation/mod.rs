@@ -1,11 +1,14 @@
 //! Presentazione (solo client): camera pixel-perfect, sprite, interpolazione, HUD, draft, menu,
 //! risultati, segni di pericolo.
 
+pub mod abilities;
 pub mod attacks;
 pub mod boss_bar;
+pub mod boss_pointer;
 pub mod camera;
 pub mod draft;
 pub mod fonts;
+pub mod health_bar;
 pub mod hud;
 pub mod icons;
 pub mod menu;
@@ -32,9 +35,11 @@ impl Plugin for PresentationPlugin {
             camera::CameraPlugin,
             sprites::SpritesPlugin,
             hud::HudPlugin,
-            icons::IconsPlugin,
+            abilities::AbilitiesPlugin,
             status::StatusPlugin,
             boss_bar::BossBarPlugin,
+            boss_pointer::BossPointerPlugin,
+            health_bar::HealthBarPlugin,
             draft::DraftUiPlugin,
             attacks::AttackArtPlugin,
             telegraphs::TelegraphArtPlugin,

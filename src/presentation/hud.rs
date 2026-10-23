@@ -1,14 +1,27 @@
-//! HUD della run: promemoria comandi e pausa (stato del giocatore in `status`, timer e boss in
-//! `boss_bar`); stato dei dati (caricamento ed errori) sempre. Gli elementi della run nascono
-//! entrando in `InRun` e spariscono uscendo: nel menu non restano.
+//! HUD della run: promemoria della pausa e schermata di pausa con i comandi e gli upgrade presi
+//! (stato del giocatore in `status`, abilità in `abilities`, timer e boss in `boss_bar`); stato
+//! dei dati (caricamento ed errori) sempre. Gli elementi della run nascono entrando in `InRun` e
+//! spariscono uscendo: nel menu non restano.
 
 use bevy::prelude::*;
 
 use super::fonts;
+use super::results::build_summary;
 use crate::app::{AppState, RunPhase};
-use crate::data::DataStatus;
+use crate::data::{DataStatus, GameConfig};
+use crate::gameplay::upgrades::UpgradeStacks;
 
-const HINT: &str = "WASD/frecce muovi   Esc pausa   F5 ricomincia   F3 debug   F12 screenshot";
+/// In gioco resta solo il promemoria della pausa: i comandi sono nella schermata di pausa.
+const HINT: &str = "Esc: pausa e comandi";
+/// Comandi nella schermata di pausa.
+pub const CONTROLS: [&str; 3] = [
+    "WASD o frecce: muoviti (gli attacchi partono da soli)",
+    "Esc o P: riprendi    F5: ricomincia",
+    "F3: dati di debug    F12: screenshot",
+];
+const PANEL: Color = Color::srgb_u8(0x0f, 0x16, 0x26);
+const MUTED: Color = Color::srgb_u8(0x5a, 0x6d, 0x99);
+const GOLD: Color = Color::srgb_u8(0xf2, 0xc9, 0x4c);
 
 #[derive(Component)]
 struct DataStatusPanel;
@@ -97,24 +110,67 @@ fn show_data_status(
     }
 }
 
-fn spawn_pause_banner(mut commands: Commands) {
-    commands.spawn((
-        Name::new("PauseBanner"),
-        Node {
-            width: percent(100),
-            height: percent(100),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..default()
-        },
-        BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.55)),
-        DespawnOnExit(RunPhase::Paused),
-        children![(
-            Text::new("PAUSA — Esc per riprendere"),
-            fonts::ui(33.0),
-            TextColor(Color::WHITE),
-        )],
-    ));
+/// Pausa: titolo, comandi e potenziamenti presi finora.
+fn spawn_pause_banner(
+    mut commands: Commands,
+    config: Option<Res<GameConfig>>,
+    stacks: Res<UpgradeStacks>,
+) {
+    let build = config.map_or(Vec::new(), |c| build_summary(&c, &stacks));
+    let build = if build.is_empty() {
+        "Potenziamenti: nessuno".to_string()
+    } else {
+        format!("Potenziamenti: {}", build.join(", "))
+    };
+    let panel = commands
+        .spawn((
+            Node {
+                width: px(620),
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                row_gap: px(10),
+                padding: UiRect::all(px(18)),
+                border: UiRect::all(px(4)),
+                ..default()
+            },
+            BorderColor::all(MUTED),
+            BackgroundColor(PANEL),
+            children![(Text::new("PAUSA"), fonts::ui(44.0), TextColor(GOLD))],
+        ))
+        .id();
+    for line in CONTROLS {
+        let text = commands
+            .spawn((Text::new(line), fonts::hud(16.0), TextColor(Color::WHITE)))
+            .id();
+        commands.entity(panel).add_child(text);
+    }
+    let build = commands
+        .spawn((
+            Text::new(build),
+            fonts::ui(16.0),
+            TextColor(Color::srgba(1.0, 1.0, 1.0, 0.85)),
+            TextLayout::justify(Justify::Center),
+            Node {
+                margin: UiRect::top(px(6)),
+                ..default()
+            },
+        ))
+        .id();
+    commands.entity(panel).add_child(build);
+    commands
+        .spawn((
+            Name::new("PauseBanner"),
+            Node {
+                width: percent(100),
+                height: percent(100),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.55)),
+            DespawnOnExit(RunPhase::Paused),
+        ))
+        .add_child(panel);
 }
 
 #[cfg(test)]

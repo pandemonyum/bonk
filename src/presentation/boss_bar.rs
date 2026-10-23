@@ -87,7 +87,7 @@ fn spawn_timer(mut commands: Commands, assets: Res<AssetServer>) {
                 },
                 children![
                     ui_icon(&assets, "ui/clock.png", 10.0, 10.0),
-                    (TimerText, Text::new(""), fonts::hud(24.0), TextColor(TEXT),),
+                    (TimerText, Text::new(""), fonts::hud(32.0), TextColor(TEXT),),
                 ],
             ),
             (
@@ -114,7 +114,7 @@ fn spawn_timer(mut commands: Commands, assets: Res<AssetServer>) {
                                 Node {
                                     width: px(300),
                                     height: px(10),
-                                    border: UiRect::all(px(1)),
+                                    border: UiRect::all(px(2)),
                                     ..default()
                                 },
                                 BorderColor::all(OUTLINE),

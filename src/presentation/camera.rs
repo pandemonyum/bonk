@@ -8,7 +8,7 @@ use bevy::prelude::*;
 use bevy::render::render_resource::TextureFormat;
 use bevy::window::PrimaryWindow;
 
-use super::icons::PixelScale;
+use super::icons::ui_scale;
 use super::sprites::SyncTransforms;
 use crate::gameplay::player::Player;
 use crate::world::view::{VIEW_HEIGHT as VIRTUAL_HEIGHT, VIEW_WIDTH as VIRTUAL_WIDTH, view_center};
@@ -124,7 +124,7 @@ fn fit_canvas_to_window(
     window: Single<&Window, With<PrimaryWindow>>,
     mut projection: Single<&mut Projection, With<ScreenCamera>>,
     mut canvas: Single<&mut Transform, With<Canvas>>,
-    mut icons: ResMut<PixelScale>,
+    mut interface: ResMut<UiScale>,
 ) {
     let Projection::Orthographic(ortho) = &mut **projection else {
         return;
@@ -139,10 +139,10 @@ fn fit_canvas_to_window(
     if (ortho.scale - target).abs() > f32::EPSILON {
         ortho.scale = target;
     }
-    // le icone dell'interfaccia seguono la stessa scala intera del canvas
-    let per_texel = scale.max(1.0) / window.scale_factor();
-    if (icons.0 - per_texel).abs() > f32::EPSILON {
-        icons.0 = per_texel;
+    // l'interfaccia segue la stessa scala intera del canvas (D-045)
+    let wanted = ui_scale(scale, window.scale_factor());
+    if (interface.0 - wanted).abs() > f32::EPSILON {
+        interface.0 = wanted;
     }
     let offset = canvas_offset(physical, scale);
     if canvas.translation.truncate() != offset {

@@ -16,6 +16,32 @@ fn upgrade_where(c: &GameConfig, wanted: impl Fn(&Effect) -> bool) -> usize {
         .expect("effetto presente nei dati")
 }
 
+/// La garanzia di un compagno nei primi draft ha senso solo se i dati hanno carte compagno.
+#[test]
+fn a_guaranteed_companion_card_needs_companion_cards() {
+    let without_joins = |c: &mut GameConfig| {
+        c.upgrades
+            .retain(|u| !matches!(u.effect, Effect::JoinCompanion(_)));
+    };
+    assert_error(
+        |c| {
+            without_joins(c);
+            c.progression.companion_card_until_level = 3;
+        },
+        "companion_card_until_level = 3: upgrades.ron non ha carte",
+    );
+    let none = errors_after(|c| {
+        without_joins(c);
+        c.progression.companion_card_until_level = 0;
+    });
+    assert!(
+        !none
+            .iter()
+            .any(|e| e.contains("companion_card_until_level")),
+        "{none:?}"
+    );
+}
+
 #[test]
 fn progression_values_are_checked() {
     assert_error(

@@ -5,8 +5,6 @@
 
 use bevy::prelude::*;
 
-use std::collections::HashMap;
-
 use super::attacks::{CHARGE_EPSILON, STEP, attack_tick};
 use super::combat::{HIT_FLASH_SECS, Health, HitFlash, Hurtbox, RunStats};
 use super::enemies::Enemy;
@@ -157,7 +155,9 @@ pub(super) fn expand_pulses(time: Res<Time>, mut pulses: Query<&mut Pulse>) {
 
 /// Il fronte colpisce chi raggiunge (una volta per onda) e lo rallenta; l'onda arrivata al
 /// raggio finale sparisce. I rallentamenti dello stesso passo si combinano prima di essere
-/// scritti, così due onde insieme non si sovrascrivono.
+/// scritti, così due onde insieme non si sovrascrivono, e si scrivono nell'ordine dei colpi:
+/// l'ordine degli inserimenti decide l'ordine dei nemici nelle query, e con una `HashMap`
+/// (ordine casuale a ogni istanza) la stessa seed dava run diverse.
 pub(super) fn pulse_hits(
     mut commands: Commands,
     grid: Res<EnemyGrid>,
@@ -165,7 +165,7 @@ pub(super) fn pulse_hits(
     mut pulses: Query<(Entity, &Position, &mut Pulse)>,
     mut enemies: Query<(&Position, &Hurtbox, &mut Health, Option<&Slowed>), With<Enemy>>,
 ) {
-    let mut slows: HashMap<Entity, Slowed> = HashMap::new();
+    let mut slows: Vec<(Entity, Slowed)> = Vec::new();
     for (entity, center, mut pulse) in &mut pulses {
         let front = pulse.radius;
         for entry in grid.candidates(center.0, front) {
@@ -188,8 +188,10 @@ pub(super) fn pulse_hits(
                 factor: pulse.slow,
                 remaining: pulse.slow_secs,
             };
-            let current = slows.get(&enemy).copied().or(slowed.copied());
-            slows.insert(enemy, combine_slow(current, slow));
+            match slows.iter_mut().find(|(e, _)| *e == enemy) {
+                Some((_, pending)) => *pending = combine_slow(Some(*pending), slow),
+                None => slows.push((enemy, combine_slow(slowed.copied(), slow))),
+            }
             commands.entity(enemy).try_insert(HitFlash(HIT_FLASH_SECS));
         }
         if pulse.radius >= pulse.max_radius {

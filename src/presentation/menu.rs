@@ -187,7 +187,7 @@ fn spawn_menu(
         .id();
     let hint = commands
         .spawn((
-            Text::new("1–3 o clic per scegliere"),
+            Text::new("1–3 o clic per scegliere · WASD o frecce per muoverti, Esc per la pausa"),
             fonts::hud(16.0),
             TextColor(Color::srgba(1.0, 1.0, 1.0, 0.6)),
         ))
@@ -219,7 +219,7 @@ fn spawn_card(
                 align_items: AlignItems::Center,
                 row_gap: px(6),
                 padding: UiRect::all(px(10)),
-                border: UiRect::all(px(3)),
+                border: UiRect::all(px(4)),
                 ..default()
             },
             BorderColor::all(MUTED),

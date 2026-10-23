@@ -40,13 +40,16 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `world::obstacles` | rocce/alberi dal seed (pura), `ObstacleField` con griglia spaziale 32 px, entità `Obstacle` | no |
 | `gameplay::collision` | `Footprint`, `push_outside`, respinta dei corpi dagli ostacoli | no |
 | `world::render` | `TilemapChunk` per chunk | sì |
-| `presentation::camera` | canvas 480×270, camera mondo/schermo, scala intera, offset mezzo pixel, follow | sì |
+| `presentation::camera` | canvas 480×270, camera mondo/schermo, scala intera, offset mezzo pixel, follow; `UiScale` dalla scala del canvas (D-045) | sì |
 | `presentation::sprites` | observer `On<Add<Player/Enemy>>` → `Sprite`; interpolazione + snap al pixel + y-sort; tinte di colpo e rallentamento | sì |
 | `presentation::attacks` | foglie come sprite; anello di gocce figlie dell'onda, al raggio interpolato e arrotondato al pixel | sì |
-| `presentation::hud` | promemoria comandi, banner pausa, errori dei dati | sì |
+| `presentation::hud` | promemoria "Esc: pausa e comandi", schermata di pausa con comandi e potenziamenti presi, errori dei dati | sì |
 | `presentation::fonts` | `UiFonts` (Tiny5, Pixelify Sans), `Typeface` con hook che assegna font e antialiasing, `hud(size)` / `ui(size)` al posto di `TextFont::from_font_size` | sì |
-| `presentation::icons` | `PixelScale` (pixel logici per texel, aggiornato dalla camera), `PixelIcon`, `ui_icon`: icone di `assets/ui/` alla scala intera del canvas | sì |
-| `presentation::status` | in alto a sinistra cuori (20 HP l'uno) con HP, barra XP, icone degli elementi della squadra; in alto a destra livello e teschio con le uccisioni | sì |
+| `presentation::icons` | `ui_scale` (scala dell'interfaccia dalla scala del canvas e dal DPI), `UI_PX_PER_TEXEL`, `ui_icon`: icone di `assets/ui/` a texel interi | sì |
+| `presentation::abilities` | fila delle abilità: un posto per posto della squadra, icona dell'elemento con barra di ricarica, lucchetto sui posti liberi | sì |
+| `presentation::health_bar` | barra degli HP 16×2 texel sotto i piedi del player, figlia del suo sprite | sì |
+| `presentation::boss_pointer` | teschio al bordo della vista nella direzione del boss fuori schermo | sì |
+| `presentation::status` | in alto a sinistra cuori (20 HP l'uno) con HP, barra XP e il contenitore della fila delle abilità; in alto a destra livello e teschio con le uccisioni | sì |
 | `presentation::menu` | menu iniziale: carte dei compagni (sprite, elemento, attacco, barre relative), 1/2/3, frecce, clic, Invio | sì |
 | `presentation::results` | risultati di sconfitta e vittoria: tempo, livello, nemici, danni, squadra, potenziamenti | sì |
 | `presentation::boss_bar` | conto alla rovescia al centro in alto, poi nome e barra HP del boss | sì |
@@ -124,6 +127,10 @@ vuoto e testi a schermo con i soli caratteri che i font dell'interfaccia disegna
   `damage`, `spawning`, `progression` (gemme, livelli, draft, upgrade a caldo), `world`
   (ostacoli, collisioni) e helper in `common`; tutti senza GPU. `headless_app` sceglie da sola
   la prima carta del draft (`AutoPick`); `quiet_config` toglie le XP per misurare i valori base.
+- `tests/sim/formulas.rs` (P0.7): formule misurate nella simulazione con i valori dei dati:
+  danno per colpo e cadenza dei tre pattern con gli stack, livelli dall'XP raccolta.
 - `tests/sim/balance.rs`: sonde `#[ignore]` (colpi, sopravvivenza con e senza upgrade, ritmo
-  dei livelli, costo per passo): `cargo test --test sim balance -- --ignored --nocapture`.
+  dei livelli, costo per passo, "giocatore medio" di `tests/sim/bot.rs` che schiva, raccoglie e
+  sceglie le carte; `PMS_SEEDS=1,2,3` per scegliere le seed):
+  `cargo test --test sim balance -- --ignored --nocapture`.
 - `scripts/check-pixel-grid.py` per la verifica nearest-neighbor su screenshot reali.

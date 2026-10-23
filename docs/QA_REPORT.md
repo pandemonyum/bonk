@@ -1,5 +1,22 @@
 # QA REPORT
 
+## 2026-10-23 — P0.7 (HUD, formule, bilanciamento base)
+
+| Controllo | Esito | Prova |
+|---|---|---|
+| Formule nella simulazione | danno per colpo e cadenza di proiettili, onda e foglie con 0/2/3 stack di danno e cadenza; livelli dall'XP con la curva dei dati | `tests/sim/formulas.rs` |
+| Determinismo con la squadra intera in un'orda | il test nuovo fallisce con il codice vecchio (HashMap) e passa con il nuovo; seed 2 del giocatore medio ripetuta identica | `the_whole_party_in_a_crowd_is_deterministic` |
+| Compagno garantito | 400 seed: sempre una carta compagno nei primi draft, cambia solo l'ultima carta e solo se serve; a squadra piena nessuna | `early_drafts_always_offer_a_companion_while_a_slot_is_free` |
+| Gate | fmt, clippy, 153 unit + 82 integrazione, asset | `./scripts/check.ps1` |
+| HUD a 960×540 | cuori, XP, abilità con ricarica, barra HP sotto il player, timer, livello, uccisioni | `docs/evidence/p07-hud.png` |
+| HUD a 1440×810 (canvas ×3) | tutto ×1,5 con lo stesso pixel; tratti di Tiny5 a multipli di 6 px | `docs/evidence/p07-hud-1440x810.png` |
+| Pausa | comandi e potenziamenti presi | `docs/evidence/p07-pausa.png` |
+| Draft del livello 3 | carta "Nuovo compagno: Frond" garantita, lucchetto sul posto libero | `docs/evidence/p07-draft-compagno.png` |
+| Boss fuori schermo | teschio al bordo in basso nella sua direzione; vittoria a 12:01 (autoplay ×10) | `docs/evidence/p07-boss-indicatore.png` |
+| Restart con F5 a HP pieni | cuori e fila delle abilità ricostruiti | `docs/evidence/p07-restart.png` |
+| Bilanciamento (giocatore medio, 24 run) | 23/24 vittorie, boss in 50–95 s, prima sconfitta a 9:08; fermi 0:18, autoplay 2:39–3:11 | GDD, Misure |
+| Non verificato | prova umana; build web | — |
+
 ## 2026-10-23 — Font pixel (Tiny5, Pixelify Sans)
 
 | Controllo | Esito | Prova |

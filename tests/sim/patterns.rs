@@ -199,6 +199,62 @@ fn waves_and_leaves_are_deterministic() {
     }
 }
 
+/// Tutta la squadra in mezzo a un'orda vera, con il movimento dell'autoplay: due run con la
+/// stessa seed devono restare identiche. Prima della P0.7 i rallentamenti dell'onda si
+/// scrivevano nell'ordine di una `HashMap` (casuale a ogni istanza) e l'ordine dei nemici nelle
+/// query, quindi bersagli e separazioni, cambiava da una run all'altra.
+#[test]
+fn the_whole_party_in_a_crowd_is_deterministic() {
+    use pixel_monster_survivor::data::schema::Effect;
+    use pixel_monster_survivor::diagnostics::automation::autoplay_direction;
+    use pixel_monster_survivor::gameplay::upgrades::UpgradeStacks;
+    // nemici più resistenti e più frequenti: l'orda resta fitta anche con tre compagni
+    let mut tough = GameConfig::embedded();
+    for enemy in &mut tough.enemies {
+        enemy.max_hp *= 5.0;
+    }
+    for wave in &mut tough.stage.spawns.waves {
+        wave.rate_per_min *= 4.0;
+    }
+    let simulate = |seed| {
+        let mut app = headless_app_with(seed, tough.clone());
+        crate::common::god(&mut app);
+        app.update();
+        let joins: Vec<usize> = config(&app)
+            .upgrades
+            .iter()
+            .enumerate()
+            .filter(|(_, u)| matches!(u.effect, Effect::JoinCompanion(_)))
+            .map(|(i, _)| i)
+            .collect();
+        for i in joins {
+            app.world_mut().resource_mut::<UpgradeStacks>().0[i] = 1;
+        }
+        for step in 0..60 * 90 {
+            app.insert_resource(MoveIntent(autoplay_direction(step as f32 / 60.0)));
+            app.update();
+        }
+        let world = app.world_mut();
+        let mut enemies: Vec<(f32, f32, f32)> = world
+            .query_filtered::<(&Position, &Health), With<Enemy>>()
+            .iter(world)
+            .map(|(p, h)| (p.0.x, p.0.y, h.current))
+            .collect();
+        enemies.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.total_cmp(&b.1)));
+        let slowed = world.query::<&Slowed>().iter(world).count();
+        let stats = app.world().resource::<RunStats>().clone();
+        (enemies, slowed, stats)
+    };
+    let first = simulate(4);
+    assert!(first.0.len() > 40, "orda troppo piccola: {}", first.0.len());
+    assert!(first.2.hits > 500, "poca azione: {:?}", first.2);
+    assert!(
+        first.1 > 0,
+        "nessun nemico rallentato: l'onda non ha lavorato"
+    );
+    assert_eq!(first, simulate(4));
+}
+
 #[test]
 fn leaves_circle_the_player_evenly_and_follow_him() {
     let id = companion_with(&GameConfig::embedded(), |a| a.orbit().is_some());

@@ -82,6 +82,17 @@ pub(super) fn check(r: &mut Report, config: &GameConfig) {
             p.draft_size
         ));
     }
+    let has_join = config
+        .upgrades
+        .iter()
+        .any(|u| matches!(u.effect, Effect::JoinCompanion(_)));
+    if p.companion_card_until_level >= 2 && !has_join {
+        r.0.push(format!(
+            "progression.ron: companion_card_until_level = {}: upgrades.ron non ha carte \
+             \"nuovo compagno\" da garantire (0 per nessuna garanzia)",
+            p.companion_card_until_level
+        ));
+    }
     for rarity in [Rarity::Common, Rarity::Uncommon, Rarity::Rare] {
         let at = format!("progression.ron: rarity_weights.{rarity:?}").to_lowercase();
         r.non_negative(&at, p.rarity_weights.of(rarity));

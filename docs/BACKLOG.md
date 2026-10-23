@@ -25,7 +25,7 @@ seguenti (handoff §10: il companion che attacca è il primo elemento ludico dif
 | ~~P0.4~~ **DONE** | Gemme XP (drop una sola volta), raccolta per prossimità, livelli, draft di 3 carte con pausa, effetti applicati a caldo | gameplay-engineer + game-designer | test: +1 proiettile cambia i proiettili visibili, +danno cambia il danno effettivo; screenshot del draft |
 | ~~P0.5~~ **DONE** | Secondo e terzo companion (onda in area, foglie orbitanti), slot da dati; un compagno aggiunto a metà run deve nascere con gli upgrade già presi (oggi `refresh_modifiers` gira solo quando cambiano gli stack) | gameplay-engineer | test per ciascun pattern di attacco; test: compagno nuovo con i modificatori correnti; screenshot |
 | ~~P0.6~~ **DONE** | Timer 10 min, scala difficoltà, élite, boss con telegraph, stati MainMenu/GameOver/Victory, restart | gameplay-engineer | test headless: run completa a seed fisso con autoplay arriva a fine senza panic; restart pulisce lo stato |
-| P0.7 | HUD (HP, compagni, tempo, risorse, abilità, XP) leggibile; test formule e bilanciamento base | gameplay-engineer + qa-performance | screenshot HUD; test formule XP/danno/cooldown |
+| ~~P0.7~~ **DONE** | HUD (HP, compagni, tempo, risorse, abilità, XP) leggibile; test formule e bilanciamento base | gameplay-engineer (HUD in `src/presentation/`) + qa-performance (`tests/sim/`) + game-designer (valori e GDD); orchestrator assegna e integra | interfaccia che scala con il canvas (testi, pannelli e icone con lo stesso pixel a ogni finestra); barra HP sotto il player; barra delle abilità con un posto per compagno, ricarica visibile e posti liberi bloccati; upgrade presi con gli stack; indicatore del boss fuori schermo; test di integrazione che misurano danno al secondo, cadenza con gli upgrade e livelli dall'XP con i valori di `GameConfig`; sonda "giocatore medio" (schiva, raccoglie, sceglie carte sensate) e valori tarati sugli obiettivi del GDD; gate verde; screenshot HUD a 960×540 e a finestra grande |
 
 Gate P0: 10 minuti giocabili end-to-end senza crash, con prova umana o autoplay + screenshot.
 
@@ -48,29 +48,28 @@ opzioni, browser, release candidate).
 ## Debito tecnico e idee registrate
 
 - Radure di terra con bordi a gradini: servono tile di transizione erba/terra (P2, pixel-art-director).
-- ~~Testo HUD con FiraMono~~: Tiny5 e Pixelify Sans (D-044). Resta da decidere se l'HUD va nel
-  canvas 480×270 (oggi a risoluzione nativa, testi a dimensione fissa anche a finestra grande,
-  mentre le icone seguono la scala del canvas).
+- ~~Testo HUD con FiraMono~~: Tiny5 e Pixelify Sans (D-044); ~~testi a dimensione fissa a
+  finestra grande~~: tutta l'interfaccia scala con il canvas (D-045). Le misure
+  dell'interfaccia vanno tenute pari (1 texel = 2 unità) e Tiny5 a 16 o 32 px.
 - ~~Separazione nemici O(n²)~~: sostituita dalla griglia spaziale in P0.3.
 - Il player si perde dentro l'orda a 200+ nemici: contorno/ombra più marcati o un indicatore
-  sotto i piedi (P2, pixel-art-director); HP visibili anche vicino al player (P0.7).
-- Bilanciamento: con autoplay e prima carta scelta a caso la run dura 1:08–1:22 anche con i
-  tre compagni (P0.5): si muore all'arrivo dello sciame (1:00), prima che i compagni nuovi
-  pesino; con il player invulnerabile la squadra porta al livello 33–36 in 10 minuti. Da
-  rivedere con la difficoltà della P0.6 (primo minuto più morbido, crescita più graduale) e
-  con una prova umana. Una sonda con scelte sensate (non la prima carta) darebbe una misura
-  più vicina a un giocatore.
+  sotto i piedi (P2, pixel-art-director); ~~HP vicino al player~~: barra sotto i piedi (P0.7).
+- **Prova umana (prossimo passo del bilanciamento):** la taratura della P0.7 usa il "giocatore
+  medio" di `tests/sim/bot.rs` (23/24 vittorie, boss in ~66 s). Serve una run giocata da una
+  persona per ogni compagno iniziale, annotando a che minuto si va in difficoltà, se il boss
+  dura troppo o poco e se il compagno garantito nei primi draft basta.
 - Font in `assets/fonts/` (~0,5 MB, variabili con assi inutilizzati): per il web (P1) valutare un
   sottoinsieme statico Latin-1 (l'OFL lo permette; il nome va cambiato solo se si modifica un
   font con Reserved Font Name, e questi non ne hanno).
 - La tinta di colpo e di rallentamento colora anche l'ombra cotta negli sprite v1 (accettato;
   in alternativa l'ombra come sprite figlio).
-- Bilanciamento: un bot che schiva sopravvive 13 minuti ma non vince, l'autoplay cieco muore a
-  ~2 minuti; serve una prova umana per tarare difficoltà per minuto, élite e boss (P0.7).
+- Il livello a 10:00 arriva quasi sempre a 36–37 con il giocatore medio: tutti i 1592 nemici
+  generati vengono sconfitti e l'XP finisce. Da valutare con la prova umana (curva XP o
+  ondate) se gli ultimi minuti devono far crescere ancora.
 - L'élite carica anche quando è già a contatto (scatto inutile, innocuo): valutare una
   distanza minima.
-- Il boss nasce fuori vista e può restare lontano: valutare un avviso a schermo "arriva il boss"
-  e una freccia verso di lui.
+- ~~Il boss nasce fuori vista~~: indicatore al bordo dello schermo (P0.7). Resta da valutare un
+  avviso "arriva il boss" al centro.
 - Foglie di Frond (6×6, lime) poco leggibili sull'erba: valutare contorno più marcato o una
   scia (P2, pixel-art-director).
 - Replay identici tra nativo e WASM: valutare la feature `libm` di Bevy/glam per `sin`/`cos`

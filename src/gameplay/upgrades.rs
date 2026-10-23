@@ -140,6 +140,7 @@ fn deal_draft(
     mut next: ResMut<NextState<RunPhase>>,
 ) {
     let p = &config.progression;
+    let level = progression.level + 1 - progression.pending_levels;
     draft.choices = draw_choices(
         &mut rng.0,
         &config.upgrades,
@@ -147,6 +148,7 @@ fn deal_draft(
         &PartyView::of(&config, &stacks, &setup.starter(&config).id),
         &p.rarity_weights,
         p.draft_size as usize,
+        level <= p.companion_card_until_level,
     );
     if draft.choices.is_empty() {
         // impossibile con la configurazione che ha aperto il draft: si torna a giocare
@@ -154,7 +156,6 @@ fn deal_draft(
         next.set(RunPhase::Playing);
         return;
     }
-    let level = progression.level + 1 - progression.pending_levels;
     log_draft(&config, level, &draft.choices);
 }
 
@@ -215,6 +216,8 @@ fn apply_choice(
     }
     progression.pending_levels = progression.pending_levels.saturating_sub(1);
     let p = &config.progression;
+    // livello del draft successivo (il prossimo ancora da scegliere)
+    let level = progression.level + 1 - progression.pending_levels;
     let again = if progression.pending_levels > 0 {
         draw_choices(
             &mut rng.0,
@@ -223,6 +226,7 @@ fn apply_choice(
             &PartyView::of(&config, &stacks, &setup.starter(&config).id),
             &p.rarity_weights,
             p.draft_size as usize,
+            level <= p.companion_card_until_level,
         )
     } else {
         Vec::new()
@@ -232,7 +236,6 @@ fn apply_choice(
         draft.choices.clear();
         next.set(RunPhase::Playing);
     } else {
-        let level = progression.level + 1 - progression.pending_levels;
         log_draft(&config, level, &again);
         draft.choices = again;
     }
