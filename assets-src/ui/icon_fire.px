@@ -1,0 +1,19 @@
+# Icona elemento fuoco (fila abilita dell'HUD, bordo delle carte), 16x16.
+out: ui/icon_fire.png
+---
+.kkkkkkkkkkkkkk.
+kfffffffffffffOk
+kfOOOOOOyOOOOOOk
+kfOOOOOyfOOOOOOk
+kfOOOOOffOOfOOOk
+kfOOOOffoOOffOOk
+kfOOOffoofOffOOk
+kfOOffooooffoOOk
+kfxxfooyyoofoxOk
+kfxffoyyyyoofxOk
+kfxfoyywwyyofxOk
+kfxfoyywwyyofxOk
+kfxxfoyyyyofxxOk
+kfxxxffooffxxxOk
+kOOOOOOOOOOOOOOk
+.kkkkkkkkkkkkkk.

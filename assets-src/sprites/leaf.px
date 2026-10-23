@@ -1,9 +1,12 @@
-# Foglia orbitante di Frond, 6x6, in diagonale: si legge "foglia" anche mentre gira.
+# Foglia orbitante di Frond, 8x8, ancora al centro, in diagonale con nervatura: si legge
+# "foglia" anche mentre gira. Lime alleato con contorno scuro.
 out: sprites/leaf.png
 ---
-...kk.
-..keek
-.keeek
-keeek.
-kEek..
-.kk...
+......kk
+....kkik
+...kiiek
+..kieeEk
+.kieeEEk
+.keeEEk.
+kEvEEk..
+kkkkk...

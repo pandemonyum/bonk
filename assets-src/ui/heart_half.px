@@ -1,0 +1,12 @@
+# Mezzo cuore dell'HUD, 10x9: meta' sinistra piena, meta' destra vuota (blu notte).
+out: ui/heart_half.png
+---
+.kkk..kkk.
+kXXrkk221k
+kXwrr2221k
+kXrrr2211k
+krrrr2111k
+.krrr111k.
+..krr11k..
+...kR1k...
+....kk....

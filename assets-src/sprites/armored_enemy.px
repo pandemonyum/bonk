@@ -1,20 +1,20 @@
-# Nemico "corazzato", placeholder P0.3, 20x15: corpo viola sotto un guscio di pietra, quattro
-# zampe. Il più grande e lento dei tre: la taglia dice "resistente".
+# Nemico "corazzato", 20x15, stile v1: carapace viola a placche (non grigio, per non
+# confondersi con la roccia ostacolo), muso scuro sotto il bordo con occhi rossi, quattro zampe.
+# Il piu' grande e lento dei comuni: la taglia dice "resistente".
 out: sprites/armored_enemy.png
-mirror: true
 ---
-......kkkk
-....kkttTT
-...kttwttt
-..kttttttt
-..kTtttttt
-.kTTtttttt
-.kTTTTtttT
-.kkkkkkkkk
-kPpppppppp
-kPppwkpppp
-kPpppppppp
-kPPppppppp
-.kPPPPpppp
-..kkPPPPPP
-..kk...kk.
+.......kkkkkk.......
+.....kkQqqqpkk......
+....kQqqppppPPk.....
+...kqqppzpppPPPk....
+..kqqpppzppppPPPk...
+..kqppppzpppzpPPPk..
+.kqpppppzpppzppPPPk.
+.kqppppzppppzppPPzk.
+.kpPPPzPPPPPzPPPzzk.
+kzzzzzzzzzzzzzzzzzzk
+kzPPzkXrkzzkXrkzPzzk
+.kzzzkkkzzzzkkkzzzk.
+..kzzzzzzzzzzzzzzk..
+..kPzk.kzk.kzk.kzzk.
+..kkk..kkk.kkk..kkk.

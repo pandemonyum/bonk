@@ -1,8 +1,10 @@
-# Segno di pericolo a terra (linea della carica, cerchio del colpo), 4x4 rosso: tanti in fila
-# disegnano la forma senza scale. SEGNAPOSTO P0.6.
+# Segno di pericolo a terra, 6x6, ancora al centro: anello rosso con luce interna e contorno
+# scuro. Tanti in cerchio disegnano l'area di un attacco in arrivo (come le gocce dell'onda).
 out: sprites/telegraph.png
 ---
-.rr.
-rRRr
-rRRr
-.rr.
+.jrrj.
+jrXXrj
+rX..Xr
+rX..Xr
+jrXXrj
+.jrrj.

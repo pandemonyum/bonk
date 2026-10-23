@@ -17,7 +17,7 @@
       "kind": "sprite",
       "size": [
         16,
-        13
+        14
       ],
       "frames": 1,
       "source": "assets-src/sprites/blob_enemy.px",
@@ -27,8 +27,8 @@
       "path": "sprites/boss_enemy.png",
       "kind": "sprite",
       "size": [
-        48,
-        40
+        56,
+        47
       ],
       "frames": 1,
       "source": "assets-src/sprites/boss_enemy.px",
@@ -49,8 +49,8 @@
       "path": "sprites/elite_enemy.png",
       "kind": "sprite",
       "size": [
-        24,
-        21
+        26,
+        22
       ],
       "frames": 1,
       "source": "assets-src/sprites/elite_enemy.px",
@@ -61,7 +61,7 @@
       "kind": "sprite",
       "size": [
         16,
-        17
+        20
       ],
       "frames": 1,
       "source": "assets-src/sprites/ember_companion.px",
@@ -71,8 +71,8 @@
       "path": "sprites/fireball.png",
       "kind": "sprite",
       "size": [
-        6,
-        6
+        8,
+        8
       ],
       "frames": 1,
       "source": "assets-src/sprites/fireball.px",
@@ -82,8 +82,8 @@
       "path": "sprites/leaf.png",
       "kind": "sprite",
       "size": [
-        6,
-        6
+        8,
+        8
       ],
       "frames": 1,
       "source": "assets-src/sprites/leaf.px",
@@ -94,7 +94,7 @@
       "kind": "sprite",
       "size": [
         16,
-        10
+        12
       ],
       "frames": 1,
       "source": "assets-src/sprites/rock.px",
@@ -105,7 +105,7 @@
       "kind": "sprite",
       "size": [
         16,
-        17
+        20
       ],
       "frames": 1,
       "source": "assets-src/sprites/sprout_companion.px",
@@ -116,7 +116,7 @@
       "kind": "sprite",
       "size": [
         16,
-        21
+        24
       ],
       "frames": 1,
       "source": "assets-src/sprites/summoner.px",
@@ -126,8 +126,8 @@
       "path": "sprites/swarm_enemy.png",
       "kind": "sprite",
       "size": [
-        12,
-        8
+        14,
+        11
       ],
       "frames": 1,
       "source": "assets-src/sprites/swarm_enemy.px",
@@ -137,8 +137,8 @@
       "path": "sprites/telegraph.png",
       "kind": "sprite",
       "size": [
-        4,
-        4
+        6,
+        6
       ],
       "frames": 1,
       "source": "assets-src/sprites/telegraph.px",
@@ -148,8 +148,8 @@
       "path": "sprites/tide_companion.png",
       "kind": "sprite",
       "size": [
-        16,
-        14
+        18,
+        18
       ],
       "frames": 1,
       "source": "assets-src/sprites/tide_companion.px",
@@ -159,8 +159,8 @@
       "path": "sprites/tree.png",
       "kind": "sprite",
       "size": [
-        24,
-        26
+        32,
+        32
       ],
       "frames": 1,
       "source": "assets-src/sprites/tree.px",
@@ -170,11 +170,297 @@
       "path": "sprites/xp_gem.png",
       "kind": "sprite",
       "size": [
-        6,
-        8
+        8,
+        10
       ],
       "frames": 1,
       "source": "assets-src/sprites/xp_gem.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/clock.png",
+      "kind": "ui",
+      "size": [
+        10,
+        10
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/clock.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/heart_empty.png",
+      "kind": "ui",
+      "size": [
+        10,
+        9
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/heart_empty.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/heart_full.png",
+      "kind": "ui",
+      "size": [
+        10,
+        9
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/heart_full.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/heart_half.png",
+      "kind": "ui",
+      "size": [
+        10,
+        9
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/heart_half.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/icon_fire.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/icon_fire.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/icon_nature.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/icon_nature.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/icon_water.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/icon_water.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/lock.png",
+      "kind": "ui",
+      "size": [
+        12,
+        14
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/lock.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/portrait_ember.png",
+      "kind": "ui",
+      "size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/portrait_ember.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/portrait_sprout.png",
+      "kind": "ui",
+      "size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/portrait_sprout.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/portrait_tide.png",
+      "kind": "ui",
+      "size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/portrait_tide.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/skull.png",
+      "kind": "ui",
+      "size": [
+        10,
+        10
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/skull.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_ember_damage.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_ember_damage.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_ember_multishot.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_ember_multishot.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_ember_pierce.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_ember_pierce.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_ember_range.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_ember_range.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_ember_rate.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_ember_rate.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_ember_speed.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_ember_speed.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_join_ember.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_join_ember.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_join_sprout.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_join_sprout.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_join_tide.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_join_tide.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_magnet.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_magnet.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_regen.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_regen.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_snack.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_snack.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_swift.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_swift.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_vitality.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_vitality.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -182,7 +468,7 @@
       "kind": "tileset",
       "size": [
         16,
-        112
+        672
       ],
       "tile_size": 16,
       "tiles": [
@@ -192,7 +478,42 @@
         "flowers_white",
         "flowers_pink",
         "dirt",
-        "hedge"
+        "hedge",
+        "grass_c",
+        "grass_clover",
+        "flowers_yellow",
+        "grass_pebbles",
+        "grass_tall",
+        "dirt_n",
+        "dirt_e",
+        "dirt_ne",
+        "dirt_s",
+        "dirt_ns",
+        "dirt_es",
+        "dirt_nes",
+        "dirt_w",
+        "dirt_nw",
+        "dirt_ew",
+        "dirt_new",
+        "dirt_sw",
+        "dirt_nsw",
+        "dirt_esw",
+        "dirt_nesw",
+        "hedge_n",
+        "hedge_e",
+        "hedge_ne",
+        "hedge_s",
+        "hedge_ns",
+        "hedge_es",
+        "hedge_nes",
+        "hedge_w",
+        "hedge_nw",
+        "hedge_ew",
+        "hedge_new",
+        "hedge_sw",
+        "hedge_nsw",
+        "hedge_esw",
+        "hedge_nesw"
       ],
       "source": "scripts/build-assets.py (procedural, seed 20261022)",
       "license": "original, project-owned (generated from assets-src)"

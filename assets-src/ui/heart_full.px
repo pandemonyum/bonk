@@ -1,0 +1,12 @@
+# Cuore pieno dell'HUD (HP), 10x9. Rosso: nella UI il rosso dice anche "vita in pericolo".
+out: ui/heart_full.png
+---
+.kkk..kkk.
+kXXrkkrrRk
+kXwrrrrrRk
+kXrrrrrrRk
+krrrrrrRRk
+.krrrrRRk.
+..krrRRk..
+...kRRk...
+....kk....
