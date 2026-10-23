@@ -129,8 +129,11 @@ Le icone vanno disegnate alla **stessa scala intera del mondo** (1 texel UI = 1 
 canvas), non a pixel doppi: icone a 2× accanto a sprite a 1× danno pixel di misure diverse.
 Elenco e uso previsto in `docs/art/STYLE_HANDOFF.md`.
 
-Testi solo ASCII finché non si sceglie un font pixel (D-033). Il carattere 3×5 delle anteprime
-è un segnaposto dello script, non una proposta: le proposte di font sono nell'handoff.
+Font (D-044): **Tiny5** per HUD, numeri, tasti ed etichette, solo a 16 o 24 px (2 o 3 pixel
+per pixel del font), senza antialiasing e con ombra `#1b1428` di un pixel del font; **Pixelify
+Sans** per titoli (22/33/44 px) e frasi (16 px) di menu, draft e risultati. Lettere accentate e
+segni Latin-1 sono disegnati da entrambi. Il carattere 3×5 delle anteprime resta un segnaposto
+dello script `preview-scene.py`.
 
 ## Pipeline
 
@@ -166,4 +169,4 @@ griglia `.px`, che resta l'unica sorgente.
 
 Animazioni idle/movimento 2–4 frame (servono più frame nei `.px` e nel manifest); nomi
 definitivi dei compagni con verifica dei marchi; VFX di colpo piccoli; cespugli come ostacolo
-(richiede un tipo nuovo in `src/world/obstacles.rs`); font pixel (proposte nell'handoff).
+(richiede un tipo nuovo in `src/world/obstacles.rs`).

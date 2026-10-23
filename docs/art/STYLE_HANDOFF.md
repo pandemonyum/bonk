@@ -113,7 +113,10 @@ terra/erba e siepe/erba (maschera dei 4 lati) e varianti d'erba con fiori a macc
 `generation.rs`: indici validi e materiale logico conservato, orientamento dei bordi della
 terra, bordi della siepe solo verso l'arena, presenza delle varianti.
 
-## 4. Font pixel da proporre all'utente (D-013, D-033) — non scaricati
+## 4. Font pixel da proporre all'utente (D-013, D-033) — adottati Tiny5 e Pixelify Sans (D-044)
+
+Aggiornamento 2026-10-23: l'utente ha approvato la proposta; i due font sono in
+`assets/fonts/` con la loro licenza, verificati sul cmap e nel gioco (dettagli in D-044).
 
 Tutti SIL Open Font License 1.1. Prima di adottarne uno: aprire il file e controllare che
 `à è é ì ò ù` siano disegnate, copiare `OFL.txt` accanto al font in `assets/`, aggiungere la riga

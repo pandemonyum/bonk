@@ -21,6 +21,11 @@ serde = { version = "1", features = ["derive"] }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 bevy = { version = "0.20.0", default-features = false, features = ["file_watcher"] }
 
+[dev-dependencies]
+# Solo per i test: legge il cmap dei font di assets/fonts/ (stessa versione che Bevy compila già
+# tramite parley e swash, nessun crate nuovo).
+skrifa = { version = "0.44", default-features = false, features = ["std"] }
+
 [lints.clippy]
 # I sistemi Bevy hanno per natura molti parametri e query con tipi lunghi.
 too_many_arguments = "allow"

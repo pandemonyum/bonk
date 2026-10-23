@@ -5,6 +5,7 @@ use bevy::picking::hover::Hovered;
 use bevy::prelude::*;
 use bevy::ui_widgets::{Activate, Button};
 
+use super::fonts;
 use super::icons::ui_icon;
 use crate::app::RunPhase;
 use crate::data::GameConfig;
@@ -12,8 +13,9 @@ use crate::data::schema::{Effect, Rarity, UpgradeData};
 use crate::gameplay::progression::Progression;
 use crate::gameplay::upgrades::{ChooseUpgrade, Draft, UpgradeStacks};
 
-const CARD_WIDTH: f32 = 190.0;
-const CARD_HEIGHT: f32 = 236.0;
+/// Nome su due righe e descrizione su tre in Pixelify Sans (22 e 16 px) entrano nella carta.
+const CARD_WIDTH: f32 = 212.0;
+const CARD_HEIGHT: f32 = 252.0;
 /// Pannello e luce delle carte dalla palette v1 (`docs/art/STYLE_HANDOFF.md`).
 const CARD_FILL: Color = Color::srgb_u8(0x1b, 0x26, 0x40);
 const CARD_FILL_HOVER: Color = Color::srgb_u8(0x2b, 0x3a, 0x5e);
@@ -81,11 +83,11 @@ fn show_draft(
     let levels_left = progression.pending_levels;
     let subtitle = if levels_left > 1 {
         format!(
-            "Scegli un potenziamento: 1-{} o clic   ({levels_left} da scegliere)",
+            "Scegli un potenziamento: 1–{} o clic   ({levels_left} da scegliere)",
             draft.choices.len()
         )
     } else {
-        format!("Scegli un potenziamento: 1-{} o clic", draft.choices.len())
+        format!("Scegli un potenziamento: 1–{} o clic", draft.choices.len())
     };
     let level = progression.level + 1 - levels_left;
     let root = commands
@@ -106,12 +108,12 @@ fn show_draft(
             children![
                 (
                     Text::new(format!("LEVEL UP!  LIVELLO {level}")),
-                    TextFont::from_font_size(30.0),
+                    fonts::ui(33.0),
                     TextColor(GOLD),
                 ),
                 (
                     Text::new(subtitle),
-                    TextFont::from_font_size(14.0),
+                    fonts::ui(16.0),
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.85)),
                 ),
             ],
@@ -167,11 +169,7 @@ fn spawn_card(
             BorderColor::all(border),
             BackgroundColor(CARD_FILL),
             children![
-                (
-                    Text::new(rarity),
-                    TextFont::from_font_size(11.0),
-                    TextColor(border),
-                ),
+                (Text::new(rarity), fonts::hud(16.0), TextColor(border),),
                 (
                     Node {
                         justify_content: JustifyContent::Center,
@@ -181,12 +179,12 @@ fn spawn_card(
                 ),
                 (
                     Text::new(upgrade.name.clone()),
-                    TextFont::from_font_size(18.0),
+                    fonts::ui(22.0),
                     TextColor(TEXT),
                 ),
                 (
                     Text::new(upgrade.description.clone()),
-                    TextFont::from_font_size(13.0),
+                    fonts::ui(16.0),
                     TextColor(TEXT_DIM),
                     Node {
                         flex_grow: 1.0,
@@ -195,7 +193,7 @@ fn spawn_card(
                 ),
                 (
                     Text::new(card_footer(slot + 1, upgrade, stacks)),
-                    TextFont::from_font_size(12.0),
+                    fonts::hud(16.0),
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.7)),
                 ),
             ],

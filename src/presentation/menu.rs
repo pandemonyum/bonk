@@ -1,12 +1,13 @@
 //! Menu iniziale (`AppState::MainMenu`): scelta del compagno tra quelli dei dati e avvio della
 //! run. Ogni carta mostra lo sprite, l'elemento, il tipo di attacco e due barre (danno al
 //! secondo su un nemico, portata) relative agli altri compagni. 1/2/3 o clic per scegliere,
-//! Invio o "INIZIA" per partire. Testi solo ASCII (D-033).
+//! Invio o "INIZIA" per partire. Titoli e frasi in Pixelify Sans, etichette in Tiny5.
 
 use bevy::picking::hover::Hovered;
 use bevy::prelude::*;
 use bevy::ui_widgets::{Activate, Button};
 
+use super::fonts;
 use super::icons::{element_icon_path, ui_icon};
 use crate::app::{AfterLoading, AppState, RunSetup, start_run};
 use crate::data::GameConfig;
@@ -109,12 +110,12 @@ fn spawn_menu(
             children![
                 (
                     Text::new("PIXEL MONSTER SURVIVOR"),
-                    TextFont::from_font_size(34.0),
+                    fonts::ui(44.0),
                     TextColor(GOLD),
                 ),
                 (
                     Text::new("Scegli il tuo compagno"),
-                    TextFont::from_font_size(18.0),
+                    fonts::ui(22.0),
                     TextColor(Color::WHITE),
                 ),
             ],
@@ -142,7 +143,7 @@ fn spawn_menu(
     }
     let stage = &config.stage;
     let goal = format!(
-        "Mappa: {}   -   sopravvivi {} e sconfiggi il boss",
+        "Mappa: {}  ·  sopravvivi {} e sconfiggi il boss",
         stage.display_name,
         crate::gameplay::run::mm_ss(stage.run.duration_s)
     );
@@ -157,7 +158,7 @@ fn spawn_menu(
             },
             children![(
                 Text::new(goal),
-                TextFont::from_font_size(14.0),
+                fonts::ui(16.0),
                 TextColor(Color::srgba(1.0, 1.0, 1.0, 0.85)),
             )],
         ))
@@ -176,7 +177,7 @@ fn spawn_menu(
             BackgroundColor(CARD),
             children![(
                 Text::new("INIZIA  (Invio)"),
-                TextFont::from_font_size(18.0),
+                fonts::ui(22.0),
                 TextColor(GOLD),
             )],
         ))
@@ -186,8 +187,8 @@ fn spawn_menu(
         .id();
     let hint = commands
         .spawn((
-            Text::new("1-3 o clic per scegliere"),
-            TextFont::from_font_size(12.0),
+            Text::new("1–3 o clic per scegliere"),
+            fonts::hud(16.0),
             TextColor(Color::srgba(1.0, 1.0, 1.0, 0.6)),
         ))
         .id();
@@ -234,7 +235,7 @@ fn spawn_card(
                     children![
                         (
                             Text::new(format!("[{}]", index + 1)),
-                            TextFont::from_font_size(11.0),
+                            fonts::hud(16.0),
                             TextColor(Color::srgba(1.0, 1.0, 1.0, 0.6)),
                         ),
                         element_icon,
@@ -244,17 +245,13 @@ fn spawn_card(
                 portrait,
                 (
                     Text::new(companion.display_name.clone()),
-                    TextFont::from_font_size(18.0),
+                    fonts::ui(22.0),
                     TextColor(Color::WHITE),
                 ),
-                (
-                    Text::new(element),
-                    TextFont::from_font_size(12.0),
-                    TextColor(color),
-                ),
+                (Text::new(element), fonts::hud(16.0), TextColor(color),),
                 (
                     Text::new(pattern.to_string()),
-                    TextFont::from_font_size(11.0),
+                    fonts::ui(16.0),
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.8)),
                     TextLayout::justify(Justify::Center),
                 ),
@@ -291,10 +288,10 @@ fn stat_bar(commands: &mut Commands, label: &str, value: f32, color: Color) -> E
             children![
                 (
                     Text::new(label.to_string()),
-                    TextFont::from_font_size(10.0),
+                    fonts::hud(16.0),
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.75)),
                     Node {
-                        width: px(52),
+                        width: px(68),
                         ..default()
                     },
                 ),

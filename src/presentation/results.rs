@@ -1,9 +1,11 @@
 //! Schermata dei risultati a fine run, per la sconfitta e per la vittoria: durata, livello,
 //! nemici sconfitti, danni subiti, squadra e potenziamenti presi. Invio o F5 per una run nuova
-//! con lo stesso compagno, M per il menu (`gameplay::input`). Testi solo ASCII (D-033).
+//! con lo stesso compagno, M per il menu (`gameplay::input`). Titolo e frasi in Pixelify Sans,
+//! numeri e tasti in Tiny5.
 
 use bevy::prelude::*;
 
+use super::fonts;
 use crate::app::RunPhase;
 use crate::data::schema::Effect;
 use crate::data::{DataId, GameConfig};
@@ -26,7 +28,7 @@ impl Plugin for ResultsPlugin {
     }
 }
 
-/// Potenziamenti presi, nell'ordine dei dati: "Fiamma viva x3". I compagni arrivati con una
+/// Potenziamenti presi, nell'ordine dei dati: "Fiamma viva ×3". I compagni arrivati con una
 /// carta sono nella riga della squadra, non qui; la cura non lascia stack da elencare.
 pub fn build_summary(config: &GameConfig, stacks: &UpgradeStacks) -> Vec<String> {
     config
@@ -36,7 +38,7 @@ pub fn build_summary(config: &GameConfig, stacks: &UpgradeStacks) -> Vec<String>
         .filter(|(i, u)| {
             stacks.of(*i) > 0 && !matches!(u.effect, Effect::JoinCompanion(_) | Effect::Heal(_))
         })
-        .map(|(i, u)| format!("{} x{}", u.name, stacks.of(i)))
+        .map(|(i, u)| format!("{} ×{}", u.name, stacks.of(i)))
         .collect()
 }
 
@@ -129,7 +131,10 @@ fn spawn_results(mut commands: Commands, s: Summary) {
         .enemy(&s.config.stage.run.boss)
         .map_or(String::new(), |b| b.display_name.clone());
     let subtitle = if s.victory {
-        format!("{} sconfitto: {} salva!", boss, s.config.stage.display_name)
+        format!(
+            "{} sconfitto: {} è salva!",
+            boss, s.config.stage.display_name
+        )
     } else {
         s.config.stage.display_name.clone()
     };
@@ -171,40 +176,32 @@ fn spawn_results(mut commands: Commands, s: Summary) {
             BorderColor::all(accent),
             BackgroundColor(PANEL),
             children![
-                (
-                    Text::new(title),
-                    TextFont::from_font_size(34.0),
-                    TextColor(accent),
-                ),
+                (Text::new(title), fonts::ui(44.0), TextColor(accent),),
                 (
                     Text::new(subtitle),
-                    TextFont::from_font_size(15.0),
+                    fonts::ui(16.0),
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.85)),
                 ),
                 (
                     Text::new(numbers),
-                    TextFont::from_font_size(15.0),
+                    fonts::hud(16.0),
                     TextColor(Color::WHITE),
                 ),
                 (
                     Text::new(damage),
-                    TextFont::from_font_size(13.0),
+                    fonts::hud(16.0),
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.75)),
                 ),
-                (
-                    Text::new(party),
-                    TextFont::from_font_size(14.0),
-                    TextColor(Color::WHITE),
-                ),
+                (Text::new(party), fonts::ui(16.0), TextColor(Color::WHITE),),
                 (
                     Text::new(build),
-                    TextFont::from_font_size(13.0),
+                    fonts::ui(16.0),
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.85)),
                     TextLayout::justify(Justify::Center),
                 ),
                 (
                     Text::new("Invio o F5: nuova run      M: menu"),
-                    TextFont::from_font_size(14.0),
+                    fonts::hud(16.0),
                     TextColor(GOLD),
                 ),
             ],
@@ -234,7 +231,7 @@ mod tests {
         stacks.0[join] = 1;
         stacks.0[heal] = 2;
         let name = &config.upgrades[damage].name;
-        assert_eq!(build_summary(&config, &stacks), [format!("{name} x3")]);
+        assert_eq!(build_summary(&config, &stacks), [format!("{name} ×3")]);
         assert!(build_summary(&config, &UpgradeStacks(vec![0; config.upgrades.len()])).is_empty());
     }
 }

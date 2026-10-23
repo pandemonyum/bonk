@@ -1,6 +1,6 @@
 # PROGRESS
 
-Stato corrente, ultimo aggiornamento: **2026-10-22**.
+Stato corrente, ultimo aggiornamento: **2026-10-23**.
 
 | Fase | Stato |
 |---|---|
@@ -10,8 +10,38 @@ Stato corrente, ultimo aggiornamento: **2026-10-22**.
 | P2 / P3 | non iniziate |
 
 Prossimo task eseguibile: **P0.7** (HUD leggibile con HP, compagni, tempo, abilità, XP; test di
-formule e bilanciamento base), vedi `docs/BACKLOG.md`. In parallelo: restyle grafico sul ramo
-`claude/art-style-16bit-adda3a` (sessione separata), da unire su richiesta dell'utente.
+formule e bilanciamento base), vedi `docs/BACKLOG.md`. Art pass v1 e font pixel sono integrati
+in `main`.
+
+## Report tranche "font pixel" (2026-10-23)
+
+```text
+Task: scaricare Tiny5 e Pixelify Sans (OFL), verificare le accentate, licenze e decisione,
+      usarli in HUD, menu, draft e risultati, togliere il vincolo ASCII
+Owner: orchestrator (approvazione utente per il download)
+Stato: DONE
+File: assets/fonts/{tiny5,pixelify-sans}/ (font + OFL.txt), src/presentation/fonts.rs (nuovo),
+      src/presentation/{mod,status,boss_bar,hud,draft,menu,results}.rs,
+      src/data/{mod,validate}.rs, src/data/validate/{progression,run}/tests.rs,
+      game-data/upgrades.ron, Cargo.toml (skrifa solo per i test), scripts/validate-assets.py,
+      ASSET_LICENSES.md, docs/{DECISIONS,ART_BIBLE,ARCHITECTURE,BACKLOG,QA_REPORT}.md,
+      docs/art/STYLE_HANDOFF.md, docs/evidence/fonts-*.png
+Comandi eseguiti (risultato):
+  download da github.com/google/fonts (ofl/tiny5, ofl/pixelifysans) + controllo del cmap e
+    delle dimensioni nitide con uno script Pillow: tutte le accentate presenti
+  ./scripts/check.ps1   OK (fmt, clippy, 145 unit + 79 integrazione, 43 PNG e 2 font)
+  gioco vero: menu e draft con tastiera e mouse reali, pausa, sconfitta, run x10 fino a boss e
+    vittoria (seed 5, 11:40, livello 37, 1592 sconfitti)
+Comportamento verificato: Tiny5 a 16/24 px con pixel 2×2/3×3 esatti (controllato pixel per
+  pixel sullo screenshot); "Velocità", "è salva!", "×3", "1–3" disegnati; carte del draft
+  con nome su due righe e descrizione su tre dentro il bordo
+Problemi trovati e risolti: terza carta del draft che usciva dal bordo con il font nuovo
+  (carte 212×252); HP in grigio-azzurro poco leggibili sull'erba (ombra di un pixel del font).
+  La "f" di Pixelify Sans ha la traversa lunga: è il disegno del font, non una legatura.
+Rischi noti: testi dell'HUD a dimensione fissa anche a finestra grande (le icone scalano);
+  Pixelify Sans a 16 px leggermente morbido (antialiasing).
+Prossimo task: P0.7
+```
 
 ## Report tranche "art pass v1 nel gioco" (2026-10-23)
 

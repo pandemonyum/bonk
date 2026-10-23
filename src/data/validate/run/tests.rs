@@ -1,7 +1,7 @@
 //! Test delle regole dell'arco della run e degli attacchi telegrafati. Élite e boss si
 //! cercano tramite `stages.ron`, i valori si modificano solo nel campo provato.
 
-use super::super::tests::{assert_error, embedded};
+use super::super::tests::{assert_error, embedded, errors_after};
 use crate::data::GameConfig;
 use crate::data::schema::{ChargeData, SlamData};
 use crate::gameplay::threats::MIN_TELEGRAPH_S;
@@ -88,26 +88,32 @@ fn charge_and_slam_values_are_checked() {
     );
 }
 
+/// Nomi a schermo: accentate sì (i font le disegnano), simboli fuori dai font no.
 #[test]
-fn names_shown_on_screen_are_ascii() {
+fn names_shown_on_screen_use_characters_the_fonts_draw() {
     let c = embedded();
     let boss = c.stage.run.boss.clone();
+    let accented = errors_after(|c| {
+        c.stage.display_name = "Città dei Germogli".into();
+        c.companions[0].display_name = "Fiammà".into();
+    });
+    assert!(accented.is_empty(), "{accented:?}");
     assert_error(
         |c| {
             c.enemies
                 .iter_mut()
                 .find(|e| e.id == boss)
                 .unwrap()
-                .display_name = "Re Gelatìna".into()
+                .display_name = "Re ★ Gelatina".into()
         },
-        &format!("enemies.ron: {boss}.display_name contiene"),
+        &format!("enemies.ron: {boss}.display_name contiene '★' (U+2605)"),
     );
     assert_error(
-        |c| c.stage.display_name = "Città".into(),
+        |c| c.stage.display_name = "Prateria\tdei Germogli".into(),
         &format!("stages.ron: {}.display_name contiene", c.stage.id),
     );
     assert_error(
-        |c| c.companions[0].display_name = "Fiammà".into(),
+        |c| c.companions[0].display_name = "Brasa 🔥".into(),
         &format!(
             "companions.ron: {}.display_name contiene",
             c.companions[0].id

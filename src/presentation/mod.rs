@@ -5,6 +5,7 @@ pub mod attacks;
 pub mod boss_bar;
 pub mod camera;
 pub mod draft;
+pub mod fonts;
 pub mod hud;
 pub mod icons;
 pub mod menu;
@@ -27,6 +28,7 @@ pub struct PresentationPlugin;
 impl Plugin for PresentationPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
+            fonts::FontsPlugin,
             camera::CameraPlugin,
             sprites::SpritesPlugin,
             hud::HudPlugin,

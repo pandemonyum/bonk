@@ -3,7 +3,8 @@
 
 Controlli: ogni PNG è nel manifest (e viceversa), dimensioni dichiarate = reali, nomi
 snake_case, tileset multipli di 16 px, sprite e icone UI entro i limiti di dimensione, solo
-colori della palette per gli asset generati, licenza presente. Avvisi (non errori) se un
+colori della palette per gli asset generati, licenza presente; ogni font ha accanto il suo
+OFL.txt e una riga in ASSET_LICENSES.md. Avvisi (non errori) se un
 upgrade di game-data/upgrades.ron non ha l'icona ui/upgrade_<id>.png o un compagno di
 game-data/companions.ron non ha il ritratto ui/portrait_<id>.png.
 
@@ -95,6 +96,16 @@ def main() -> int:
                         "assente da assets/ o dal manifest"
                     )
 
+    # Font: la licenza OFL va distribuita insieme al file e il font va elencato tra le terze parti.
+    licenses = (ROOT / "ASSET_LICENSES.md").read_text(encoding="utf-8")
+    fonts = sorted(p for p in ASSETS.rglob("*") if p.suffix.lower() in (".ttf", ".otf"))
+    for font in fonts:
+        rel = font.relative_to(ASSETS).as_posix()
+        if not (font.parent / "OFL.txt").is_file():
+            errors.append(f"{rel}: manca OFL.txt accanto al font")
+        if f"assets/{rel}" not in licenses:
+            errors.append(f"{rel}: font senza riga in ASSET_LICENSES.md")
+
     # Icone attese dall'interfaccia per ogni upgrade e ritratti per ogni compagno: solo avvisi,
     # così un upgrade nuovo nei dati non blocca nessuno finché l'icona non è disegnata.
     warnings: list[str] = []
@@ -109,7 +120,7 @@ def main() -> int:
     for e in errors:
         print("ERRORE:", e)
     print(
-        f"{'FALLITO' if errors else 'OK'}: {len(on_disk)} PNG controllati, "
+        f"{'FALLITO' if errors else 'OK'}: {len(on_disk)} PNG e {len(fonts)} font controllati, "
         f"{referenced} sprite citati in game-data/, {len(errors)} errori"
     )
     return 1 if errors else 0

@@ -44,6 +44,7 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `presentation::sprites` | observer `On<Add<Player/Enemy>>` → `Sprite`; interpolazione + snap al pixel + y-sort; tinte di colpo e rallentamento | sì |
 | `presentation::attacks` | foglie come sprite; anello di gocce figlie dell'onda, al raggio interpolato e arrotondato al pixel | sì |
 | `presentation::hud` | promemoria comandi, banner pausa, errori dei dati | sì |
+| `presentation::fonts` | `UiFonts` (Tiny5, Pixelify Sans), `Typeface` con hook che assegna font e antialiasing, `hud(size)` / `ui(size)` al posto di `TextFont::from_font_size` | sì |
 | `presentation::icons` | `PixelScale` (pixel logici per texel, aggiornato dalla camera), `PixelIcon`, `ui_icon`: icone di `assets/ui/` alla scala intera del canvas | sì |
 | `presentation::status` | in alto a sinistra cuori (20 HP l'uno) con HP, barra XP, icone degli elementi della squadra; in alto a destra livello e teschio con le uccisioni | sì |
 | `presentation::menu` | menu iniziale: carte dei compagni (sprite, elemento, attacco, barre relative), 1/2/3, frecce, clic, Invio | sì |
@@ -112,7 +113,7 @@ La validazione controlla anche vincoli fisici legati al codice: nessun corpo pi�
 varco minimo tra ostacoli, nessun proiettile abbastanza veloce da attraversare un nemico tra
 due passi, anelli di spawn coerenti, riferimenti tra file esistenti. Per gli upgrade gli stessi
 limiti valgono con tutti gli stack al massimo, più requisiti non circolari, primo draft mai
-vuoto e testi delle carte in ASCII (font provvisorio, D-033).
+vuoto e testi a schermo con i soli caratteri che i font dell'interfaccia disegnano (D-044).
 
 ## Test
 

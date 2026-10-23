@@ -1,7 +1,7 @@
 // Upgrade proposti nel draft a ogni livello. Le percentuali si sommano tra stack sul valore
 // base dei dati (2 stack di +15% = +30%). Gli effetti "Companion" valgono per tutti i compagni.
-// Nomi e testi sono originali e provvisori. Nei testi delle carte solo caratteri ASCII (niente
-// lettere accentate): il font provvisorio non le ha (vedi D-013, la validazione lo controlla).
+// Nomi e testi sono originali e provvisori. Lettere accentate e segni come « » – … × vanno
+// bene: i font dell'interfaccia li disegnano (D-044); la validazione rifiuta il resto.
 (
     version: 5,
     upgrades: [
@@ -54,7 +54,7 @@
         (
             id: "ember_speed",
             name: "Vampa veloce",
-            description: "Volo dei proiettili +20%",
+            description: "Velocità dei proiettili +20%",
             rarity: Common,
             max_stack: 2,
             requires: [],
@@ -81,7 +81,7 @@
         (
             id: "swift",
             name: "Passo leggero",
-            description: "Movimento +10%",
+            description: "Velocità di movimento +10%",
             rarity: Uncommon,
             max_stack: 3,
             requires: [],

@@ -115,18 +115,23 @@ fn upgrade_effects_must_do_something_and_keep_values_positive() {
     );
 }
 
-/// Il font provvisorio (FiraMono ridotto incluso in Bevy) non ha le lettere accentate: nel
-/// gioco "più" diventava "pi" seguito da un quadratino (rilievo della prova P0.4).
+/// Con FiraMono "più" diventava "pi" seguito da un quadratino (rilievo della prova P0.4): ora
+/// le carte possono usare accentate e segni che Tiny5 e Pixelify Sans disegnano, il resto no.
 #[test]
-fn card_texts_must_be_ascii_until_a_font_is_chosen() {
+fn card_texts_use_only_characters_the_fonts_draw() {
     let id = embedded().upgrades[0].id.clone();
+    let accented = errors_after(|c| {
+        c.upgrades[0].name = "Velocità".into();
+        c.upgrades[0].description = "Danno più alto… «sempre» ×2 – così è".into();
+    });
+    assert!(accented.is_empty(), "{accented:?}");
     assert_error(
-        |c| c.upgrades[0].description = "Danno più alto".into(),
-        &format!("upgrades.ron: {id}.description contiene 'ù'"),
+        |c| c.upgrades[0].description = "Danno ↑".into(),
+        &format!("upgrades.ron: {id}.description contiene '↑' (U+2191)"),
     );
     assert_error(
-        |c| c.upgrades[0].name = "Città".into(),
-        &format!("upgrades.ron: {id}.name contiene 'à'"),
+        |c| c.upgrades[0].name = "Fiamma\u{ad}viva".into(),
+        &format!("upgrades.ron: {id}.name contiene"),
     );
 }
 

@@ -3,6 +3,7 @@
 
 use bevy::prelude::*;
 
+use super::fonts;
 use super::icons::ui_icon;
 use crate::app::AppState;
 use crate::data::{DataId, GameConfig};
@@ -86,12 +87,7 @@ fn spawn_timer(mut commands: Commands, assets: Res<AssetServer>) {
                 },
                 children![
                     ui_icon(&assets, "ui/clock.png", 10.0, 10.0),
-                    (
-                        TimerText,
-                        Text::new(""),
-                        TextFont::from_font_size(22.0),
-                        TextColor(TEXT),
-                    ),
+                    (TimerText, Text::new(""), fonts::hud(24.0), TextColor(TEXT),),
                 ],
             ),
             (
@@ -104,12 +100,7 @@ fn spawn_timer(mut commands: Commands, assets: Res<AssetServer>) {
                 },
                 Visibility::Hidden,
                 children![
-                    (
-                        BossName,
-                        Text::new(""),
-                        TextFont::from_font_size(13.0),
-                        TextColor(TEXT),
-                    ),
+                    (BossName, Text::new(""), fonts::hud(16.0), TextColor(TEXT),),
                     (
                         Node {
                             flex_direction: FlexDirection::Row,

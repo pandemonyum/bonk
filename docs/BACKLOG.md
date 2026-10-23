@@ -48,9 +48,9 @@ opzioni, browser, release candidate).
 ## Debito tecnico e idee registrate
 
 - Radure di terra con bordi a gradini: servono tile di transizione erba/terra (P2, pixel-art-director).
-- Testo HUD/overlay con FiraMono a risoluzione nativa: sostituire con font pixel OFL o
-  bitmap originale e decidere se l'HUD va nel canvas 480×270 (P0.7/P2). Il font scelto deve
-  avere le lettere accentate: oggi i testi delle carte sono solo ASCII (D-033).
+- ~~Testo HUD con FiraMono~~: Tiny5 e Pixelify Sans (D-044). Resta da decidere se l'HUD va nel
+  canvas 480×270 (oggi a risoluzione nativa, testi a dimensione fissa anche a finestra grande,
+  mentre le icone seguono la scala del canvas).
 - ~~Separazione nemici O(n²)~~: sostituita dalla griglia spaziale in P0.3.
 - Il player si perde dentro l'orda a 200+ nemici: contorno/ombra più marcati o un indicatore
   sotto i piedi (P2, pixel-art-director); HP visibili anche vicino al player (P0.7).
@@ -60,9 +60,9 @@ opzioni, browser, release candidate).
   rivedere con la difficoltà della P0.6 (primo minuto più morbido, crescita più graduale) e
   con una prova umana. Una sonda con scelte sensate (non la prima carta) darebbe una misura
   più vicina a un giocatore.
-- Font pixel: proposte OFL in `docs/art/STYLE_HANDOFF.md` §4 (Tiny5 per l'HUD, Pixelify Sans per
-  draft, menu e risultati), da approvare dall'utente prima di scaricarle; poi togliere il vincolo
-  ASCII (D-033).
+- Font in `assets/fonts/` (~0,5 MB, variabili con assi inutilizzati): per il web (P1) valutare un
+  sottoinsieme statico Latin-1 (l'OFL lo permette; il nome va cambiato solo se si modifica un
+  font con Reserved Font Name, e questi non ne hanno).
 - La tinta di colpo e di rallentamento colora anche l'ombra cotta negli sprite v1 (accettato;
   in alternativa l'ombra come sprite figlio).
 - Bilanciamento: un bot che schiva sopravvive 13 minuti ma non vince, l'autoplay cieco muore a

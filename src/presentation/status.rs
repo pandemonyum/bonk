@@ -4,6 +4,7 @@
 
 use bevy::prelude::*;
 
+use super::fonts;
 use super::icons::{element_icon_path, ui_icon};
 use crate::app::AppState;
 use crate::data::{DataId, GameConfig};
@@ -96,7 +97,7 @@ impl Plugin for StatusPlugin {
 fn label(text: &str, size: f32, color: Color) -> impl Bundle {
     (
         Text::new(text.to_string()),
-        TextFont::from_font_size(size),
+        fonts::hud(size),
         TextColor(color),
     )
 }
@@ -130,7 +131,7 @@ fn spawn_left(mut commands: Commands) {
                             ..default()
                         },
                     ),
-                    (HpText, label("", 13.0, TEXT_DIM)),
+                    (HpText, label("", 16.0, TEXT_DIM)),
                 ],
             ),
             (
@@ -178,7 +179,7 @@ fn spawn_right(mut commands: Commands, assets: Res<AssetServer>) {
         },
         DespawnOnExit(AppState::InRun),
         children![
-            (LevelText, label("", 18.0, GOLD)),
+            (LevelText, label("", 24.0, GOLD)),
             (
                 Node {
                     flex_direction: FlexDirection::Row,

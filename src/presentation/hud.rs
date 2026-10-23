@@ -4,6 +4,7 @@
 
 use bevy::prelude::*;
 
+use super::fonts;
 use crate::app::{AppState, RunPhase};
 use crate::data::DataStatus;
 
@@ -30,7 +31,7 @@ impl Plugin for HudPlugin {
 pub fn data_status_text(status: &DataStatus) -> Option<String> {
     match status {
         DataStatus::Ready => None,
-        DataStatus::Loading => Some("Caricamento dati...".into()),
+        DataStatus::Loading => Some("Caricamento dati…".into()),
         DataStatus::Error(errors) => Some(format!(
             "Errori nei dati di gioco (game-data/):\n\n{}\n\nCorreggi e salva il file: con la \
              ricarica a caldo (default nella build di sviluppo) il gioco riparte da solo, \
@@ -48,7 +49,7 @@ fn spawn_hint(mut commands: Commands) {
     commands.spawn((
         Name::new("ControlsHint"),
         Text::new(HINT),
-        TextFont::from_font_size(12.0),
+        fonts::hud(16.0),
         TextColor(Color::srgba(1.0, 1.0, 1.0, 0.75)),
         Node {
             position_type: PositionType::Absolute,
@@ -65,7 +66,7 @@ fn spawn_data_status_panel(mut commands: Commands) {
         Name::new("DataStatus"),
         DataStatusPanel,
         Text::new(""),
-        TextFont::from_font_size(14.0),
+        fonts::ui(16.0),
         TextColor(Color::srgb(1.0, 0.85, 0.8)),
         BackgroundColor(Color::srgba(0.1, 0.0, 0.0, 0.85)),
         Node {
@@ -109,8 +110,8 @@ fn spawn_pause_banner(mut commands: Commands) {
         BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.55)),
         DespawnOnExit(RunPhase::Paused),
         children![(
-            Text::new("PAUSA - Esc per riprendere"),
-            TextFont::from_font_size(28.0),
+            Text::new("PAUSA — Esc per riprendere"),
+            fonts::ui(33.0),
             TextColor(Color::WHITE),
         )],
     ));

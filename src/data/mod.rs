@@ -8,6 +8,8 @@ pub mod loader;
 pub mod schema;
 mod validate;
 
+pub use validate::{UI_EXTRA_CHARS, ui_drawable};
+
 use bevy::prelude::*;
 
 use schema::*;

@@ -1,5 +1,17 @@
 # QA REPORT
 
+## 2026-10-23 — Font pixel (Tiny5, Pixelify Sans)
+
+| Controllo | Esito | Prova |
+|---|---|---|
+| Copertura dei caratteri | entrambi: ASCII, Latin-1 tranne U+00AD (e U+00A6 in Pixelify), ‘ ’ “ ” – — … €; test sul cmap dei file | `presentation::fonts::tests` |
+| Validazione dei testi | accentate accettate, simboli fuori dai font rifiutati con il codice U+ | test `card_texts_use_only_characters_the_fonts_draw`, `names_shown_on_screen_use_characters_the_fonts_draw` |
+| Gate | fmt, clippy, 145 unit + 79 integrazione, 43 PNG e 2 font con licenza | `./scripts/check.ps1` |
+| Menu (tastiera reale) | titolo e nomi in Pixelify Sans, tasti ed etichette in Tiny5, "1–3" | `docs/evidence/fonts-menu.png` |
+| Draft (tastiera e mouse reali) | "Velocità dei proiettili", nome su due righe e descrizione su tre dentro la carta 212×252 | `docs/evidence/fonts-draft.png` |
+| HUD e boss (run x10, seed 5) | Tiny5 con pixel 3×3 esatti a 24 px, ombra leggibile sull'erba, nome e barra del boss | `docs/evidence/fonts-hud-boss.png` |
+| Pausa, sconfitta, vittoria | "PAUSA — Esc", "×1", "Gran Corazzato sconfitto: Prateria dei Germogli è salva!" | `docs/evidence/fonts-vittoria.png` |
+
 ## 2026-10-23 — Art pass v1 nel gioco
 
 | Controllo | Esito | Prova |

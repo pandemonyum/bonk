@@ -12,6 +12,18 @@ use crate::world::view::VIEW_HALF_DIAGONAL;
 /// Il corpo più largo che passa sempre tra due ostacoli (vedi `world::obstacles`).
 const MAX_FOOTPRINT_RADIUS: f32 = MIN_OBSTACLE_GAP / 2.0;
 
+/// Segni oltre il Latin-1 che Tiny5 e Pixelify Sans disegnano tutti e due.
+pub const UI_EXTRA_CHARS: &str = "‘’“”–—…€";
+
+/// Carattere che i due font dell'interfaccia (`assets/fonts/`) disegnano: ASCII stampabile, a
+/// capo, Latin-1 (lettere accentate comprese) tranne il trattino morbido e la barra spezzata,
+/// che mancano, e `UI_EXTRA_CHARS`. Lo verifica un test sul cmap dei file
+/// (`presentation::fonts`).
+pub fn ui_drawable(c: char) -> bool {
+    matches!(c, ' '..='~' | '\n' | '\u{a0}'..='\u{ff}') && !matches!(c, '\u{a6}' | '\u{ad}')
+        || UI_EXTRA_CHARS.contains(c)
+}
+
 struct Report(Vec<String>);
 
 impl Report {
@@ -78,13 +90,13 @@ impl Report {
         }
     }
 
-    /// Testo mostrato a schermo: il font provvisorio ha solo caratteri ASCII (D-033).
+    /// Testo mostrato a schermo: solo caratteri che i font dell'interfaccia disegnano (D-044).
     fn ui_text(&mut self, at: &str, text: &str) {
-        let unsupported = |c: &char| !c.is_ascii() || (c.is_ascii_control() && *c != '\n');
-        if let Some(c) = text.chars().find(unsupported) {
+        if let Some(c) = text.chars().find(|c| !ui_drawable(*c)) {
             self.0.push(format!(
-                "{at} contiene '{c}': il font provvisorio dell'interfaccia ha solo caratteri \
-                 ASCII (scrivi \"piu'\" o riformula)"
+                "{at} contiene '{c}' (U+{:04X}): i font dell'interfaccia non lo disegnano \
+                 (vanno bene ASCII, lettere accentate e segni Latin-1, {UI_EXTRA_CHARS})",
+                c as u32
             ));
         }
     }

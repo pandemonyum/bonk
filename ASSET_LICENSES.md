@@ -53,11 +53,21 @@ manifest `assets/manifest.json`.
 | `assets/tiles/meadow_tileset.png` | generato da `scripts/build-assets.py` (seed 20261022, 42 tile dalla v1) | originale, proprietà del progetto |
 | Palette "Germoglio" v1 (`assets-src/palette.txt`, 56 colori) | definita per il progetto | originale, proprietà del progetto |
 
+## Terze parti distribuite in `assets/`
+
+| Asset | Autore | Licenza | Fonte | Note |
+|---|---|---|---|---|
+| `assets/fonts/tiny5/Tiny5.ttf` (variabile, istanza di default) | Stefan Schmidt, "The Tiny5 Project Authors" | SIL Open Font License 1.1, testo in `assets/fonts/tiny5/OFL.txt` | Google Fonts, `github.com/google/fonts` `ofl/tiny5/Tiny5[BLED,JITT,ROND,wdth,wght].ttf` (upstream `github.com/Gissio/font_tiny5`), scaricato il 2026-10-23, SHA-256 `588626f2…d8fa` | file rinominato, contenuto non modificato; HUD (D-044) |
+| `assets/fonts/pixelify-sans/PixelifySans.ttf` (variabile, istanza di default) | Stefie Justprince, "The Pixelify Sans Project Authors" | SIL Open Font License 1.1, testo in `assets/fonts/pixelify-sans/OFL.txt` | Google Fonts, `github.com/google/fonts` `ofl/pixelifysans/PixelifySans[wght].ttf` (upstream `github.com/eifetx/Pixelify-Sans`), scaricato il 2026-10-23, SHA-256 `9ba86cd0…e8a5` | file rinominato, contenuto non modificato; menu, draft, risultati (D-044) |
+
+Nessuno dei due dichiara un Reserved Font Name. L'OFL permette di distribuirli con il gioco
+anche a pagamento, purché il file di licenza li accompagni e il font non sia venduto da solo.
+
 ## Terze parti incluse nel binario
 
 | Asset | Autore | Licenza | Note |
 |---|---|---|---|
-| Font FiraMono (subset), incorporato da Bevy (`bevy_text`, feature `default_font`) | Mozilla / Carrois Apostrophe | SIL Open Font License 1.1 | usato solo per HUD/overlay provvisori; da sostituire con un font pixel (P2) |
+| Font FiraMono (subset), incorporato da Bevy (`bevy_text`, feature `default_font`) | Mozilla / Carrois Apostrophe | SIL Open Font License 1.1 | resta solo nell'overlay di debug (F3); l'interfaccia usa Tiny5 e Pixelify Sans (D-044) |
 
 Motore e librerie Rust: Bevy e dipendenze sono MIT/Apache-2.0; l'elenco completo si genera
 con `cargo tree` (da affiancare a un report licenze prima della release, P3.5).

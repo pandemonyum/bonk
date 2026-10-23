@@ -61,7 +61,8 @@ dell'altezza e riduce la leggibilità delle orde: comuni 16 px, compagni 16–24
 boss 48–64. Da confermare nell'art pass (P2) guardando screenshot con 200 nemici.
 
 ## D-013 Testo HUD provvisorio a risoluzione nativa con FiraMono (OFL, incluso in Bevy)
-Decisione sul font pixel e sull'HUD dentro/fuori dal canvas rimandata a P0.7/P2.
+Decisione sul font pixel e sull'HUD dentro/fuori dal canvas rimandata a P0.7/P2. Font: superata
+da D-044 (FiraMono resta solo nell'overlay di debug); l'HUD resta a risoluzione nativa.
 
 ## D-014 Nessun crate dell'ecosistema Bevy nella S0
 Tilemap con `TilemapChunk` integrato in Bevy, input e stati integrati. `bevy_ecs_tilemap`,
@@ -188,7 +189,7 @@ simulazioni lunghe non si fermino al primo livello (i test del draft la tolgono)
 reali con `--autoplay`, così il draft si vede. Senza upgrade disponibili il livello passa senza
 draft.
 
-## D-033 Testi delle carte solo in ASCII finché non c'è un font
+## D-033 Testi delle carte solo in ASCII finché non c'è un font *(superata da D-044)*
 Il FiraMono ridotto incluso in Bevy (D-013) non ha le lettere accentate: nella prima prova del
 draft "più" usciva come "pi" seguito da un quadratino. I testi di `upgrades.ron` sono stati
 riformulati e la validazione rifiuta caratteri non ASCII con un messaggio che lo spiega. Da
@@ -284,6 +285,22 @@ altezze di sparo e del centro di onda e foglie, impronte di roccia e albero, ing
 corpo) sono quelli proposti in `docs/art/STYLE_HANDOFF.md`. Il boss diventa "Gran Corazzato":
 lo sprite è un colosso a cupola della famiglia del corazzato, non una gelatina. Il font resta
 FiraMono finché l'utente non sceglie tra le proposte OFL dell'handoff (testi ancora ASCII).
+
+## D-044 Font pixel OFL: Tiny5 per l'HUD, Pixelify Sans per menu, draft e risultati *(utente)*
+I due font proposti nell'handoff dell'art pass, scaricati dal repository ufficiale di Google
+Fonts (`ofl/tiny5`, `ofl/pixelifysans`) con il loro `OFL.txt`, stanno in `assets/fonts/<font>/`;
+file rinominati, contenuto intatto, nessun Reserved Font Name. Verificati sul cmap: tutto
+l'ASCII e tutto il Latin-1 tranne il trattino morbido (e la barra spezzata in Pixelify), più
+‘ ’ “ ” – — … €. Tiny5 ha 8 pixel di disegno per em: a 16 e 24 px ogni suo pixel è 2×2 e 3×3,
+quindi è usato solo a quelle dimensioni, senza antialiasing e con un'ombra di un pixel del font
+(leggibile sopra l'erba). Pixelify Sans ha circa 11 pixel per em e contorni non tutti sulla
+griglia: resta con l'antialiasing, a 22/33/44 px per titoli e nomi e a 16 px per le frasi.
+Tiny5 per numeri, tasti ed etichette brevi (anche dentro menu, carte e risultati), Pixelify
+Sans per titoli e frasi. Un testo sceglie il font con `fonts::hud(size)` o `fonts::ui(size)`:
+l'hook del componente `Typeface` mette handle e antialiasing appena il testo nasce. Il vincolo
+ASCII (D-033) diventa "solo caratteri che i due font disegnano" (`data::ui_drawable`), con un
+test che lo confronta con il cmap dei file; le carte del draft passano a 212×252 px perché
+nome su due righe e descrizione su tre entrino.
 
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale
