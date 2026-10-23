@@ -3,7 +3,7 @@
 
 use bevy::prelude::*;
 
-use super::hud::XP_BAR_HEIGHT;
+use super::icons::ui_icon;
 use crate::app::AppState;
 use crate::data::{DataId, GameConfig};
 use crate::gameplay::combat::Health;
@@ -25,6 +25,10 @@ struct BossName;
 #[derive(Component)]
 struct BossFill;
 
+/// Colori della palette v1 (`docs/art/STYLE_HANDOFF.md`).
+const TEXT: Color = Color::srgb_u8(0xf4, 0xf1, 0xe8);
+const BAR_BACK: Color = Color::srgb_u8(0x0f, 0x16, 0x26);
+const OUTLINE: Color = Color::srgb_u8(0x1b, 0x14, 0x28);
 /// Rosso pericolo (`r` della palette) per il boss e gli ultimi secondi.
 const DANGER_RED: Color = Color::srgb_u8(0xe2, 0x57, 0x4c);
 /// Sotto questi secondi il conto alla rovescia diventa rosso.
@@ -58,12 +62,12 @@ pub fn boss_fraction(health: &Health) -> f32 {
 }
 
 /// Timer al centro in alto e, sotto, il riquadro del boss (nascosto finché non arriva).
-fn spawn_timer(mut commands: Commands) {
+fn spawn_timer(mut commands: Commands, assets: Res<AssetServer>) {
     commands.spawn((
         Name::new("RunTimer"),
         Node {
             position_type: PositionType::Absolute,
-            top: px(XP_BAR_HEIGHT + 2.0),
+            top: px(8),
             left: px(0),
             right: px(0),
             flex_direction: FlexDirection::Column,
@@ -74,10 +78,21 @@ fn spawn_timer(mut commands: Commands) {
         DespawnOnExit(AppState::InRun),
         children![
             (
-                TimerText,
-                Text::new(""),
-                TextFont::from_font_size(22.0),
-                TextColor(Color::WHITE),
+                Node {
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    column_gap: px(8),
+                    ..default()
+                },
+                children![
+                    ui_icon(&assets, "ui/clock.png", 10.0, 10.0),
+                    (
+                        TimerText,
+                        Text::new(""),
+                        TextFont::from_font_size(22.0),
+                        TextColor(TEXT),
+                    ),
+                ],
             ),
             (
                 BossPanel,
@@ -93,26 +108,37 @@ fn spawn_timer(mut commands: Commands) {
                         BossName,
                         Text::new(""),
                         TextFont::from_font_size(13.0),
-                        TextColor(Color::WHITE),
+                        TextColor(TEXT),
                     ),
                     (
                         Node {
-                            width: px(260),
-                            height: px(8),
-                            border: UiRect::all(px(1)),
+                            flex_direction: FlexDirection::Row,
+                            align_items: AlignItems::Center,
+                            column_gap: px(6),
                             ..default()
                         },
-                        BorderColor::all(Color::srgb(0.1, 0.05, 0.1)),
-                        BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.7)),
-                        children![(
-                            BossFill,
-                            Node {
-                                width: percent(100),
-                                height: percent(100),
-                                ..default()
-                            },
-                            BackgroundColor(DANGER_RED),
-                        )],
+                        children![
+                            ui_icon(&assets, "ui/skull.png", 10.0, 10.0),
+                            (
+                                Node {
+                                    width: px(300),
+                                    height: px(10),
+                                    border: UiRect::all(px(1)),
+                                    ..default()
+                                },
+                                BorderColor::all(OUTLINE),
+                                BackgroundColor(BAR_BACK),
+                                children![(
+                                    BossFill,
+                                    Node {
+                                        width: percent(100),
+                                        height: percent(100),
+                                        ..default()
+                                    },
+                                    BackgroundColor(DANGER_RED),
+                                )],
+                            ),
+                        ],
                     ),
                 ],
             ),
@@ -135,7 +161,7 @@ fn show_timer(
         text.0 = line;
     }
     let urgent = arrived || duration - clock.elapsed <= COUNTDOWN_WARNING_S;
-    let wanted = if urgent { DANGER_RED } else { Color::WHITE };
+    let wanted = if urgent { DANGER_RED } else { TEXT };
     if color.0 != wanted {
         color.0 = wanted;
     }

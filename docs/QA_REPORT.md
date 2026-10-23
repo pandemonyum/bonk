@@ -1,5 +1,16 @@
 # QA REPORT
 
+## 2026-10-23 — Art pass v1 nel gioco
+
+| Controllo | Esito | Prova |
+|---|---|---|
+| Unione del ramo grafico | 5 conflitti (sprite di élite/boss/segno, licenze, manifest) risolti; 43 PNG validi, nessun avviso | — |
+| Test dopo l'unione e dopo i valori di STYLE_HANDOFF | 143 unit + 79 integrazione verdi (run completa compresa) | `./scripts/check.ps1` |
+| Menu | ritratti 32×32 e icone degli elementi alla scala del canvas, colori v1 | `docs/evidence/v1-menu.png` |
+| Draft con tastiera reale | icone degli upgrade sulle carte, titolo "LEVEL UP!", scelta col tasto 2 | `docs/evidence/v1-draft-icone.png` |
+| HUD in gioco | cuori che seguono gli HP massimi (6 con 120), barra XP, icone della squadra, orologio, livello, teschio | `docs/evidence/v1-hud.png` |
+| Run x10 fino al boss (seed 5) | boss v1, cerchio rosso, barra con teschio, vittoria a 11:43, livello 37, 1592 sconfitti | `docs/evidence/v1-boss-preavviso.png` (ancora col nome "Re Gelatina", poi rinominato), `v1-vittoria.png` |
+
 ## 2026-10-23 — P0.6 (arco della run, élite, boss, menu, vittoria e restart)
 
 ### Automatici

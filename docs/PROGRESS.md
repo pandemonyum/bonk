@@ -13,6 +13,35 @@ Prossimo task eseguibile: **P0.7** (HUD leggibile con HP, compagni, tempo, abili
 formule e bilanciamento base), vedi `docs/BACKLOG.md`. In parallelo: restyle grafico sul ramo
 `claude/art-style-16bit-adda3a` (sessione separata), da unire su richiesta dell'utente.
 
+## Report tranche "art pass v1 nel gioco" (2026-10-23)
+
+```text
+Task: unione del ramo claude/art-style-16bit-adda3a, valori di STYLE_HANDOFF, icone UI
+Owner: orchestrator (unione) + pixel-art-director (asset, sessione parallela) +
+       gameplay-engineer (presentazione) + game-designer (valori)
+Stato: DONE (commit di unione 940574f + commit di integrazione)
+File: unione: assets-src/, assets/, scripts/{build-assets,validate-assets,preview-scene}.py,
+       src/world/{tiles,generation}.rs, docs/ART_BIBLE.md, docs/art/STYLE_HANDOFF.md,
+       ASSET_LICENSES.md; integrazione: src/presentation/{icons,status}.rs (nuovi),
+       src/presentation/{hud,boss_bar,draft,menu,camera,mod}.rs, src/diagnostics/overlay.rs,
+       src/world/{obstacles,mod}.rs, game-data/{attacks,enemies}.ron,
+       assets-src/ui/upgrade_join_ember.px (icona mancante)
+Comandi eseguiti (risultato):
+  git merge --no-ff --no-commit (5 conflitti risolti) + build-assets/validate-assets: 43 PNG OK
+  cargo test dopo l'unione e dopo i valori: 143 unit + 79 integrazione verdi
+  ./scripts/check.ps1                       OK (fmt, clippy, test, asset)
+  gioco vero: menu, draft con tastiera reale, run x10 fino alla vittoria con boss e preavviso
+Comportamento verificato: ritratti ed elementi nel menu; cuori (5 → 6 → 9 con gli HP), barra
+  XP, icone della squadra, timer con orologio, livello e uccisioni con teschio; icone sulle carte;
+  boss v1 con barra, teschio e cerchio rosso; vittoria a 11:43 (seed 5), stessi livello e
+  sconfitti della run headless
+Problemi trovati e risolti: icona per la carta "Nuovo compagno: Brasa" assente (aggiunta);
+  overlay di debug sopra livello e uccisioni (spostato); nome del boss non coerente con lo
+  sprite (Gran Corazzato).
+Rischi noti: font ancora FiraMono (proposte OFL da approvare); tinta di colpo anche sull'ombra.
+Prossimo task: P0.7
+```
+
 ## Report tranche P0.6 (2026-10-23)
 
 ```text

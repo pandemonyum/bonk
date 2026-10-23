@@ -38,7 +38,7 @@ attacchi sono automatici.
 | Sciame | 12 (1 colpo) | 68 px/s | 2 | quasi veloce come il player: non si semina, va abbattuto |
 | Corazzato | 120 (10 colpi) | 28 px/s | 6 | lento, blocca la strada mentre gli altri arrivano |
 | Gelatina Gigante (élite) | 400 | 34 px/s | 8 | ogni 5 s, se sei entro 160 px, si ferma 0,8 s con la linea rossa a terra e scatta ~115 px; 25 XP |
-| Re Gelatina (boss) | 3800 | 30 px/s | 15 | ogni 4 s segna un cerchio di 44 px dove sei: dopo 1 s colpisce per 25 chi è ancora dentro |
+| Gran Corazzato (boss) | 3800 | 30 px/s | 15 | ogni 4 s segna un cerchio di 44 px dove sei: dopo 1 s colpisce per 25 chi è ancora dentro |
 
 **Danni al player:** a ogni finestra di invulnerabilità si somma il danno di tutti i nemici a
 contatto. Essere circondati costa caro, uscirne in tempo no: muoversi è la difesa principale.
@@ -97,7 +97,7 @@ quando di solito la squadra ha un secondo compagno.
 | Durata | 10:00, poi le ondate si fermano ed entra il boss; sconfiggerlo è la vittoria | handoff: run di 10 minuti con boss finale |
 | Difficoltà | nemici di ondate ed élite +15% HP e +8% danno per minuto, alla nascita (a 10:00 ×2,5 e ×1,8) | la squadra cresce, le orde anche |
 | Élite | Gelatina Gigante a 2:30, poi ogni 75 s (~6 a run) | un pericolo da leggere, non da subire: si ferma e mostra la carica |
-| Boss | Re Gelatina, non scalato | tarato per la fine della run |
+| Boss | Gran Corazzato, non scalato | tarato per la fine della run |
 | Preavvisi | almeno 0,5 s (validato), lampeggio sempre più rapido | "telegraph chiaro" dell'handoff |
 | Carte compagno | comuni (P0.6, prima non comuni) | la squadra arriva nei primi livelli |
 

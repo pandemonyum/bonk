@@ -28,10 +28,10 @@ pub const ARENA_HALF_EXTENT: f32 = (ARENA_TILES * TILE_SIZE) as f32 / 2.0;
 const HEDGE_INNER: f32 = ARENA_HALF_EXTENT - (BORDER_TILES * TILE_SIZE) as f32;
 
 /// Ingombro dei corpi rispetto alla `Position`, che è il punto dei piedi (gli sprite hanno
-/// l'ancora in basso al centro). Valori S0 presi dallo sprite più grande, l'evocatore 16×21;
-/// dalla P0.1 l'ingombro arriva dai dati di ogni entità.
+/// l'ancora in basso al centro). Valori presi dallo sprite più grande, l'evocatore (16×24
+/// dall'art pass v1); dalla P0.1 l'ingombro arriva dai dati di ogni entità.
 const BODY_HALF_WIDTH: f32 = 8.0;
-const BODY_HEIGHT: f32 = 21.0;
+const BODY_HEIGHT: f32 = 24.0;
 const FEET_MARGIN: f32 = 2.0;
 
 /// Rettangolo percorribile per la `Position` (piedi) delle entità.
@@ -112,7 +112,7 @@ mod tests {
         assert_eq!(HEDGE_INNER, 2016.0);
         // fianchi a 8 px dalla siepe, piedi a 2 px dal bordo sud, testa a filo del bordo nord
         assert_eq!(arena.min, Vec2::new(-2008.0, -2014.0));
-        assert_eq!(arena.max, Vec2::new(2008.0, 1995.0));
+        assert_eq!(arena.max, Vec2::new(2008.0, 1992.0));
         assert_eq!(arena.max.y + BODY_HEIGHT, HEDGE_INNER);
         assert!(arena.contains(Vec2::ZERO));
         assert!(!arena.contains(Vec2::new(0.0, 2000.0)));

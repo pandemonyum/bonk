@@ -43,7 +43,9 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `presentation::camera` | canvas 480×270, camera mondo/schermo, scala intera, offset mezzo pixel, follow | sì |
 | `presentation::sprites` | observer `On<Add<Player/Enemy>>` → `Sprite`; interpolazione + snap al pixel + y-sort; tinte di colpo e rallentamento | sì |
 | `presentation::attacks` | foglie come sprite; anello di gocce figlie dell'onda, al raggio interpolato e arrotondato al pixel | sì |
-| `presentation::hud` | livello, HP, tempo, barra XP, promemoria comandi, banner pausa e sconfitta, errori dei dati | sì |
+| `presentation::hud` | promemoria comandi, banner pausa, errori dei dati | sì |
+| `presentation::icons` | `PixelScale` (pixel logici per texel, aggiornato dalla camera), `PixelIcon`, `ui_icon`: icone di `assets/ui/` alla scala intera del canvas | sì |
+| `presentation::status` | in alto a sinistra cuori (20 HP l'uno) con HP, barra XP, icone degli elementi della squadra; in alto a destra livello e teschio con le uccisioni | sì |
 | `presentation::menu` | menu iniziale: carte dei compagni (sprite, elemento, attacco, barre relative), 1/2/3, frecce, clic, Invio | sì |
 | `presentation::results` | risultati di sconfitta e vittoria: tempo, livello, nemici, danni, squadra, potenziamenti | sì |
 | `presentation::boss_bar` | conto alla rovescia al centro in alto, poi nome e barra HP del boss | sì |

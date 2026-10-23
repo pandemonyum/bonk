@@ -60,8 +60,11 @@ opzioni, browser, release candidate).
   rivedere con la difficoltà della P0.6 (primo minuto più morbido, crescita più graduale) e
   con una prova umana. Una sonda con scelte sensate (non la prima carta) darebbe una misura
   più vicina a un giocatore.
-- Sprite di élite, boss e segni di pericolo sono segnaposto P0.6: li sostituisce l'art pass
-  della sessione parallela (ramo `art-style-16bit`), con le icone dell'interfaccia da collegare.
+- Font pixel: proposte OFL in `docs/art/STYLE_HANDOFF.md` §4 (Tiny5 per l'HUD, Pixelify Sans per
+  draft, menu e risultati), da approvare dall'utente prima di scaricarle; poi togliere il vincolo
+  ASCII (D-033).
+- La tinta di colpo e di rallentamento colora anche l'ombra cotta negli sprite v1 (accettato;
+  in alternativa l'ombra come sprite figlio).
 - Bilanciamento: un bot che schiva sopravvive 13 minuti ma non vince, l'autoplay cieco muore a
   ~2 minuti; serve una prova umana per tarare difficoltà per minuto, élite e boss (P0.7).
 - L'élite carica anche quando è già a contatto (scatto inutile, innocuo): valutare una

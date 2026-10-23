@@ -1,129 +1,28 @@
-//! HUD della run: livello, HP e tempo, barra XP, promemoria comandi, pausa (timer e boss in
-//! `boss_bar`); stato dei dati (caricamento ed errori) sempre. Gli
-//! elementi della run nascono entrando in `InRun` e spariscono uscendo: nel menu non restano.
-//! L'HUD di gioco completo (compagni, abilità) arriva con la P0.7.
+//! HUD della run: promemoria comandi e pausa (stato del giocatore in `status`, timer e boss in
+//! `boss_bar`); stato dei dati (caricamento ed errori) sempre. Gli elementi della run nascono
+//! entrando in `InRun` e spariscono uscendo: nel menu non restano.
 
 use bevy::prelude::*;
 
 use crate::app::{AppState, RunPhase};
 use crate::data::DataStatus;
-use crate::gameplay::combat::{Health, RunStats};
-use crate::gameplay::player::Player;
-use crate::gameplay::progression::Progression;
-use crate::gameplay::run::RunClock;
 
 const HINT: &str = "WASD/frecce muovi   Esc pausa   F5 ricomincia   F3 debug   F12 screenshot";
 
 #[derive(Component)]
 struct DataStatusPanel;
 
-#[derive(Component)]
-struct VitalsText;
-
-/// Parte piena della barra XP.
-#[derive(Component)]
-struct XpFill;
-
-/// Altezza della barra XP sul bordo superiore della finestra.
-pub(super) const XP_BAR_HEIGHT: f32 = 5.0;
-/// Blu delle gemme (`u` della palette): la barra si legge come "esperienza".
-const XP_BLUE: Color = Color::srgb_u8(0x4f, 0xa4, 0xe0);
 pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_data_status_panel)
-            .add_systems(
-                OnEnter(AppState::InRun),
-                (spawn_hint, spawn_xp_bar, spawn_vitals),
-            )
+            .add_systems(OnEnter(AppState::InRun), spawn_hint)
             .add_systems(OnEnter(RunPhase::Paused), spawn_pause_banner)
             .add_systems(
                 Update,
-                (
-                    show_vitals,
-                    show_xp.run_if(resource_changed::<Progression>),
-                    show_data_status.run_if(resource_changed::<DataStatus>),
-                ),
+                show_data_status.run_if(resource_changed::<DataStatus>),
             );
-    }
-}
-
-/// Riga in alto a sinistra: "Lv 3   HP 85/100   02:31   sconfitti 57".
-pub fn vitals_text(
-    level: u32,
-    health: Option<&Health>,
-    clock: &RunClock,
-    stats: &RunStats,
-) -> String {
-    let hp = health.map_or("-".to_string(), |h| {
-        format!("{:.0}/{:.0}", h.current.max(0.0), h.max)
-    });
-    format!(
-        "Lv {level}   HP {hp}   {}   sconfitti {}",
-        clock.label(),
-        stats.defeated
-    )
-}
-
-fn spawn_xp_bar(mut commands: Commands) {
-    commands.spawn((
-        Name::new("XpBar"),
-        Node {
-            position_type: PositionType::Absolute,
-            top: px(0),
-            left: px(0),
-            width: percent(100),
-            height: px(XP_BAR_HEIGHT),
-            ..default()
-        },
-        BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6)),
-        DespawnOnExit(AppState::InRun),
-        children![(
-            XpFill,
-            Node {
-                width: percent(0),
-                height: percent(100),
-                ..default()
-            },
-            BackgroundColor(XP_BLUE),
-        )],
-    ));
-}
-
-fn show_xp(progression: Res<Progression>, mut fill: Single<&mut Node, With<XpFill>>) {
-    fill.width = percent(100.0 * progression.fraction().clamp(0.0, 1.0));
-}
-
-fn spawn_vitals(mut commands: Commands) {
-    commands.spawn((
-        Name::new("Vitals"),
-        VitalsText,
-        Text::new(""),
-        TextFont::from_font_size(14.0),
-        TextColor(Color::WHITE),
-        BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.45)),
-        Node {
-            position_type: PositionType::Absolute,
-            top: px(XP_BAR_HEIGHT + 4.0),
-            left: px(8),
-            padding: UiRect::axes(px(6), px(2)),
-            ..default()
-        },
-        DespawnOnExit(AppState::InRun),
-    ));
-}
-
-fn show_vitals(
-    clock: Res<RunClock>,
-    stats: Res<RunStats>,
-    progression: Res<Progression>,
-    player: Query<&Health, With<Player>>,
-    mut text: Single<&mut Text, With<VitalsText>>,
-) {
-    let line = vitals_text(progression.level, player.single().ok(), &clock, &stats);
-    if text.0 != line {
-        text.0 = line;
     }
 }
 
@@ -220,29 +119,6 @@ fn spawn_pause_banner(mut commands: Commands) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn vitals_line() {
-        let health = Health {
-            current: 84.6,
-            max: 100.0,
-        };
-        let stats = RunStats {
-            defeated: 57,
-            ..default()
-        };
-        let clock = RunClock { elapsed: 151.0 };
-        assert_eq!(
-            vitals_text(3, Some(&health), &clock, &stats),
-            "Lv 3   HP 85/100   02:31   sconfitti 57"
-        );
-        let dead = Health {
-            current: -7.0,
-            max: 100.0,
-        };
-        assert!(vitals_text(1, Some(&dead), &clock, &stats).contains("HP 0/100"));
-        assert!(vitals_text(1, None, &clock, &stats).contains("HP -"));
-    }
 
     #[test]
     fn status_messages() {

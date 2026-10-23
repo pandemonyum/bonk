@@ -7,15 +7,17 @@ use bevy::picking::hover::Hovered;
 use bevy::prelude::*;
 use bevy::ui_widgets::{Activate, Button};
 
+use super::icons::{element_icon_path, ui_icon};
 use crate::app::{AfterLoading, AppState, RunSetup, start_run};
 use crate::data::GameConfig;
 use crate::data::schema::{AttackPattern, CompanionData, Element};
 
-const PANEL: Color = Color::srgba(0.05, 0.05, 0.12, 0.97);
-const CARD: Color = Color::srgb(0.09, 0.09, 0.18);
-const CARD_HOVER: Color = Color::srgb(0.15, 0.15, 0.28);
-const GOLD: Color = Color::srgb(0.95, 0.78, 0.3);
-const MUTED: Color = Color::srgb(0.32, 0.34, 0.45);
+/// Colori della palette v1 (`docs/art/STYLE_HANDOFF.md`).
+const PANEL: Color = Color::srgb_u8(0x0f, 0x16, 0x26);
+const CARD: Color = Color::srgb_u8(0x1b, 0x26, 0x40);
+const CARD_HOVER: Color = Color::srgb_u8(0x2b, 0x3a, 0x5e);
+const GOLD: Color = Color::srgb_u8(0xf2, 0xc9, 0x4c);
+const MUTED: Color = Color::srgb_u8(0x5a, 0x6d, 0x99);
 
 /// Compagno selezionato, per id: resta giusto anche se una ricarica cambia l'ordine.
 #[derive(Resource, Debug, Clone, PartialEq, Eq)]
@@ -40,6 +42,11 @@ impl Plugin for MenuPlugin {
                     .run_if(in_state(AppState::MainMenu)),
             );
     }
+}
+
+/// Ritratto del compagno nella scelta (`assets/ui/`, uno per id).
+pub fn portrait_path(companion: &CompanionData) -> String {
+    format!("ui/portrait_{}.png", companion.id)
 }
 
 /// Riga descrittiva del pattern di attacco.
@@ -197,7 +204,8 @@ fn spawn_card(
     (dps, reach): (f32, f32),
 ) -> Entity {
     let (element, color) = element_label(companion.element);
-    let image = assets.load(companion.sprite.clone());
+    let portrait = ui_icon(assets, &portrait_path(companion), 32.0, 32.0);
+    let element_icon = ui_icon(assets, element_icon_path(companion.element), 16.0, 16.0);
     let card = commands
         .spawn((
             Name::new(format!("Carta {}", companion.id)),
@@ -217,19 +225,23 @@ fn spawn_card(
             BackgroundColor(CARD),
             children![
                 (
-                    Text::new(format!("[{}]", index + 1)),
-                    TextFont::from_font_size(11.0),
-                    TextColor(Color::srgba(1.0, 1.0, 1.0, 0.6)),
-                ),
-                // sprite ingrandito ×3: nearest-neighbor, i pixel restano netti
-                (
-                    ImageNode::new(image),
                     Node {
-                        width: px(48),
-                        height: px(51),
+                        width: percent(100),
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
                         ..default()
                     },
+                    children![
+                        (
+                            Text::new(format!("[{}]", index + 1)),
+                            TextFont::from_font_size(11.0),
+                            TextColor(Color::srgba(1.0, 1.0, 1.0, 0.6)),
+                        ),
+                        element_icon,
+                    ],
                 ),
+                // ritratto dell'art pass alla scala del canvas: i pixel restano netti
+                portrait,
                 (
                     Text::new(companion.display_name.clone()),
                     TextFont::from_font_size(18.0),

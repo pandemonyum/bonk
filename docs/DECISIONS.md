@@ -236,7 +236,7 @@ non hanno contorno per non scurire l'orda che attraversano.
 
 ## D-038 Arco della run: boss allo scadere del timer, vittoria quando cade
 Il timer di 10 minuti (`stages.ron: run.duration_s`) porta al boss: a quel punto ondate ed élite
-si fermano e nasce il Re Gelatina, fuori vista; batterlo è la vittoria (stato `Victory`, deciso in
+si fermano e nasce il boss (Gran Corazzato), fuori vista; batterlo è la vittoria (stato `Victory`, deciso in
 `PostUpdate` come la sconfitta, che vince se player e boss cadono nello stesso passo). La
 difficoltà cresce in modo lineare per minuto su HP e danno dei nemici di ondate ed élite, applicata
 alla nascita (chi è già in campo non cambia); il boss non è scalato. Élite a intervalli fissi, non
@@ -270,6 +270,20 @@ richiedono il primo, "+1 proiettile" il secondo. Le altre carte valgono per tutt
 `AutoPick` (autoplay, simulazioni) sceglie una carta "nuovo compagno" se c'è, altrimenti la
 prima: la squadra è il potenziamento più grande e ogni giocatore la prende. Prima sceglieva la
 prima carta e le sonde misuravano soprattutto la sfortuna del draft.
+
+## D-043 Art pass v1 nel gioco: icone alla scala del canvas, valori dagli sprite *(utente)*
+Il ramo dell'art pass è unito in `main` (conflitti: vince la versione grafica degli sprite di
+élite, boss e segno di pericolo; licenze unite; manifest rigenerato). Le icone di `assets/ui/`
+sono disegnate a texel del canvas: l'HUD resta a risoluzione nativa (D-013) e ogni icona prende
+`lato × PixelScale`, cioè la scala intera del canvas divisa per il DPI della finestra, così
+occupa gli stessi pixel fisici di uno sprite del mondo e resta nitida. Cuori al posto della
+riga di testo degli HP (uno ogni 20 HP, l'ultimo vale il resto), barra XP sotto i cuori, icone
+degli elementi della squadra, orologio, teschio, icone delle carte, ritratti nel menu; colori
+dei pannelli dalla palette v1. I valori di gioco cambiati dalle dimensioni nuove (hurtbox,
+altezze di sparo e del centro di onda e foglie, impronte di roccia e albero, ingombro del
+corpo) sono quelli proposti in `docs/art/STYLE_HANDOFF.md`. Il boss diventa "Gran Corazzato":
+lo sprite è un colosso a cupola della famiglia del corazzato, non una gelatina. Il font resta
+FiraMono finché l'utente non sceglie tra le proposte OFL dell'handoff (testi ancora ASCII).
 
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale

@@ -35,8 +35,9 @@ impl ObstacleKind {
     /// Impronta a terra: (raggio, altezza del centro sopra la base dello sprite).
     pub const fn footprint(self) -> (f32, f32) {
         match self {
-            Self::Rock => (7.0, 3.0),
-            Self::Tree => (4.0, 2.0),
+            // art pass v1: la base sta 1-2 px sopra il fondo dello sprite (ombra cotta)
+            Self::Rock => (7.0, 4.0),
+            Self::Tree => (4.0, 4.0),
         }
     }
 }

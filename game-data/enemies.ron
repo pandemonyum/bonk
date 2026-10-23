@@ -14,7 +14,7 @@
             // ~53% del player: si distanzia ma non si ignora
             speed: 40.0,
             // cerchio colpibile, centrato `center_offset` px sopra i piedi
-            hurtbox: (radius: 7.0, center_offset: 6.0),
+            hurtbox: (radius: 7.0, center_offset: 7.0),
             // collisioni con gli ostacoli; max 9 (varco minimo 18 px)
             footprint_radius: 6.0,
             // distanza a cui smette di avanzare verso il player
@@ -33,10 +33,10 @@
             max_hp: 12.0,
             // quasi quanto il player: non si semina, va abbattuto
             speed: 68.0,
-            hurtbox: (radius: 5.0, center_offset: 4.0),
+            hurtbox: (radius: 6.0, center_offset: 5.0),
             footprint_radius: 4.0,
             contact_distance: 8.0,
-            separation_radius: 10.0,
+            separation_radius: 12.0,
             contact_damage: 2.0,
             xp: 1,
         ),
@@ -62,10 +62,10 @@
             // ~33 colpi base: va affrontata, non ignorata
             max_hp: 400.0,
             speed: 34.0,
-            hurtbox: (radius: 11.0, center_offset: 9.0),
+            hurtbox: (radius: 12.0, center_offset: 10.0),
             footprint_radius: 9.0,
-            contact_distance: 14.0,
-            separation_radius: 22.0,
+            contact_distance: 16.0,
+            separation_radius: 26.0,
             contact_damage: 8.0,
             // vale la deviazione: quasi un livello intero a metà run
             xp: 25,
@@ -74,17 +74,18 @@
         ),
         (
             id: "boss_king",
-            display_name: "Re Gelatina",
+            // colosso a cupola della famiglia del corazzato (art pass v1)
+            display_name: "Gran Corazzato",
             sprite: "sprites/boss_enemy.png",
             // obiettivo GDD: sconfitto da una build media in 60-120 s (run completa con
             // l'autoplay: 5000 HP = 138 s, quindi 3800)
             max_hp: 3800.0,
             speed: 30.0,
-            hurtbox: (radius: 18.0, center_offset: 16.0),
+            hurtbox: (radius: 22.0, center_offset: 22.0),
             // impronta piccola: passa tra gli ostacoli come gli altri (varco minimo 18 px)
             footprint_radius: 9.0,
-            contact_distance: 20.0,
-            separation_radius: 30.0,
+            contact_distance: 28.0,
+            separation_radius: 44.0,
             contact_damage: 15.0,
             xp: 0,
             // cerchio rosso dove sei per 1 s, poi colpisce: 25 danni a chi resta dentro

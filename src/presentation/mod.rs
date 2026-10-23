@@ -6,9 +6,11 @@ pub mod boss_bar;
 pub mod camera;
 pub mod draft;
 pub mod hud;
+pub mod icons;
 pub mod menu;
 pub mod results;
 pub mod sprites;
+pub mod status;
 pub mod telegraphs;
 
 use bevy::prelude::*;
@@ -28,6 +30,8 @@ impl Plugin for PresentationPlugin {
             camera::CameraPlugin,
             sprites::SpritesPlugin,
             hud::HudPlugin,
+            icons::IconsPlugin,
+            status::StatusPlugin,
             boss_bar::BossBarPlugin,
             draft::DraftUiPlugin,
             attacks::AttackArtPlugin,

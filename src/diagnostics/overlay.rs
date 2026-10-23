@@ -37,7 +37,8 @@ fn spawn_overlay(mut commands: Commands, options: Res<LaunchOptions>) {
         BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6)),
         Node {
             position_type: PositionType::Absolute,
-            top: px(6),
+            // sotto livello e uccisioni dell'HUD
+            top: px(64),
             right: px(6),
             padding: UiRect::all(px(4)),
             ..default()

@@ -15,7 +15,7 @@
             pattern: Projectile((
                 // px/s; il validatore impedisce velocità che attraversano un nemico in un passo
                 speed: 220.0,
-                radius: 3.0,
+                radius: 4.0,
                 // 0,85 s × 220 px/s ≈ 187 px: un po' oltre la gittata, per chi si sposta
                 lifetime_s: 0.85,
                 sprite: "sprites/fireball.png",
@@ -25,7 +25,7 @@
                 // nemici extra attraversati da ogni proiettile
                 pierce: 0,
                 // altezza di partenza del colpo sopra i piedi di chi attacca
-                muzzle_height: 8.0,
+                muzzle_height: 9.0,
             )),
         ),
         (
@@ -41,7 +41,7 @@
                 // i nemici colpiti vanno al 55% della velocità per 1,5 s
                 slow: 0.55,
                 slow_s: 1.5,
-                center_height: 8.0,
+                center_height: 10.0,
                 sprite: "sprites/droplet.png",
             )),
         ),
@@ -57,7 +57,7 @@
                 // mezzo giro al secondo abbondante: 34 px × 3,1 rad/s ≈ 105 px/s
                 angular_speed_deg: 180.0,
                 radius: 5.0,
-                center_height: 8.0,
+                center_height: 10.0,
                 sprite: "sprites/leaf.png",
             )),
         ),

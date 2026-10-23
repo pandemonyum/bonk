@@ -5,6 +5,7 @@ use bevy::picking::hover::Hovered;
 use bevy::prelude::*;
 use bevy::ui_widgets::{Activate, Button};
 
+use super::icons::ui_icon;
 use crate::app::RunPhase;
 use crate::data::GameConfig;
 use crate::data::schema::{Effect, Rarity, UpgradeData};
@@ -12,9 +13,13 @@ use crate::gameplay::progression::Progression;
 use crate::gameplay::upgrades::{ChooseUpgrade, Draft, UpgradeStacks};
 
 const CARD_WIDTH: f32 = 190.0;
-const CARD_HEIGHT: f32 = 200.0;
-const CARD_FILL: Color = Color::srgba(0.07, 0.06, 0.12, 0.95);
-const CARD_FILL_HOVER: Color = Color::srgba(0.16, 0.14, 0.26, 0.97);
+const CARD_HEIGHT: f32 = 236.0;
+/// Pannello e luce delle carte dalla palette v1 (`docs/art/STYLE_HANDOFF.md`).
+const CARD_FILL: Color = Color::srgb_u8(0x1b, 0x26, 0x40);
+const CARD_FILL_HOVER: Color = Color::srgb_u8(0x2b, 0x3a, 0x5e);
+const GOLD: Color = Color::srgb_u8(0xf2, 0xc9, 0x4c);
+const TEXT: Color = Color::srgb_u8(0xf4, 0xf1, 0xe8);
+const TEXT_DIM: Color = Color::srgb_u8(0xa3, 0xb3, 0xd3);
 
 /// Radice della schermata, ricostruita a ogni draft nuovo.
 #[derive(Component)]
@@ -57,6 +62,7 @@ pub fn card_footer(key: usize, upgrade: &UpgradeData, stacks_now: u32) -> String
 /// Ricostruisce la schermata quando arriva un draft nuovo (anche più di uno di fila).
 fn show_draft(
     mut commands: Commands,
+    assets: Res<AssetServer>,
     draft: Res<Draft>,
     config: Res<GameConfig>,
     stacks: Res<UpgradeStacks>,
@@ -99,9 +105,9 @@ fn show_draft(
             DespawnOnExit(RunPhase::LevelUp),
             children![
                 (
-                    Text::new(format!("LIVELLO {level}")),
+                    Text::new(format!("LEVEL UP!  LIVELLO {level}")),
                     TextFont::from_font_size(30.0),
-                    TextColor(Color::srgb(0.55, 0.8, 1.0)),
+                    TextColor(GOLD),
                 ),
                 (
                     Text::new(subtitle),
@@ -124,13 +130,25 @@ fn show_draft(
         let Some(upgrade) = config.upgrades.get(index) else {
             continue; // dati appena ricaricati: la run sta per ripartire
         };
-        let card = spawn_card(&mut commands, slot, upgrade, stacks.of(index));
+        let card = spawn_card(&mut commands, &assets, slot, upgrade, stacks.of(index));
         commands.entity(row).add_child(card);
     }
 }
 
-fn spawn_card(commands: &mut Commands, slot: usize, upgrade: &UpgradeData, stacks: u32) -> Entity {
+/// Icona della carta in `assets/ui/` (una per id, disegnata dall'art pass).
+pub fn upgrade_icon_path(upgrade: &UpgradeData) -> String {
+    format!("ui/upgrade_{}.png", upgrade.id)
+}
+
+fn spawn_card(
+    commands: &mut Commands,
+    assets: &AssetServer,
+    slot: usize,
+    upgrade: &UpgradeData,
+    stacks: u32,
+) -> Entity {
     let (rarity, border) = rarity_style(upgrade.rarity);
+    let icon = ui_icon(assets, &upgrade_icon_path(upgrade), 16.0, 16.0);
     commands
         .spawn((
             Name::new(format!("Carta {}", upgrade.id)),
@@ -155,14 +173,21 @@ fn spawn_card(commands: &mut Commands, slot: usize, upgrade: &UpgradeData, stack
                     TextColor(border),
                 ),
                 (
+                    Node {
+                        justify_content: JustifyContent::Center,
+                        ..default()
+                    },
+                    children![icon],
+                ),
+                (
                     Text::new(upgrade.name.clone()),
                     TextFont::from_font_size(18.0),
-                    TextColor(Color::WHITE),
+                    TextColor(TEXT),
                 ),
                 (
                     Text::new(upgrade.description.clone()),
                     TextFont::from_font_size(13.0),
-                    TextColor(Color::srgba(1.0, 1.0, 1.0, 0.85)),
+                    TextColor(TEXT_DIM),
                     Node {
                         flex_grow: 1.0,
                         ..default()
