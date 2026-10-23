@@ -1,0 +1,10 @@
+# Segno di pericolo a terra, 6x6, ancora al centro: anello rosso con luce interna e contorno
+# scuro. Tanti in cerchio disegnano l'area di un attacco in arrivo (come le gocce dell'onda).
+out: sprites/telegraph.png
+---
+.jrrj.
+jrXXrj
+rX..Xr
+rX..Xr
+jrXXrj
+.jrrj.

@@ -1,0 +1,12 @@
+# Cuore vuoto dell'HUD, 10x9: contorno scuro e fondo blu notte, leggibile sul prato.
+out: ui/heart_empty.png
+---
+.kkk..kkk.
+k322kk221k
+k32222221k
+k22222211k
+k22222111k
+.k222111k.
+..k2211k..
+...k11k...
+....kk....

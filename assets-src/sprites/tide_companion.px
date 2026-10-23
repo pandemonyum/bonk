@@ -1,20 +1,23 @@
-# Compagno d'acqua (nome di lavorazione "Gocci"), placeholder P0.5. Corpo tondo e largo con
-# una cresta d'onda in cima: diverso dalla fiamma alta e appuntita di Brasa e dalle gelatine
-# nemiche (basse, viola). Teal "alleato", mai il blu delle gemme XP.
+# Compagno d'acqua "Gocci" (nome di lavorazione), 18x18, stile v1. Bolla larga e tonda con una
+# cresta d'onda che si arriccia in avanti (schiuma bianca, interno del ricciolo scuro). Teal
+# alleato, pancia chiara L, mai il blu delle gemme XP; ombra a terra.
 out: sprites/tide_companion.png
-mirror: true
 ---
-......kk
-.....kll
-....kkcl
-..kkcccc
-.kclcccc
-kcllcccc
-kclwkccc
-kccwkccc
-kCcccccc
-kCCccccc
-.kCCcccc
-.kkCCCcc
-...kkCCC
-.....kkk
+.......kkkk.......
+.....kkLLllk......
+....kLllccLlk.....
+...klccCnnkwk.....
+...klcCnk.kk......
+..kLlcCk..........
+..kLlcckkkkkk.....
+.kLllcccccccCkk...
+.kLllcccccccccCk..
+kLlwkccccccwkcCCk.
+klLkkcccccckkcCCk.
+kllccccnnccccCCCCk
+kllcLLLLLLLLcCCCCk
+klcLLwLLLLLLLcCCnk
+.kcLLLLLLLLLLcCnk.
+..kCcLLLLLLLcCnk..
+...kkCCCCCCCCkk...
+....99999999999...

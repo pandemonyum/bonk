@@ -1,15 +1,17 @@
-# Roccia (ostacolo), placeholder P0.1. Luce in alto a sinistra, ombra in basso a destra.
-# Impronta di collisione: cerchio r=7 a 3 px sopra la base (src/world/obstacles.rs).
+# Roccia (ostacolo), 16x12, stile v1: quattro toni di pietra (6/t/T/5), luce in alto a sinistra,
+# crepa e ombra a terra. Impronta di collisione proposta: cerchio r=7 a 4 px sopra la base
+# (vedi docs/art/STYLE_HANDOFF.md; il valore vive in src/world/obstacles.rs).
 out: sprites/rock.png
-mirror: false
 ---
-......kkkk......
-....kkttttkk....
-...kttwtttttk...
-..kttwttttttTk..
-.kttttttttttTTk.
-.ktttttttttTTTk.
-kTtttttttttTTTTk
-kTTtttttttTTTTTk
-.kTTTTTTTTTTTTk.
-..kkkkkkkkkkkk..
+.....kkkkk......
+...kk66t66kk....
+..k666tttttTk...
+.k66ttttt6tTTk..
+.k6tttttttTTTTk.
+k6ttttt5ttTTTT5k
+kttttt5tTTTTT55k
+kTtttt5TTTTT555k
+kTTTTTTTTT55555k
+.k5TTTTT555555k.
+.9kk55555555kk9.
+..999kkkkkk999..

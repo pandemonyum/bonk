@@ -1,8 +1,8 @@
-# Goccia del fronte dell'onda di Gocci, 4x4, senza contorno: tante in cerchio disegnano l'anello
-# senza scurire l'orda che attraversano.
+# Goccia del fronte dell'onda di Gocci, 4x4, ancora al centro, senza contorno: tante in cerchio
+# disegnano l'anello senza scurire l'orda che attraversano (D-037).
 out: sprites/droplet.png
 ---
-.ll.
-lwwl
-lccl
+.LL.
+Lwwl
+lllc
 .cc.

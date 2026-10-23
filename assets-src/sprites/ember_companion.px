@@ -1,23 +1,25 @@
-# Compagno di fuoco (nome di lavorazione "Brasa"), placeholder P0.2.
-# Silhouette a goccia di fiamma (punta in alto) per non confondersi con le gelatine nemiche,
-# che sono basse e larghe. Arancio "fuoco-alleato", mai viola (nemici) né rosso (pericolo).
+# Compagno di fuoco "Brasa" (nome di lavorazione), 16x20, stile v1. Goccia di fiamma con la
+# punta piegata a destra: alta e appuntita, non somiglia alle gelatine nemiche. Rampa fuoco
+# y/f/o/O con pancia gialla e contorno scuro selettivo (x) a destra; ombra a terra.
 out: sprites/ember_companion.png
-mirror: true
 ---
-.......k
-......ky
-......ky
-.....kyy
-.....kog
-....kooy
-....kogy
-...koogg
-..koooog
-..kooooo
-.kowkooo
-.kowkooo
-.kOooooo
-.kOOoooo
-..kOOooo
-...kkOOO
-.....kkk
+.........kk.....
+........kyk.....
+........kfyk....
+.......kffyk....
+......kfoffk....
+.....kffoffok...
+....kfffoofOk...
+...kffoooooOOk..
+...kfoooooooOk..
+..kfowkoowkoOOk.
+..kfokkookkoOOk.
+..kfooooooooOOk.
+..kfoyyyyyyoOOk.
+..koyyyyyyyyoOk.
+..koyyyfyyyyOOk.
+..kOoyyyyyyoOxk.
+...kOooooooOxk..
+...kkOOOOOOxkk..
+....kOk..kOk....
+...999999999....

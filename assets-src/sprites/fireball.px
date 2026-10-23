@@ -1,10 +1,12 @@
-# Proiettile del compagno di fuoco, 6x6, nucleo chiaro per leggerlo in mezzo alle orde.
+# Proiettile di Brasa, 8x8, ancora al centro: sfera di fuoco simmetrica (vola in ogni
+# direzione, niente scia orientata) con nucleo bianco/giallo e contorno fuoco scuro x.
 out: sprites/fireball.png
-mirror: true
 ---
-.kk
-kwy
-kyg
-kgo
-.ko
-..k
+..xxxx..
+.xoffox.
+xofyyfox
+xfywyyfx
+xfyyyyOx
+xofyyfOx
+.xOooOx.
+..xxxx..

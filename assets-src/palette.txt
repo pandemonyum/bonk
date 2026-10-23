@@ -1,35 +1,77 @@
-# Palette "Germoglio" v0 — originale del progetto. Un carattere = un colore.
+# Palette "Germoglio" v1 — originale del progetto. Un carattere = un colore.
 # Formato: <carattere> <hex RGB> <ruolo>. '.' è sempre trasparente.
-# Regola colori per ruolo (vedi docs/ART_BIBLE.md): alleati teal/oro, nemici viola/rosso,
-# gemme XP blu, ambiente verdi/terra a saturazione più bassa.
+# Regola colori per ruolo (vedi docs/ART_BIBLE.md): alleati teal/oro/fuoco/lime, nemici
+# viola/rosso, gemme XP blu, ambiente verdi/terra a saturazione più bassa, UI blu notte.
+# v1 (art pass 16-bit): ogni materiale ha una rampa di 3-4 toni, dal riflesso allo scuro.
+# I caratteri della v0 mantengono il loro ruolo; i nuovi completano le rampe.
+#
+# Contorno e neutri
 k 1b1428 contorno
 K 3a2f4f ombra-neutra
 w f4f1e8 bianco
+9 3d5235 ombra-a-terra
+# Pelle
 s f2c29b pelle
 S c98e6c pelle-ombra
+# Alleato teal (mantello, Gocci): riflesso, luce, base, ombra, scuro
+L bdf2e4 alleato-teal-riflesso
+l 6cc7c2 alleato-teal-luce
 c 2f8f9d alleato-teal
 C 1f5a6b alleato-teal-ombra
-l 6cc7c2 alleato-teal-luce
+n 15374a alleato-teal-scuro
+# Oro (fermagli, seme di Frond): luce = y, base, ombra, scuro
 g f2c94c oro
 G b8862e oro-ombra
-o f08a3c fuoco-alleato
-O b85a2a fuoco-alleato-ombra
-p 8e5bc8 nemico-viola
-P 5b3a8c nemico-viola-ombra
-q c79bf0 nemico-viola-luce
-r e2574c rosso-pericolo
-R a8323a rosso-pericolo-ombra
-a 5fae4e erba
-A 3f8a43 erba-ombra
-b 8fd16a erba-luce
-B 2c6b3a siepe
-y ffd65c fiore-giallo
-m f28ab8 fiore-rosa
-d b9875a terra
-D 8a5d3b terra-ombra
-t 9aa0a8 pietra
-T 5f6670 pietra-ombra
+h 74491f oro-scuro
+# Fuoco alleato (Brasa): nucleo y, luce, base, ombra, scuro. Arancio, mai il rosso pericolo.
+y ffd65c giallo-fiore-e-nucleo-fuoco
+f ffaa45 fuoco-alleato-luce
+o f27a2e fuoco-alleato
+O b84d22 fuoco-alleato-ombra
+x 6b2a1c fuoco-alleato-scuro
+# Natura alleato (Frond, foglie): più chiaro e giallo dell'erba
+i e8f7a0 natura-alleato-luce
 e b8e05a natura-alleato
 E 74a83c natura-alleato-ombra
+v 3c6526 natura-alleato-scuro
+# Nemici viola: riflesso, luce, base, ombra, scuro
+Q ecd6ff nemico-viola-riflesso
+q c79bf0 nemico-viola-luce
+p 8e5bc8 nemico-viola
+P 5b3a8c nemico-viola-ombra
+z 35205a nemico-viola-scuro
+# Pericoli e danni (anche cuori HP nella UI): luce, base, ombra, scuro
+X ff9a7a rosso-pericolo-luce
+r e2574c rosso-pericolo
+R a8323a rosso-pericolo-ombra
+j 5c1a2c rosso-pericolo-scuro
+# Gemme XP: riflesso, base, ombra, scuro
+W c8eeff xp-riflesso
 u 4fa4e0 xp-blu
 U 2f6fb0 xp-blu-ombra
+V 1c3c7a xp-blu-scuro
+# Ambiente: erba (luce, base, ombra), siepe/chioma, verde più scuro
+b 84c25c erba-luce
+a 559c47 erba
+A 3c7f3f erba-ombra
+B 2a6238 siepe
+N 1b452e verde-scuro
+# Terra e legno: luce, base, ombra, scuro
+7 e0b27a terra-luce
+d c08b5a terra
+D 8f603d terra-ombra
+8 5a3a26 terra-scura
+# Pietra: luce, base, ombra, scuro
+6 cdd2d8 pietra-luce
+t 9aa0a8 pietra
+T 5f6670 pietra-ombra
+5 3b404c pietra-scura
+# Fiori (giallo = y)
+m f28ab8 fiore-rosa
+M b8507e fiore-rosa-ombra
+# Interfaccia: blu notte dei pannelli e bordi neutri
+0 0f1626 ui-notte-scuro
+1 1b2640 ui-notte
+2 2b3a5e ui-notte-luce
+3 5a6d99 ui-bordo
+4 a3b3d3 ui-bordo-luce
