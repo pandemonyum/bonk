@@ -1,5 +1,5 @@
 //! Comandi del giocatore (solo client): tastiera → `MoveIntent`, pausa, pausa su perdita
-//! focus, F5 per ricominciare la run, tasti 1/2/3 nel draft.
+//! focus, F5 per ricominciare la run, tasti 1/2/3 nel draft, Invio/M sui risultati.
 
 use bevy::prelude::*;
 use bevy::window::WindowFocused;
@@ -7,7 +7,7 @@ use bevy::window::WindowFocused;
 use super::player::{MoveIntent, direction_from_keys};
 use super::upgrades::ChooseUpgrade;
 use crate::LaunchOptions;
-use crate::app::{AppState, RunPhase, restart_run};
+use crate::app::{AfterLoading, AppState, RunPhase, back_to_menu, restart_run};
 
 pub struct PlayerControlsPlugin;
 
@@ -26,15 +26,19 @@ impl Plugin for PlayerControlsPlugin {
     }
 }
 
-/// F5 in qualunque momento della run; da sconfitti anche Invio o Spazio.
+/// F5 in qualunque momento della run; dai risultati (sconfitta o vittoria) anche Invio o
+/// Spazio per una run nuova con lo stesso compagno, M per tornare al menu.
 fn restart_on_f5(
     keys: Res<ButtonInput<KeyCode>>,
     phase: Option<Res<State<RunPhase>>>,
+    mut after: ResMut<AfterLoading>,
     mut next: ResMut<NextState<AppState>>,
 ) {
-    let defeated = phase.is_some_and(|p| *p.get() == RunPhase::Defeated);
+    let over = phase.is_some_and(|p| matches!(p.get(), RunPhase::Defeated | RunPhase::Victory));
     let confirm = keys.any_just_pressed([KeyCode::Enter, KeyCode::NumpadEnter, KeyCode::Space]);
-    if keys.just_pressed(KeyCode::F5) || (defeated && confirm) {
+    if over && keys.just_pressed(KeyCode::KeyM) {
+        back_to_menu(&mut next, &mut after);
+    } else if keys.just_pressed(KeyCode::F5) || (over && confirm) {
         restart_run(&mut next);
     }
 }
@@ -63,8 +67,8 @@ fn toggle_pause(
         match phase.get() {
             RunPhase::Playing => next.set(RunPhase::Paused),
             RunPhase::Paused => next.set(RunPhase::Playing),
-            // nel draft si sceglie una carta; da sconfitti si può solo ricominciare
-            RunPhase::LevelUp | RunPhase::Defeated => {}
+            // nel draft si sceglie una carta; a run finita si ricomincia o si torna al menu
+            RunPhase::LevelUp | RunPhase::Defeated | RunPhase::Victory => {}
         }
     }
 }

@@ -5,12 +5,50 @@ Stato corrente, ultimo aggiornamento: **2026-10-22**.
 | Fase | Stato |
 |---|---|
 | S0 — bootstrap e ambiente | **DONE** (gate S0 superato, prove sotto) |
-| P0 — core giocabile desktop | in corso: P0.0–P0.5 DONE |
+| P0 — core giocabile desktop | in corso: P0.0–P0.6 DONE |
 | P1 — web | non iniziata |
 | P2 / P3 | non iniziate |
 
-Prossimo task eseguibile: **P0.6** (timer di 10 minuti, scala di difficoltà, élite, boss con
-telegraph, stati MainMenu/GameOver/Victory, restart), vedi `docs/BACKLOG.md`.
+Prossimo task eseguibile: **P0.7** (HUD leggibile con HP, compagni, tempo, abilità, XP; test di
+formule e bilanciamento base), vedi `docs/BACKLOG.md`. In parallelo: restyle grafico sul ramo
+`claude/art-style-16bit-adda3a` (sessione separata), da unire su richiesta dell'utente.
+
+## Report tranche P0.6 (2026-10-23)
+
+```text
+Task: P0.6 - Timer 10 min, difficoltà, élite e boss telegrafati, menu, vittoria/sconfitta, restart
+Owner: gameplay-engineer + game-designer (valori) + qa-performance (test), orchestrator
+       (lib.rs); segnaposto grafici in attesa dell'art pass parallelo
+Stato: DONE (code review: CHANGES REQUESTED, nessun bloccante; 3 rilievi da correggere e 8
+       minori corretti, dettaglio in docs/QA_REPORT.md)
+File: src/gameplay/threats.rs, src/gameplay/upgrades/rules.rs, src/presentation/{menu,results,
+       telegraphs,boss_bar}.rs (+ menu/tests.rs), src/data/schema/attacks.rs,
+       src/data/validate/run.rs (+ tests), src/data/validate/progression/pattern_tests.rs,
+       tests/sim/{run,threats}.rs, assets-src/sprites/{elite_enemy,boss_enemy,telegraph}.px
+       (nuovi); src/{app,lib}.rs, src/data/{schema,loader,validate}.rs, src/gameplay/{mod,
+       spawning,enemies,run,damage,input,companions,upgrades}.rs, src/presentation/{hud,mod}.rs,
+       game-data/*.ron (schema v5), tests/sim/{common,balance,main,party,progression}.rs
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1                       OK: 139 unit + 79 integrazione, 6 sonde ignorate
+  run completa headless (seed 5, autoplay invulnerabile)   boss a 10:00, vittoria a 11:49,
+                                            combattimento 109 s; restart = run nuova (censimento)
+  controprove (5 regole rotte apposta)      falliscono esattamente i test mirati (QA_REPORT)
+  sonde: sopravvivenza autoplay 1:37-2:53; bot che schiva 13 min ma senza vittoria
+  gioco vero: menu con tastiera reale (2 + Invio = Gocci), run x10 fino al boss, cerchio
+                                            rosso, barra HP, schermata di vittoria
+Comportamento verificato:
+  - a 10:00 ondate ed élite si fermano, il boss nasce una volta con i valori dei dati
+  - boss a 0 HP = vittoria; player e boss insieme = sconfitta; il passo è l'ultimo anche x4
+  - nemici più forti con i minuti, élite in orario, carica con linea e scatto della distanza
+  - colpo del boss: chi resta prende il danno, chi esce o è invulnerabile no; sparisce se il
+    boss cade; nessun preavviso dopo il restart; stesso seed stessa run
+  - menu: compagno scelto in squadra, la sua carta non esce; F5/Invio senza menu, M al menu
+Problemi trovati e risolti: lo scatto dell'élite misurato a contatto (test sistemato);
+  `Added<T>` dall'esterno dello schedule non vede le entità nuove; i rilievi del code review.
+Rischi noti: bilanciamento da tarare con un giocatore vero; sprite di élite/boss segnaposto;
+  la carica può partire anche a contatto; il boss nasce fuori vista senza indicatore.
+Prossimo task: P0.7
+```
 
 ## Report tranche P0.5 (2026-10-22)
 

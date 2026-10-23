@@ -2,12 +2,14 @@
 //! le liste costruite apposta per provare una regola.
 
 use super::*;
-use crate::data::schema::{AttackData, Rarity};
+use crate::data::schema::{AttackData, Rarity, RarityWeights, UpgradeData};
 
 /// Squadra vuota e senza posti: per le liste di carte costruite dai test senza compagni.
 const NO_PARTY: PartyView = PartyView {
     members: Vec::new(),
     free_slots: 0,
+    has_projectiles: true,
+    has_counted: true,
 };
 
 fn upgrade(
@@ -44,7 +46,7 @@ fn choices_are_distinct_eligible_and_at_most_the_draft_size() {
             &mut rng,
             &config.upgrades,
             &stacks,
-            &PartyView::of(&config, &stacks),
+            &PartyView::of(&config, &stacks, &config.stage.starting_companion),
             &WEIGHTS,
             3,
         );
@@ -54,7 +56,7 @@ fn choices_are_distinct_eligible_and_at_most_the_draft_size() {
                 &config.upgrades,
                 &stacks,
                 i,
-                &PartyView::of(&config, &stacks)
+                &PartyView::of(&config, &stacks, &config.stage.starting_companion)
             ));
             assert!(!choices[..k].contains(&i), "doppione in {choices:?}");
         }
@@ -121,7 +123,7 @@ fn the_same_seed_draws_the_same_cards() {
                     &mut rng,
                     &config.upgrades,
                     &stacks,
-                    &PartyView::of(&config, &stacks),
+                    &PartyView::of(&config, &stacks, &config.stage.starting_companion),
                     &WEIGHTS,
                     3,
                 )
@@ -242,6 +244,8 @@ fn companion_cards_need_a_free_slot() {
     let party = |members: &[&str], free_slots| PartyView {
         members: members.iter().map(|m| m.to_string()).collect(),
         free_slots,
+        has_projectiles: true,
+        has_counted: true,
     };
     let fresh = UpgradeStacks(vec![0, 0]);
     assert!(is_eligible(&upgrades, &fresh, 0, &party(&["a"], 1)));
@@ -270,7 +274,7 @@ fn the_party_view_follows_the_data_and_the_cards() {
     let config = GameConfig::embedded();
     let none = UpgradeStacks(vec![0; config.upgrades.len()]);
     let slots = config.player.companion_slots.len();
-    let start = PartyView::of(&config, &none);
+    let start = PartyView::of(&config, &none, &config.stage.starting_companion);
     assert_eq!(
         start.members,
         std::slice::from_ref(&config.stage.starting_companion)
@@ -281,18 +285,78 @@ fn the_party_view_follows_the_data_and_the_cards() {
         .iter()
         .enumerate()
         .find_map(|(i, u)| match &u.effect {
-            Effect::JoinCompanion(id) => Some((i, id.clone())),
+            Effect::JoinCompanion(id) if *id != config.stage.starting_companion => {
+                Some((i, id.clone()))
+            }
             _ => None,
         })
-        .expect("i dati hanno una carta nuovo compagno");
+        .expect("i dati hanno una carta per un compagno diverso dall'iniziale");
     let mut one = none.clone();
     one.0[first_join] = 1;
-    let after = PartyView::of(&config, &one);
+    let after = PartyView::of(&config, &one, &config.stage.starting_companion);
     assert_eq!(after.free_slots, slots - 2);
     assert!(after.members.contains(&id));
     // una carta per il compagno iniziale non occupa un posto in più
     let mut same = config.clone();
     same.stage.starting_companion = id.clone();
-    let view = PartyView::of(&same, &one);
+    let view = PartyView::of(&same, &one, &same.stage.starting_companion);
     assert_eq!((view.members.len(), view.free_slots), (1, slots - 1));
+}
+
+#[test]
+fn the_auto_pick_takes_a_new_companion_when_offered() {
+    let upgrades = vec![
+        upgrade(
+            "dmg",
+            Rarity::Common,
+            5,
+            &[],
+            Effect::CompanionDamagePct(15.0),
+        ),
+        upgrade(
+            "join",
+            Rarity::Common,
+            1,
+            &[],
+            Effect::JoinCompanion("x".into()),
+        ),
+        upgrade("snack", Rarity::Common, 9, &[], Effect::Heal(1.0)),
+    ];
+    assert_eq!(auto_choice(&upgrades, &[0, 1, 2]), 1);
+    assert_eq!(
+        auto_choice(&upgrades, &[2, 0]),
+        0,
+        "senza compagni la prima carta"
+    );
+    assert_eq!(auto_choice(&upgrades, &[]), 0);
+}
+
+/// Rilievo del code review P0.6: senza nessuno che spara, perforazione e velocità dei
+/// proiettili non servono; "+1" serve a proiettili e foglie, non all'onda.
+#[test]
+fn cards_only_appear_when_someone_can_use_them() {
+    let config = GameConfig::embedded();
+    let none = UpgradeStacks(vec![0; config.upgrades.len()]);
+    let with = |has: fn(&AttackData) -> bool| {
+        config
+            .companions
+            .iter()
+            .find(|c| config.attack(&c.attack).is_some_and(has))
+            .unwrap()
+            .id
+            .clone()
+    };
+    let shooter = PartyView::of(&config, &none, &with(|a| a.projectile().is_some()));
+    assert!(shooter.has_projectiles && shooter.has_counted);
+    let wave = PartyView::of(&config, &none, &with(|a| a.pulse().is_some()));
+    assert!(!wave.has_projectiles && !wave.has_counted);
+    let leaves = PartyView::of(&config, &none, &with(|a| a.orbit().is_some()));
+    assert!(!leaves.has_projectiles && leaves.has_counted);
+    let pierce = config
+        .upgrades
+        .iter()
+        .position(|u| matches!(u.effect, Effect::CompanionPierce(_)))
+        .unwrap();
+    assert!(is_eligible(&config.upgrades, &none, pierce, &shooter));
+    assert!(!is_eligible(&config.upgrades, &none, pierce, &wave));
 }

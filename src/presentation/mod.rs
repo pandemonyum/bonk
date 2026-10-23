@@ -1,10 +1,15 @@
-//! Presentazione (solo client): camera pixel-perfect, sprite, interpolazione, HUD, draft.
+//! Presentazione (solo client): camera pixel-perfect, sprite, interpolazione, HUD, draft, menu,
+//! risultati, segni di pericolo.
 
 pub mod attacks;
+pub mod boss_bar;
 pub mod camera;
 pub mod draft;
 pub mod hud;
+pub mod menu;
+pub mod results;
 pub mod sprites;
+pub mod telegraphs;
 
 use bevy::prelude::*;
 
@@ -23,8 +28,12 @@ impl Plugin for PresentationPlugin {
             camera::CameraPlugin,
             sprites::SpritesPlugin,
             hud::HudPlugin,
+            boss_bar::BossBarPlugin,
             draft::DraftUiPlugin,
             attacks::AttackArtPlugin,
+            telegraphs::TelegraphArtPlugin,
+            menu::MenuPlugin,
+            results::ResultsPlugin,
         ));
     }
 }

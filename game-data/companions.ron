@@ -3,7 +3,7 @@
 // Il compagno iniziale è in stages.ron; gli altri arrivano con le carte JoinCompanion di
 // upgrades.ron, nei posti liberi di player.ron (companion_slots).
 (
-    version: 4,
+    version: 5,
     companions: [
         (
             id: "ember",

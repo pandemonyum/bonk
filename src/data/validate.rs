@@ -78,6 +78,17 @@ impl Report {
         }
     }
 
+    /// Testo mostrato a schermo: il font provvisorio ha solo caratteri ASCII (D-033).
+    fn ui_text(&mut self, at: &str, text: &str) {
+        let unsupported = |c: &char| !c.is_ascii() || (c.is_ascii_control() && *c != '\n');
+        if let Some(c) = text.chars().find(unsupported) {
+            self.0.push(format!(
+                "{at} contiene '{c}': il font provvisorio dell'interfaccia ha solo caratteri \
+                 ASCII (scrivi \"piu'\" o riformula)"
+            ));
+        }
+    }
+
     /// Un corpo che si sposta di più di (impronta minima + proprio raggio) in un passo può
     /// saltare oltre il centro di un tronco: la respinta lo manda dall'altra parte.
     fn body_speed(&mut self, at: &str, speed: f32, footprint_radius: f32) {
@@ -124,6 +135,7 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
         r.positive(&at("follow.max_speed"), c.follow.max_speed);
         r.positive(&at("follow.gain"), c.follow.gain);
         r.sprite(&at("sprite"), &c.sprite);
+        r.ui_text(&at("display_name"), &c.display_name);
         let exists = config.attack(&c.attack).is_some();
         r.reference(&at("attack"), &c.attack, exists, "attacks.ron");
     }
@@ -231,10 +243,12 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
     r.probability(&at("obstacles.tree_chance"), s.obstacles.tree_chance);
 
     progression::check(&mut r, config);
+    run::check(&mut r, config);
     r.0
 }
 
 mod attacks;
 mod progression;
+mod run;
 #[cfg(test)]
 mod tests;

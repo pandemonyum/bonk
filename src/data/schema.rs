@@ -4,12 +4,17 @@
 //! Versioni: 1 (P0.0) → 2 (P0.3: ondate dello spawn director negli stage, HP e invulnerabilità
 //! del player, danno da contatto dei nemici) → 3 (P0.4: XP dei nemici, raggio di raccolta,
 //! `progression.ron` e `upgrades.ron`) → 4 (P0.5: attacchi con `pattern` proiettile / onda /
-//! orbita, slot dei compagni nel player, carte che aggiungono un compagno).
+//! orbita, slot dei compagni nel player, carte che aggiungono un compagno) → 5 (P0.6: durata
+//! della run, difficoltà per minuto, élite e boss negli stage, cariche e colpi ad area
+//! telegrafati nei nemici).
 
 use serde::Deserialize;
 
+mod attacks;
+pub use attacks::*;
+
 /// Versione dello schema supportata da questo codice.
-pub const SCHEMA_VERSION: u32 = 4;
+pub const SCHEMA_VERSION: u32 = 5;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -173,116 +178,6 @@ pub struct CompanionsFile {
     pub companions: Vec<CompanionData>,
 }
 
-/// Un attacco automatico. Danno, intervallo e portata sono comuni a tutti i pattern, così gli
-/// upgrade "Companion" valgono per tutti.
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct AttackData {
-    pub id: String,
-    pub damage: f32,
-    /// Proiettile e onda: secondi tra due attacchi. Orbita: secondi prima che le foglie possano
-    /// colpire di nuovo lo stesso nemico.
-    pub interval_s: f32,
-    /// Proiettile: distanza massima del bersaglio. Onda: raggio finale. Orbita: raggio dell'orbita.
-    pub range: f32,
-    pub pattern: AttackPattern,
-}
-
-impl AttackData {
-    pub fn projectile(&self) -> Option<&ProjectileData> {
-        match &self.pattern {
-            AttackPattern::Projectile(p) => Some(p),
-            _ => None,
-        }
-    }
-
-    pub fn pulse(&self) -> Option<&PulseData> {
-        match &self.pattern {
-            AttackPattern::Pulse(p) => Some(p),
-            _ => None,
-        }
-    }
-
-    pub fn orbit(&self) -> Option<&OrbitData> {
-        match &self.pattern {
-            AttackPattern::Orbit(o) => Some(o),
-            _ => None,
-        }
-    }
-
-    /// Sprite dei colpi (proiettile, goccia dell'onda, foglia).
-    pub fn sprite(&self) -> &str {
-        match &self.pattern {
-            AttackPattern::Projectile(p) => &p.sprite,
-            AttackPattern::Pulse(p) => &p.sprite,
-            AttackPattern::Orbit(o) => &o.sprite,
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-pub enum AttackPattern {
-    /// Proiettili mirati sul nemico più vicino entro `range`.
-    Projectile(ProjectileData),
-    /// Onda che si allarga attorno al player fino a `range`, colpisce e rallenta.
-    Pulse(PulseData),
-    /// Foglie che girano attorno al player a distanza `range`.
-    Orbit(OrbitData),
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ProjectileData {
-    /// px/s.
-    pub speed: f32,
-    pub radius: f32,
-    /// Secondi di volo prima che un proiettile mancato sparisca (portata = velocità × durata).
-    pub lifetime_s: f32,
-    pub sprite: String,
-    /// Proiettili per attacco, a ventaglio.
-    pub count: u32,
-    pub spread_deg: f32,
-    /// Nemici extra attraversati da ogni proiettile.
-    pub pierce: u32,
-    /// Altezza di partenza del colpo sopra i piedi di chi attacca.
-    pub muzzle_height: f32,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct PulseData {
-    /// px/s a cui il fronte dell'onda si allarga.
-    pub speed: f32,
-    /// Frazione della velocità che resta ai nemici colpiti (0,6 = rallentati del 40%).
-    pub slow: f32,
-    pub slow_s: f32,
-    /// Altezza del centro dell'onda sopra i piedi del player.
-    pub center_height: f32,
-    /// Sprite delle gocce che disegnano il fronte.
-    pub sprite: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct OrbitData {
-    /// Foglie in orbita, equidistanti.
-    pub count: u32,
-    /// Gradi al secondo (positivi = senso antiorario).
-    pub angular_speed_deg: f32,
-    /// Raggio colpibile di una foglia.
-    pub radius: f32,
-    /// Altezza del centro dell'orbita sopra i piedi del player.
-    pub center_height: f32,
-    pub sprite: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct AttacksFile {
-    pub version: u32,
-    pub attacks: Vec<AttackData>,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct HurtboxData {
@@ -306,6 +201,37 @@ pub struct EnemyData {
     pub contact_damage: f32,
     /// XP della gemma lasciata alla morte.
     pub xp: u32,
+    /// Carica telegrafata (élite): si ferma, mostra la traiettoria, poi scatta.
+    #[serde(default)]
+    pub charge: Option<ChargeData>,
+    /// Colpo ad area telegrafato (boss): segna un cerchio dove sta il player, poi colpisce.
+    #[serde(default)]
+    pub slam: Option<SlamData>,
+}
+
+/// Carica: ogni `every_s` secondi, se il player è entro `range`, il nemico si ferma per
+/// `windup_s` mostrando la direzione, poi corre a `speed` per `duration_s`.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ChargeData {
+    pub every_s: f32,
+    pub windup_s: f32,
+    pub speed: f32,
+    pub duration_s: f32,
+    pub range: f32,
+}
+
+/// Colpo ad area: ogni `every_s` secondi, se il player è entro `range`, il cerchio di raggio
+/// `radius` attorno al player resta segnato per `windup_s`, poi chi ci sta dentro prende
+/// `damage`.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SlamData {
+    pub every_s: f32,
+    pub windup_s: f32,
+    pub radius: f32,
+    pub damage: f32,
+    pub range: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -362,9 +288,36 @@ pub struct SpawnPlan {
 pub struct StageData {
     pub id: String,
     pub display_name: String,
+    /// Compagno proposto per primo nel menu e usato senza menu (headless, autoplay).
     pub starting_companion: String,
     pub spawns: SpawnPlan,
+    pub run: RunPlan,
     pub obstacles: ObstacleParams,
+}
+
+/// Arco della run: difficoltà che cresce, élite periodiche, boss alla fine.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RunPlan {
+    /// Secondi di gioco prima del boss: a quel punto le ondate si fermano e arriva il boss;
+    /// sconfiggerlo è la vittoria.
+    pub duration_s: f32,
+    /// HP in più per minuto dei nemici di ondate ed élite, sul valore base (0,15 = +15%).
+    pub hp_growth_per_min: f32,
+    /// Danno da contatto in più per minuto, come sopra.
+    pub damage_growth_per_min: f32,
+    pub elites: ElitePlan,
+    /// Id del boss in `enemies.ron`.
+    pub boss: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ElitePlan {
+    /// Id dell'élite in `enemies.ron`.
+    pub enemy: String,
+    pub first_s: f32,
+    pub every_s: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]

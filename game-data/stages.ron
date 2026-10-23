@@ -1,6 +1,6 @@
-// Stage (mappe). La prima voce è quella giocata. Élite, boss e fine run: P0.6.
+// Stage (mappe). La prima voce è quella giocata.
 (
-    version: 4,
+    version: 5,
     stages: [
         (
             id: "meadow",
@@ -17,9 +17,20 @@
                 waves: [
                     // ritmo = rate_per_min + rate_growth_per_min × minuti da start_s
                     (enemy: "blob", start_s: 0.0, rate_per_min: 24.0, rate_growth_per_min: 12.0, max_alive: 90),
-                    (enemy: "swarm", start_s: 60.0, rate_per_min: 20.0, rate_growth_per_min: 15.0, max_alive: 110),
+                    // lo sciame (veloce quasi come il player) arriva quando la squadra ha di solito un secondo compagno
+                    (enemy: "swarm", start_s: 100.0, rate_per_min: 16.0, rate_growth_per_min: 15.0, max_alive: 110),
                     (enemy: "armored", start_s: 150.0, rate_per_min: 4.0, rate_growth_per_min: 2.0, max_alive: 25),
                 ],
+            ),
+            run: (
+                // 10 minuti di orde, poi le ondate si fermano e arriva il boss
+                duration_s: 600.0,
+                // nemici di ondate ed élite: +15% HP e +8% danno per minuto (a 10:00 ×2,5 e ×1,8)
+                hp_growth_per_min: 0.15,
+                damage_growth_per_min: 0.08,
+                // una gelatina gigante a 2:30, poi ogni 75 s (circa 6 a run)
+                elites: (enemy: "elite_blob", first_s: 150.0, every_s: 75.0),
+                boss: "boss_king",
             ),
             obstacles: (
                 // ~650 tra rocce e alberi su 256x256 tile (mai adiacenti: varchi sempre aperti)

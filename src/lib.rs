@@ -58,6 +58,13 @@ pub fn client_app(options: LaunchOptions) -> App {
         diagnostics::DiagnosticsPlugin,
     ))
     .insert_resource(GodMode(options.god));
+    // il menu all'avvio; con l'autoplay si parte subito con il compagno dello stage
+    let first = if options.autoplay {
+        AppState::InRun
+    } else {
+        AppState::MainMenu
+    };
+    app.insert_resource(app::AfterLoading(first));
     if options.autoplay {
         // il draft resta a schermo un attimo: si vede negli screenshot e a occhio
         app.insert_resource(AutoPick {

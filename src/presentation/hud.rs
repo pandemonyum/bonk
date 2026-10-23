@@ -1,9 +1,11 @@
-//! HUD minimo: livello, HP e tempo, barra XP, promemoria comandi, pausa, sconfitta, stato dei
-//! dati (caricamento ed errori). L'HUD di gioco completo (compagni, abilità) arriva con la P0.7.
+//! HUD della run: livello, HP e tempo, barra XP, promemoria comandi, pausa (timer e boss in
+//! `boss_bar`); stato dei dati (caricamento ed errori) sempre. Gli
+//! elementi della run nascono entrando in `InRun` e spariscono uscendo: nel menu non restano.
+//! L'HUD di gioco completo (compagni, abilità) arriva con la P0.7.
 
 use bevy::prelude::*;
 
-use crate::app::RunPhase;
+use crate::app::{AppState, RunPhase};
 use crate::data::DataStatus;
 use crate::gameplay::combat::{Health, RunStats};
 use crate::gameplay::player::Player;
@@ -23,33 +25,27 @@ struct VitalsText;
 struct XpFill;
 
 /// Altezza della barra XP sul bordo superiore della finestra.
-const XP_BAR_HEIGHT: f32 = 5.0;
+pub(super) const XP_BAR_HEIGHT: f32 = 5.0;
 /// Blu delle gemme (`u` della palette): la barra si legge come "esperienza".
 const XP_BLUE: Color = Color::srgb_u8(0x4f, 0xa4, 0xe0);
-
 pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Startup,
-            (
-                spawn_hint,
-                spawn_xp_bar,
-                spawn_vitals,
-                spawn_data_status_panel,
-            ),
-        )
-        .add_systems(OnEnter(RunPhase::Paused), spawn_pause_banner)
-        .add_systems(OnEnter(RunPhase::Defeated), spawn_defeat_banner)
-        .add_systems(
-            Update,
-            (
-                show_vitals,
-                show_xp.run_if(resource_changed::<Progression>),
-                show_data_status.run_if(resource_changed::<DataStatus>),
-            ),
-        );
+        app.add_systems(Startup, spawn_data_status_panel)
+            .add_systems(
+                OnEnter(AppState::InRun),
+                (spawn_hint, spawn_xp_bar, spawn_vitals),
+            )
+            .add_systems(OnEnter(RunPhase::Paused), spawn_pause_banner)
+            .add_systems(
+                Update,
+                (
+                    show_vitals,
+                    show_xp.run_if(resource_changed::<Progression>),
+                    show_data_status.run_if(resource_changed::<DataStatus>),
+                ),
+            );
     }
 }
 
@@ -82,6 +78,7 @@ fn spawn_xp_bar(mut commands: Commands) {
             ..default()
         },
         BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6)),
+        DespawnOnExit(AppState::InRun),
         children![(
             XpFill,
             Node {
@@ -113,6 +110,7 @@ fn spawn_vitals(mut commands: Commands) {
             padding: UiRect::axes(px(6), px(2)),
             ..default()
         },
+        DespawnOnExit(AppState::InRun),
     ));
 }
 
@@ -127,50 +125,6 @@ fn show_vitals(
     if text.0 != line {
         text.0 = line;
     }
-}
-
-fn spawn_defeat_banner(
-    mut commands: Commands,
-    clock: Res<RunClock>,
-    stats: Res<RunStats>,
-    progression: Res<Progression>,
-) {
-    commands.spawn((
-        Name::new("DefeatBanner"),
-        Node {
-            width: percent(100),
-            height: percent(100),
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            row_gap: px(10),
-            ..default()
-        },
-        BackgroundColor(Color::srgba(0.15, 0.0, 0.0, 0.65)),
-        DespawnOnExit(RunPhase::Defeated),
-        children![
-            (
-                Text::new("SCONFITTO"),
-                TextFont::from_font_size(32.0),
-                TextColor(Color::WHITE),
-            ),
-            (
-                Text::new(format!(
-                    "Resistito {}   Livello {}   Nemici sconfitti {}",
-                    clock.label(),
-                    progression.level,
-                    stats.defeated
-                )),
-                TextFont::from_font_size(16.0),
-                TextColor(Color::WHITE),
-            ),
-            (
-                Text::new("Invio o F5 per ricominciare"),
-                TextFont::from_font_size(14.0),
-                TextColor(Color::srgba(1.0, 1.0, 1.0, 0.8)),
-            ),
-        ],
-    ));
 }
 
 /// Testo per lo stato dei dati; `None` quando non c'è nulla da mostrare.
@@ -203,6 +157,7 @@ fn spawn_hint(mut commands: Commands) {
             left: px(8),
             ..default()
         },
+        DespawnOnExit(AppState::InRun),
     ));
 }
 
@@ -222,6 +177,8 @@ fn spawn_data_status_panel(mut commands: Commands) {
             padding: UiRect::all(px(10)),
             ..default()
         },
+        // sopra menu e schermate
+        GlobalZIndex(10),
         Visibility::Hidden,
     ));
 }

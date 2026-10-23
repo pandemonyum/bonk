@@ -105,16 +105,8 @@ pub(super) fn check(r: &mut Report, config: &GameConfig) {
                 at("name")
             ));
         }
-        for (field, text) in [("name", &u.name), ("description", &u.description)] {
-            let unsupported = |c: &char| !c.is_ascii() || (c.is_ascii_control() && *c != '\n');
-            if let Some(c) = text.chars().find(unsupported) {
-                r.0.push(format!(
-                    "{} contiene '{c}': il font provvisorio dell'interfaccia ha solo caratteri \
-                     ASCII (scrivi \"piu'\" o riformula)",
-                    at(field)
-                ));
-            }
-        }
+        r.ui_text(&at("name"), &u.name);
+        r.ui_text(&at("description"), &u.description);
         if u.max_stack == 0 {
             r.0.push(format!("{} deve essere >= 1", at("max_stack")));
         }
@@ -161,10 +153,10 @@ fn effect(r: &mut Report, at: &str, effect: &Effect) {
     }
 }
 
-/// Carte "nuovo compagno": il compagno esiste, non è già in squadra dall'inizio, arriva una
-/// volta sola e c'è almeno un posto oltre a quello del compagno iniziale.
+/// Carte "nuovo compagno": il compagno esiste, arriva una volta sola e c'è almeno un posto
+/// oltre a quello del compagno iniziale. Una carta per il compagno scelto nel menu non viene
+/// proposta (`upgrades::PartyView`), quindi ogni compagno può avere la sua.
 fn join_cards(r: &mut Report, config: &GameConfig) {
-    let starting = &config.stage.starting_companion;
     let mut seen: Vec<&str> = Vec::new();
     for u in &config.upgrades {
         let Effect::JoinCompanion(id) = &u.effect else {
@@ -173,11 +165,6 @@ fn join_cards(r: &mut Report, config: &GameConfig) {
         let at = format!("upgrades.ron: {}.effect", u.id);
         let exists = config.companion(id).is_some();
         r.reference(&at, id, exists, "companions.ron");
-        if id == starting {
-            r.0.push(format!(
-                "{at}: \"{id}\" è il compagno iniziale dello stage, è già in squadra"
-            ));
-        }
         if u.max_stack != 1 {
             r.0.push(format!(
                 "upgrades.ron: {}.max_stack = {}: un compagno arriva una volta sola, serve 1",
@@ -364,5 +351,7 @@ fn limits_at_max(r: &mut Report, config: &GameConfig) {
     }
 }
 
+#[cfg(test)]
+mod pattern_tests;
 #[cfg(test)]
 mod tests;

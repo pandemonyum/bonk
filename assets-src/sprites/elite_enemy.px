@@ -1,0 +1,26 @@
+# Elite "Gelatina Gigante", SEGNAPOSTO P0.6 generato da forme semplici: gelatina viola grande
+# con creste rosse (pericolo). La versione definitiva arriva dall'art pass.
+out: sprites/elite_enemy.png
+mirror: true
+---
+............
+........k...
+........r...
+.....k..kkkk
+.....rkkqqqq
+..k.kkqqqqqq
+..rkpqqqqqqq
+..kppqqqqqqq
+.kpppppppppp
+.kpppppppppp
+.kpppppwkppp
+.kpppppwkppp
+.kPppppppppp
+.kPppppppppp
+.kPpppppppRR
+.kPppppppppp
+.kPppppppppp
+..kppppppppp
+...kPPPPPPPP
+...kPPPPPPPP
+....kkkkkkkk

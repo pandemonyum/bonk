@@ -234,6 +234,43 @@ L'anello dell'onda non è uno sprite scalato (vietato dalla regola pixel-perfect
 arrotondato al pixel. Il numero di gocce dipende dal raggio finale (una ogni ~9 px). Le gocce
 non hanno contorno per non scurire l'orda che attraversano.
 
+## D-038 Arco della run: boss allo scadere del timer, vittoria quando cade
+Il timer di 10 minuti (`stages.ron: run.duration_s`) porta al boss: a quel punto ondate ed élite
+si fermano e nasce il Re Gelatina, fuori vista; batterlo è la vittoria (stato `Victory`, deciso in
+`PostUpdate` come la sconfitta, che vince se player e boss cadono nello stesso passo). La
+difficoltà cresce in modo lineare per minuto su HP e danno dei nemici di ondate ed élite, applicata
+alla nascita (chi è già in campo non cambia); il boss non è scalato. Élite a intervalli fissi, non
+casuali: si sa che arrivano. Il passo in cui cade il boss è l'ultimo anche col tempo accelerato
+(`simulation_running`, come per la morte), quindi l'esito non dipende dagli FPS.
+
+## D-039 Attacchi telegrafati: preavviso minimo, stesse regole del contatto
+Carica e colpo ad area mostrano il segno per almeno 0,5 s (validato), con lampeggio sempre più
+rapido. Il colpo cade dove stava il player al preavviso, non dove va: schivare è uscire dal
+cerchio, e la validazione vuole che dal centro si esca in tempo alla velocità base. Il danno
+passa da `strike_player`, come il contatto: invulnerabilità, modalità invulnerabile e morte
+valgono uguali. Ogni segno ricorda chi l'ha lanciato e sparisce senza effetto se muore (anche
+nello stesso passo): il colpo di un boss appena sconfitto non arriva. La carica non supera in un
+passo la distanza di contatto (validato), per non saltare oltre il player.
+
+## D-040 Menu e scelta del compagno, ritorno senza menu
+`AppState::MainMenu` mostra i compagni dei dati; la scelta va in `RunSetup` e decide il compagno
+iniziale (`RunSetup::starter`, che ripiega su quello dello stage se la ricarica lo toglie) e la
+squadra del draft (`PartyView`). `AfterLoading` dice dove andare dopo il caricamento: menu
+all'avvio del client e con M dai risultati, run diretta in headless, con `--autoplay`, con F5 e
+con Invio dai risultati. Ogni compagno ha la sua carta "nuovo compagno" (anche Brasa): quella del
+compagno scelto non esce. L'HUD della run nasce entrando in `InRun` e sparisce uscendo.
+
+## D-042 Carte proposte solo se servono alla squadra
+Con la scelta del compagno iniziale si poteva partire senza nessuno che spara e vedersi proporre
+perforazione e velocità dei proiettili. `PartyView` dice se in squadra c'è chi spara
+(`has_projectiles`) e chi ha proiettili o foglie (`has_counted`): perforazione e velocità
+richiedono il primo, "+1 proiettile" il secondo. Le altre carte valgono per tutti.
+
+## D-041 La scelta automatica preferisce i compagni
+`AutoPick` (autoplay, simulazioni) sceglie una carta "nuovo compagno" se c'è, altrimenti la
+prima: la squadra è il potenziamento più grande e ogni giocatore la prende. Prima sceglieva la
+prima carta e le sonde misuravano soprattutto la sfortuna del draft.
+
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale
 come seconda build separata dopo la P1.

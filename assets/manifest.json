@@ -24,6 +24,17 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/boss_enemy.png",
+      "kind": "sprite",
+      "size": [
+        48,
+        40
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/boss_enemy.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "sprites/droplet.png",
       "kind": "sprite",
       "size": [
@@ -32,6 +43,17 @@
       ],
       "frames": 1,
       "source": "assets-src/sprites/droplet.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/elite_enemy.png",
+      "kind": "sprite",
+      "size": [
+        24,
+        21
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/elite_enemy.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -109,6 +131,17 @@
       ],
       "frames": 1,
       "source": "assets-src/sprites/swarm_enemy.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/telegraph.png",
+      "kind": "sprite",
+      "size": [
+        4,
+        4
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/telegraph.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {

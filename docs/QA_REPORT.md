@@ -1,5 +1,51 @@
 # QA REPORT
 
+## 2026-10-23 — P0.6 (arco della run, élite, boss, menu, vittoria e restart)
+
+### Automatici
+
+| Controllo | Esito |
+|---|---|
+| `./scripts/check.ps1` | OK: 218 test (139 unitari + 79 integrazione) + 6 sonde ignorate, 17 PNG, 13 sprite citati dai dati |
+| Run completa headless (seed 5, autoplay invulnerabile) | boss a 10:00, vittoria a 11:49 (combattimento 109 s), livello 37, 1592 sconfitti; il restart coincide con una run nuova in tutti i conteggi |
+| Sopravvivenza vera (`print_survival_with_upgrades`, 5 seed) | fermi 0:18–0:19; autoplay 1:37–2:53, 2–3 compagni |
+| Bot che schiva (`print_survival_kiting`, 5 seed) | vivo a 12:59 in tutti i seed, livello 4–6, boss non sconfitto |
+
+Controprove (regola rotta apposta → test che falliscono, poi ripristino e verde):
+
+| Regola rotta | Test che falliscono |
+|---|---|
+| vittoria anche con il player morto | `dying_together_with_the_boss_is_a_defeat` |
+| simulazione che continua dopo la caduta del boss | `the_boss_falling_is_the_last_step_even_with_accelerated_time` |
+| preavviso non legato a chi lo lancia | `a_slam_vanishes_when_its_boss_falls` |
+| perforazione e velocità anche senza chi spara | `the_companion_chosen_in_the_menu_starts_the_run`, `cards_only_appear_when_someone_can_use_them` |
+
+### Prove sul gioco reale
+
+| Prova | Osservato | Prova |
+|---|---|---|
+| Avvio senza autoplay | menu con i tre compagni, barre relative, mappa e obiettivo | `docs/evidence/p06-menu.png` |
+| Tastiera reale: 2 + Invio | run con Gocci, conto alla rovescia 09:56 in alto | screenshot di controllo |
+| `--seed 5 --autoplay --god --time-scale 10 --overlay` | élite a 7:15, timer 02:45; a 10:00 "BOSS" con barra HP; cerchio rosso dove stava il player; vittoria a 12:15 (5000 HP) | `docs/evidence/p06-elite-timer.png`, `p06-boss-telegraph.png`, `p06-vittoria.png` |
+
+### Code review P0.6
+
+Verdetto CHANGES REQUESTED, nessun bloccante:
+
+| # | Rilievo | Correzione | Verifica |
+|---|---|---|---|
+| 1 | Ricarica dei dati nel menu: carte vecchie, scelta per indice sulla lista nuova | anche dal menu si passa da `Loading` (si torna al menu); scelta per id | test del loader |
+| 2 | Test "muoiono insieme" vacuo (il boss a 0 HP non veniva rimosso) | caso vero: boss tolto dal combattimento e player ucciso dal contatto nello stesso passo; vittoria ordinata dopo la sconfitta | controprova |
+| 3 | Restart dopo la run completa controllato poco | censimento completo (entità P0.6 comprese) confrontato con una run nuova; restart con un colpo in arrivo | gate verde |
+| 4 | Test del boss non scalato che non poteva fallire | uguaglianza su HP e danno dei dati | gate verde |
+| 5 | Test della difficoltà lento e fragile (orologio letto prima del passo) | orologio dopo il passo, crescita alta e 20 s | gate verde |
+| 6 | Validazione: nomi a schermo non ASCII, colpo non schivabile, carica oltre il player | `ui_text` su nomi di compagni, nemici e stage; uscita dal cerchio entro il preavviso; scatto per passo ≤ contatto | test di validazione |
+| 7 | Test mancanti (`strike_player`, carta del compagno scelto, determinismo di élite e boss, flussi menu) | test aggiunti; avvio dal menu spostato in `app::start_run` | gate verde |
+| 8 | Carte inutili senza chi spara | idoneità legata alla squadra (D-042) | controprova |
+| 9 | Esito dopo la caduta del boss dipendente dagli FPS | `simulation_running` si ferma al passo della caduta | controprova |
+| 10 | Preavvisi non legati a chi li lancia | `Telegraph::source`, despawn senza effetto se muore | controprova |
+| 11 | Ordine ambiguo tra carica e inseguimento | `charge_step.before(chase_player)` | codice |
+
 ## 2026-10-22 — P0.5 (secondo e terzo compagno, slot da dati)
 
 ### Automatici

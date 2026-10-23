@@ -131,11 +131,11 @@ fn a_full_party_gets_no_more_companion_cards() {
     let wave = join_card(&c, |a| a.pulse().is_some());
     let leaves = join_card(&c, |a| a.orbit().is_some());
     let fresh = UpgradeStacks(vec![0; c.upgrades.len()]);
-    let party = PartyView::of(&c, &fresh);
+    let party = PartyView::of(&c, &fresh, &c.stage.starting_companion);
     assert!(is_eligible(&c.upgrades, &fresh, leaves, &party));
     take(&mut app, wave);
     let stacks = app.world().resource::<UpgradeStacks>().clone();
-    let party = PartyView::of(&c, &stacks);
+    let party = PartyView::of(&c, &stacks, &c.stage.starting_companion);
     assert_eq!(party.free_slots, 0);
     assert!(!is_eligible(&c.upgrades, &stacks, leaves, &party));
     assert!(!is_eligible(&c.upgrades, &stacks, wave, &party));

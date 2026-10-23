@@ -3,7 +3,7 @@
 // Nomi e testi sono originali e provvisori. Nei testi delle carte solo caratteri ASCII (niente
 // lettere accentate): il font provvisorio non le ha (vedi D-013, la validazione lo controlla).
 (
-    version: 4,
+    version: 5,
     upgrades: [
         (
             id: "ember_damage",
@@ -97,10 +97,21 @@
             effect: PickupRadiusPct(25.0),
         ),
         (
+            id: "join_ember",
+            name: "Nuovo compagno: Brasa",
+            description: "Brasa si unisce: palle di fuoco sul nemico vicino",
+            // comune: la squadra arriva nei primi livelli, prima delle orde del secondo minuto
+            rarity: Common,
+            // per chi ha scelto un altro compagno iniziale nel menu
+            max_stack: 1,
+            requires: [],
+            effect: JoinCompanion("ember"),
+        ),
+        (
             id: "join_tide",
             name: "Nuovo compagno: Gocci",
             description: "Gocci si unisce: onda d'acqua attorno a te che ferisce e rallenta",
-            rarity: Uncommon,
+            rarity: Common,
             // una sola volta; proposta solo se c'è un posto libero (player.ron)
             max_stack: 1,
             requires: [],
@@ -110,7 +121,7 @@
             id: "join_sprout",
             name: "Nuovo compagno: Frond",
             description: "Frond si unisce: foglie che ti girano attorno e tagliano",
-            rarity: Uncommon,
+            rarity: Common,
             max_stack: 1,
             requires: [],
             effect: JoinCompanion("sprout"),

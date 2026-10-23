@@ -50,7 +50,8 @@ Se un valore non è valido il gioco mostra l'elenco degli errori con file e camp
 |---|---|
 | WASD / frecce | movimento |
 | Esc / P | pausa |
-| F5 | ricomincia la run (da sconfitti anche Invio) |
+| 1 / 2 / 3, frecce, clic, Invio | menu: sceglie il compagno e inizia |
+| F5 | ricomincia la run (dai risultati anche Invio; M torna al menu) |
 | 1 / 2 / 3 o clic | sceglie la carta del draft a ogni livello |
 | F3 | overlay debug (FPS, entità, gemme, XP, posizione, seed) |
 | F12 | screenshot in `screenshots/` |

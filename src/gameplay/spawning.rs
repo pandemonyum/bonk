@@ -3,11 +3,14 @@
 //! tempo); quando il budget arriva a 1 nasce un nemico, se i limiti lo permettono e se c'è un
 //! punto valido: nell'anello attorno al player, fuori dalla vista della camera, dentro l'arena
 //! e fuori dagli ostacoli. Tutto da un solo RNG con seed: stessa run per lo stesso seed.
+//!
+//! Arco della run (`stages.ron: run`): i nemici nascono più forti col passare dei minuti, le
+//! élite arrivano a intervalli fissi, a fine durata le ondate si fermano e nasce il boss.
 
 use bevy::prelude::*;
 
 use super::SimSet;
-use super::enemies::{Enemy, enemy_bundle};
+use super::enemies::{Boss, Enemy, Scale, spawn_enemy};
 use super::kinematics::Position;
 use super::player::{PLAYER_SPAWN, Player};
 use super::run::RunClock;
@@ -34,6 +37,11 @@ pub struct SpawnDirector {
     budget: Vec<f32>,
     /// Numero progressivo dei nemici nati (per il nome di debug).
     pub spawned: u32,
+    /// Secondo della run a cui nasce la prossima élite.
+    pub next_elite_s: f32,
+    pub elites_spawned: u32,
+    /// Il boss è nato (da qui la sua sconfitta è la vittoria).
+    pub boss_spawned: bool,
 }
 
 /// Punto casuale nell'anello `[r_min, r_max)` attorno a `center`.
@@ -108,6 +116,9 @@ fn start_director(
         rng: Pcg32::new(seed.0, SPAWN_STREAM),
         budget: vec![0.0; plan.waves.len()],
         spawned: 0,
+        next_elite_s: config.stage.run.elites.first_s,
+        elites_spawned: 0,
+        boss_spawned: false,
     };
     let data = config.first_wave_enemy();
     for _ in 0..plan.initial_burst {
@@ -121,7 +132,7 @@ fn start_director(
             data.footprint_radius,
         );
         if let Some(at) = found {
-            commands.spawn(enemy_bundle(data, at, director.spawned));
+            spawn_enemy(&mut commands, data, at, director.spawned, Scale::BASE);
             director.spawned += 1;
         }
     }
@@ -140,6 +151,50 @@ fn run_director(
     enemies: Query<&DataId, With<Enemy>>,
 ) {
     let plan = &config.stage.spawns;
+    let run = &config.stage.run;
+    let t = clock.elapsed;
+    if t >= run.duration_s {
+        // fine delle orde: il boss, una volta sola, appena c'è un punto valido
+        if !director.boss_spawned {
+            let boss = config.enemy(&run.boss).expect("riferimento validato");
+            let found = find_spawn_point(
+                &mut director.rng,
+                player.0,
+                plan.ring,
+                &arena,
+                field.as_deref(),
+                boss.footprint_radius,
+            );
+            if let Some(at) = found {
+                let entity = spawn_enemy(&mut commands, boss, at, director.spawned, Scale::BASE);
+                commands.entity(entity).insert(Boss);
+                director.spawned += 1;
+                director.boss_spawned = true;
+                info!("arriva il boss: {}", boss.display_name);
+            }
+        }
+        return;
+    }
+    let scale = Scale::at(run.hp_growth_per_min, run.damage_growth_per_min, t);
+    if t >= director.next_elite_s {
+        let elite = config
+            .enemy(&run.elites.enemy)
+            .expect("riferimento validato");
+        let found = find_spawn_point(
+            &mut director.rng,
+            player.0,
+            plan.ring,
+            &arena,
+            field.as_deref(),
+            elite.footprint_radius,
+        );
+        if let Some(at) = found {
+            spawn_enemy(&mut commands, elite, at, director.spawned, scale);
+            director.spawned += 1;
+            director.elites_spawned += 1;
+            director.next_elite_s += run.elites.every_s;
+        }
+    }
     let dt = time.delta_secs();
     let mut alive_total = enemies.iter().count();
     // Nati in questo passo per archetipo: la query non li vede ancora (comandi differiti), e
@@ -177,7 +232,7 @@ fn run_director(
                 director.budget[i] = director.budget[i].min(1.0);
                 break;
             };
-            commands.spawn(enemy_bundle(data, at, director.spawned));
+            spawn_enemy(&mut commands, data, at, director.spawned, scale);
             director.spawned += 1;
             director.budget[i] -= 1.0;
             alive += 1;

@@ -151,7 +151,7 @@ fn a_level_up_freezes_the_run_on_a_draft_until_a_card_is_chosen() {
     let weights = c.progression.rarity_weights;
     let available = (0..c.upgrades.len())
         .filter(|&i| {
-            let party = PartyView::of(&c, &stacks);
+            let party = PartyView::of(&c, &stacks, &c.stage.starting_companion);
             is_eligible(&c.upgrades, &stacks, i, &party) && weights.of(c.upgrades[i].rarity) > 0.0
         })
         .count();

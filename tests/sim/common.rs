@@ -9,10 +9,12 @@ use pixel_monster_survivor::gameplay::attacks::AutoAttack;
 use pixel_monster_survivor::gameplay::combat::Health;
 use pixel_monster_survivor::gameplay::companions::Companion;
 use pixel_monster_survivor::gameplay::damage::GodMode;
-use pixel_monster_survivor::gameplay::enemies::{Enemy, enemy_bundle};
+use pixel_monster_survivor::gameplay::enemies::{Boss, Enemy, enemy_bundle};
 use pixel_monster_survivor::gameplay::kinematics::{Position, body};
 use pixel_monster_survivor::gameplay::player::Player;
 use pixel_monster_survivor::gameplay::progression::{Progression, XpGem, xp_to_next};
+use pixel_monster_survivor::gameplay::run::RunClock;
+use pixel_monster_survivor::gameplay::spawning::SpawnDirector;
 use pixel_monster_survivor::gameplay::upgrades::{AutoPick, ChooseUpgrade, Draft};
 use pixel_monster_survivor::headless_app_with;
 
@@ -234,4 +236,49 @@ pub fn app_starting_with(companion: &str, change: impl FnOnce(&mut GameConfig)) 
     app.update();
     despawn_all::<Enemy>(&mut app);
     app
+}
+
+// --- Arco della run (P0.6) ---
+
+/// I dati veri con la run accorciata a `duration_s` secondi.
+pub fn short_run(duration_s: f32) -> GameConfig {
+    let mut config = GameConfig::embedded();
+    config.stage.run.duration_s = duration_s;
+    config
+}
+
+pub fn clock(app: &App) -> f32 {
+    app.world().resource::<RunClock>().elapsed
+}
+
+pub fn director(app: &App) -> SpawnDirector {
+    app.world().resource::<SpawnDirector>().clone()
+}
+
+/// Corre finché nasce il boss (al massimo `limit` passi) e ne restituisce l'entità.
+pub fn until_boss(app: &mut App, limit: usize) -> Entity {
+    for _ in 0..limit {
+        run_steps(app, 1);
+        let world = app.world_mut();
+        if let Some(boss) = world
+            .query_filtered::<Entity, With<Boss>>()
+            .iter(world)
+            .next()
+        {
+            return boss;
+        }
+    }
+    panic!("il boss non è nato in {limit} passi");
+}
+
+/// Toglie tutti i nemici tranne il boss.
+pub fn despawn_all_but_boss(app: &mut App) {
+    let world = app.world_mut();
+    let others: Vec<Entity> = world
+        .query_filtered::<Entity, (With<Enemy>, Without<Boss>)>()
+        .iter(world)
+        .collect();
+    for e in others {
+        world.despawn(e);
+    }
 }

@@ -21,6 +21,9 @@ manifest `assets/manifest.json`.
 | `assets/sprites/sprout_companion.png` | `assets-src/sprites/sprout_companion.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/leaf.png` | `assets-src/sprites/leaf.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/droplet.png` | `assets-src/sprites/droplet.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
+| `assets/sprites/elite_enemy.png` | `assets-src/sprites/elite_enemy.px` → `scripts/build-assets.py` (segnaposto P0.6) | originale, proprietà del progetto |
+| `assets/sprites/boss_enemy.png` | `assets-src/sprites/boss_enemy.px` → `scripts/build-assets.py` (segnaposto P0.6) | originale, proprietà del progetto |
+| `assets/sprites/telegraph.png` | `assets-src/sprites/telegraph.px` → `scripts/build-assets.py` (segnaposto P0.6) | originale, proprietà del progetto |
 | `assets/tiles/meadow_tileset.png` | generato da `scripts/build-assets.py` (seed 20261022) | originale, proprietà del progetto |
 | Palette "Germoglio" (`assets-src/palette.txt`) | definita per il progetto | originale, proprietà del progetto |
 

@@ -10,6 +10,7 @@ use super::kinematics::{Position, body};
 use super::player::Player;
 use super::pulse::Slowed;
 use super::spatial::EnemyGrid;
+use super::threats::{Charger, Slammer};
 use crate::app::AppState;
 use crate::data::DataId;
 use crate::data::schema::EnemyData;
@@ -28,6 +29,71 @@ pub struct Enemy {
     pub xp: u32,
 }
 
+/// Il boss della run: quando non c'è più (dopo essere arrivato) la run è vinta.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Boss;
+
+/// Moltiplicatori di difficoltà al momento della nascita.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Scale {
+    pub hp: f32,
+    pub damage: f32,
+}
+
+impl Scale {
+    pub const BASE: Self = Self {
+        hp: 1.0,
+        damage: 1.0,
+    };
+
+    /// Al secondo `t`: `1 + crescita × minuti`, per HP e danno.
+    pub fn at(hp_growth_per_min: f32, damage_growth_per_min: f32, t: f32) -> Self {
+        let minutes = t.max(0.0) / 60.0;
+        Self {
+            hp: 1.0 + hp_growth_per_min * minutes,
+            damage: 1.0 + damage_growth_per_min * minutes,
+        }
+    }
+}
+
+/// Crea un nemico dell'archetipo `data` con HP e danno moltiplicati da `scale`, più la carica
+/// o il colpo ad area se i dati li prevedono.
+pub fn spawn_enemy(
+    commands: &mut Commands,
+    data: &EnemyData,
+    at: Vec2,
+    serial: u32,
+    scale: Scale,
+) -> Entity {
+    let mut entity = commands.spawn(enemy_bundle(data, at, serial));
+    if scale != Scale::BASE {
+        entity.insert((
+            Enemy {
+                contact_damage: data.contact_damage * scale.damage,
+                ..enemy_stats(data)
+            },
+            Health::full(data.max_hp * scale.hp),
+        ));
+    }
+    if let Some(charge) = data.charge {
+        entity.insert(Charger::new(charge));
+    }
+    if let Some(slam) = data.slam {
+        entity.insert(Slammer::new(slam));
+    }
+    entity.id()
+}
+
+fn enemy_stats(data: &EnemyData) -> Enemy {
+    Enemy {
+        speed: data.speed,
+        contact_distance: data.contact_distance,
+        separation_radius: data.separation_radius,
+        contact_damage: data.contact_damage,
+        xp: data.xp,
+    }
+}
+
 /// Correzioni dei nemici in `SimSet::Resolve`, in catena.
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct EnemyResolve;
@@ -37,13 +103,7 @@ pub fn enemy_bundle(data: &EnemyData, at: Vec2, serial: u32) -> impl Bundle {
     (
         Name::new(format!("{} {serial}", data.display_name)),
         DataId(data.id.clone()),
-        Enemy {
-            speed: data.speed,
-            contact_distance: data.contact_distance,
-            separation_radius: data.separation_radius,
-            contact_damage: data.contact_damage,
-            xp: data.xp,
-        },
+        enemy_stats(data),
         Health::full(data.max_hp),
         Hurtbox {
             radius: data.hurtbox.radius,
@@ -107,15 +167,19 @@ impl Plugin for EnemyPlugin {
     }
 }
 
-/// Inseguimento; un nemico rallentato dall'onda va a `speed × factor`.
-fn chase_player(
+/// Inseguimento; un nemico rallentato dall'onda va a `speed × factor`. Chi sta caricando
+/// (preavviso o scatto) lo muove `threats`.
+pub(super) fn chase_player(
     time: Res<Time>,
     player: Single<&Position, With<Player>>,
-    mut enemies: Query<(&Enemy, Option<&Slowed>, &mut Position), Without<Player>>,
+    mut enemies: Query<(&Enemy, Option<&Slowed>, Option<&Charger>, &mut Position), Without<Player>>,
 ) {
     let target = player.0;
     let dt = time.delta_secs();
-    for (enemy, slowed, mut position) in &mut enemies {
+    for (enemy, slowed, charger, mut position) in &mut enemies {
+        if charger.is_some_and(|c| !c.is_chasing()) {
+            continue;
+        }
         let speed = enemy.speed * slowed.map_or(1.0, |s| s.factor);
         position.0 = chase_step(position.0, target, speed, dt, enemy.contact_distance);
     }

@@ -147,7 +147,8 @@ fn update_config(
                 Some(current) if *current != config => {
                     info!("dati di gioco ricaricati: la run riparte con i nuovi valori");
                     commands.insert_resource(config);
-                    if *state.get() == AppState::InRun {
+                    // dal menu si torna al menu (`AfterLoading`), dalla run a una run nuova
+                    if matches!(*state.get(), AppState::InRun | AppState::MainMenu) {
                         next.set(AppState::Loading);
                     }
                 }
@@ -335,5 +336,35 @@ mod tests {
         reload(&mut app, "stages.ron");
         update_until(&mut app, error_contains("impossibile leggere"));
         assert_eq!(*app.world().resource::<GameConfig>(), before);
+    }
+
+    /// Rilievo del code review P0.6: salvando i dati dal menu, il menu si ricostruisce
+    /// (passa da `Loading`) invece di restare con le carte vecchie.
+    #[test]
+    fn a_valid_change_in_the_menu_reloads_too() {
+        let dir = DataDir::new("reload-menu");
+        let mut app = app(&dir);
+        update_until(&mut app, has_config);
+        app.world_mut()
+            .resource_mut::<NextState<AppState>>()
+            .set(AppState::MainMenu);
+        app.update();
+        let current = GameConfig::embedded().stage.spawns.initial_burst;
+        let wanted = current + 2;
+        let more = EMBEDDED.stages.replace(
+            &format!("initial_burst: {current},"),
+            &format!("initial_burst: {wanted},"),
+        );
+        assert_ne!(more, EMBEDDED.stages, "la modifica deve cambiare il file");
+        dir.write("stages.ron", more);
+        reload(&mut app, "stages.ron");
+        update_until(&mut app, |w| {
+            w.resource::<GameConfig>().stage.spawns.initial_burst == wanted
+        });
+        app.update();
+        assert_eq!(
+            *app.world().resource::<State<AppState>>().get(),
+            AppState::Loading
+        );
     }
 }

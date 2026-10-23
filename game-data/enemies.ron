@@ -1,8 +1,9 @@
 // Archetipi nemici. Tre ruoli distinti per forma, velocità e resistenza:
 // gelatina = base, sciame = veloce e fragile, corazzato = lento e resistente.
-// Élite e boss arrivano con la P0.6.
+// Più l'élite (carica telegrafata) e il boss (colpo ad area telegrafato), citati in stages.ron.
+// `charge` e `slam` sono facoltativi: senza, il nemico insegue e basta.
 (
-    version: 4,
+    version: 5,
     enemies: [
         (
             id: "blob",
@@ -20,7 +21,8 @@
             contact_distance: 10.0,
             // distanza minima tra due nemici
             separation_radius: 14.0,
-            contact_damage: 3.0,
+            // la base dell'orda: tante, poco danno ciascuna
+            contact_damage: 2.0,
             xp: 1,
         ),
         (
@@ -52,6 +54,41 @@
             contact_damage: 6.0,
             // vale la fatica: 10 colpi
             xp: 6,
+        ),
+        (
+            id: "elite_blob",
+            display_name: "Gelatina Gigante",
+            sprite: "sprites/elite_enemy.png",
+            // ~33 colpi base: va affrontata, non ignorata
+            max_hp: 400.0,
+            speed: 34.0,
+            hurtbox: (radius: 11.0, center_offset: 9.0),
+            footprint_radius: 9.0,
+            contact_distance: 14.0,
+            separation_radius: 22.0,
+            contact_damage: 8.0,
+            // vale la deviazione: quasi un livello intero a metà run
+            xp: 25,
+            // si ferma 0,8 s mostrando la traiettoria (linea rossa), poi scatta ~115 px
+            charge: Some((every_s: 5.0, windup_s: 0.8, speed: 230.0, duration_s: 0.5, range: 160.0)),
+        ),
+        (
+            id: "boss_king",
+            display_name: "Re Gelatina",
+            sprite: "sprites/boss_enemy.png",
+            // obiettivo GDD: sconfitto da una build media in 60-120 s (run completa con
+            // l'autoplay: 5000 HP = 138 s, quindi 3800)
+            max_hp: 3800.0,
+            speed: 30.0,
+            hurtbox: (radius: 18.0, center_offset: 16.0),
+            // impronta piccola: passa tra gli ostacoli come gli altri (varco minimo 18 px)
+            footprint_radius: 9.0,
+            contact_distance: 20.0,
+            separation_radius: 30.0,
+            contact_damage: 15.0,
+            xp: 0,
+            // cerchio rosso dove sei per 1 s, poi colpisce: 25 danni a chi resta dentro
+            slam: Some((every_s: 4.0, windup_s: 1.0, radius: 44.0, damage: 25.0, range: 240.0)),
         ),
     ],
 )

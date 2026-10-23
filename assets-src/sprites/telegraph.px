@@ -1,0 +1,8 @@
+# Segno di pericolo a terra (linea della carica, cerchio del colpo), 4x4 rosso: tanti in fila
+# disegnano la forma senza scale. SEGNAPOSTO P0.6.
+out: sprites/telegraph.png
+---
+.rr.
+rRRr
+rRRr
+.rr.

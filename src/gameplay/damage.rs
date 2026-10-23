@@ -28,6 +28,29 @@ pub struct Invulnerability {
 #[derive(Resource, Debug, Clone, Copy, PartialEq, Default)]
 pub struct GodMode(pub bool);
 
+/// Il contatto con i nemici in `SimSet::Damage`: i colpi ad area (`threats`) vengono dopo.
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct DamageSteps;
+
+/// Un colpo al player con le regole di tutti i danni: niente in modalità invulnerabile, durante
+/// la finestra di invulnerabilità o da morto; se va a segno parte una nuova finestra.
+/// Restituisce se il colpo è andato a segno.
+pub fn strike_player(
+    health: &mut Health,
+    invulnerability: &mut Invulnerability,
+    god: bool,
+    stats: &mut RunStats,
+    damage: f32,
+) -> bool {
+    if god || invulnerability.remaining > 0.0 || health.is_dead() || damage <= 0.0 {
+        return false;
+    }
+    health.current -= damage;
+    stats.damage_taken += damage;
+    invulnerability.remaining = invulnerability.duration;
+    true
+}
+
 /// Danno totale dai nemici a contatto con il player in `player`.
 pub fn contact_damage(player: Vec2, enemies: impl IntoIterator<Item = (Vec2, Enemy)>) -> f32 {
     enemies
@@ -42,7 +65,10 @@ pub struct DamagePlugin;
 impl Plugin for DamagePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<GodMode>()
-            .add_systems(FixedUpdate, hurt_player.in_set(SimSet::Damage))
+            .add_systems(
+                FixedUpdate,
+                hurt_player.in_set(SimSet::Damage).in_set(DamageSteps),
+            )
             .add_systems(PostUpdate, declare_defeat);
     }
 }
@@ -50,7 +76,7 @@ impl Plugin for DamagePlugin {
 /// La sconfitta si decide dagli HP, non da una richiesta fatta al momento del colpo: gira in
 /// `PostUpdate`, dopo l'input, quindi vince su una pausa chiesta nello stesso fotogramma (Esc
 /// o perdita di focus) e viene ripetuta finché la fase non è davvero `Defeated`.
-fn declare_defeat(
+pub(super) fn declare_defeat(
     phase: Option<Res<State<RunPhase>>>,
     next: Option<ResMut<NextState<RunPhase>>>,
     player: Query<&Health, With<Player>>,
@@ -86,13 +112,9 @@ fn hurt_player(
             (!enemy_health.is_dead()).then_some((entry.position, *enemy))
         });
     let damage = contact_damage(position.0, touching);
-    if damage <= 0.0 {
-        return;
+    if strike_player(&mut health, &mut invulnerability, god.0, &mut stats, damage) {
+        commands.entity(entity).try_insert(HitFlash(HIT_FLASH_SECS));
     }
-    health.current -= damage;
-    stats.damage_taken += damage;
-    invulnerability.remaining = invulnerability.duration;
-    commands.entity(entity).try_insert(HitFlash(HIT_FLASH_SECS));
 }
 
 #[cfg(test)]
@@ -117,5 +139,45 @@ mod tests {
         assert_eq!(contact_damage(Vec2::ZERO, [near, edge, far]), 8.0);
         assert_eq!(contact_damage(Vec2::ZERO, [far]), 0.0);
         assert_eq!(contact_damage(Vec2::ZERO, []), 0.0);
+    }
+
+    #[test]
+    fn a_strike_respects_god_mode_invulnerability_and_death() {
+        let fresh = || {
+            (
+                Health::full(100.0),
+                Invulnerability {
+                    remaining: 0.0,
+                    duration: 0.75,
+                },
+                RunStats::default(),
+            )
+        };
+        let (mut h, mut inv, mut stats) = fresh();
+        assert!(strike_player(&mut h, &mut inv, false, &mut stats, 25.0));
+        assert_eq!(
+            (h.current, inv.remaining, stats.damage_taken),
+            (75.0, 0.75, 25.0)
+        );
+        // nella finestra di invulnerabilità niente
+        assert!(!strike_player(&mut h, &mut inv, false, &mut stats, 25.0));
+        assert_eq!(h.current, 75.0);
+        let (mut h, mut inv, mut stats) = fresh();
+        assert!(
+            !strike_player(&mut h, &mut inv, true, &mut stats, 25.0),
+            "invulnerabile"
+        );
+        assert_eq!(h.current, 100.0);
+        h.current = 0.0;
+        assert!(
+            !strike_player(&mut h, &mut inv, false, &mut stats, 25.0),
+            "già morto"
+        );
+        let (mut h, mut inv, mut stats) = fresh();
+        assert!(
+            !strike_player(&mut h, &mut inv, false, &mut stats, 0.0),
+            "danno nullo"
+        );
+        assert_eq!(inv.remaining, 0.0, "nessuna finestra per un colpo nullo");
     }
 }

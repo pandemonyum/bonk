@@ -4,7 +4,7 @@
 // - Pulse: onda che si allarga attorno al player fino a `range`, colpisce e rallenta (P0.5);
 // - Orbit: foglie che girano attorno al player a distanza `range` (P0.5).
 (
-    version: 4,
+    version: 5,
     attacks: [
         (
             id: "ember_bolt",

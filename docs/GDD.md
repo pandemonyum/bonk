@@ -12,15 +12,16 @@ restart immediato.
 
 ## Comandi
 
-WASD/frecce: movimento 8 direzioni. Esc o P: pausa. F5 (o Invio da sconfitti): ricomincia.
-1/2/3 o clic: carta del draft. F3: overlay debug. F12: screenshot. Nessun tasto d'attacco: gli
+Menu: 1/2/3, frecce o clic per il compagno, Invio per iniziare. WASD/frecce: movimento 8
+direzioni. Esc o P: pausa. F5: ricomincia. Sui risultati: Invio o F5 nuova run con lo stesso
+compagno, M menu. 1/2/3 o clic: carta del draft. F3: overlay debug. F12: screenshot. Nessun tasto d'attacco: gli
 attacchi sono automatici.
 
 ## Valori attuali
 
 | Parametro | Valore | Motivo |
 |---|---|---|
-| Evocatore | 75 px/s, 100 HP, 0,6 s di invulnerabilità dopo un colpo | attraversa lo schermo in ~6 s; il tempo di uscire dalla calca |
+| Evocatore | 75 px/s, 100 HP, 0,75 s di invulnerabilità dopo un colpo | attraversa lo schermo in ~6 s; il tempo di uscire dalla calca (P0.6: da 0,6) |
 | Arena | 4096×4096 px, bordo di siepe | ~55 s per attraversarla: spazio per fuggire senza perdersi |
 | Simulazione | 60 Hz fissi | riproducibile con seed |
 | Brasa (fuoco, iniziale) | proiettile: 12 danni, 1 colpo ogni 1,1 s, gittata 150 px, 220 px/s per 0,85 s | valori dell'handoff §7: il bersaglio singolo più lontano |
@@ -33,9 +34,11 @@ attacchi sono automatici.
 
 | Archetipo | HP | Velocità | Danno a contatto | Ruolo |
 |---|---|---|---|---|
-| Gelatina | 30 (3 colpi) | 40 px/s | 3 | base, arriva in gruppo |
+| Gelatina | 30 (3 colpi) | 40 px/s | 2 | base, arriva in gruppo (P0.6: danno da 3) |
 | Sciame | 12 (1 colpo) | 68 px/s | 2 | quasi veloce come il player: non si semina, va abbattuto |
 | Corazzato | 120 (10 colpi) | 28 px/s | 6 | lento, blocca la strada mentre gli altri arrivano |
+| Gelatina Gigante (élite) | 400 | 34 px/s | 8 | ogni 5 s, se sei entro 160 px, si ferma 0,8 s con la linea rossa a terra e scatta ~115 px; 25 XP |
+| Re Gelatina (boss) | 3800 | 30 px/s | 15 | ogni 4 s segna un cerchio di 44 px dove sei: dopo 1 s colpisce per 25 chi è ancora dentro |
 
 **Danni al player:** a ogni finestra di invulnerabilità si somma il danno di tutti i nemici a
 contatto. Essere circondati costa caro, uscirne in tempo no: muoversi è la difesa principale.
@@ -80,11 +83,23 @@ un tronco, cadenza sotto un passo, gemme più lente del player).
 | Ondata | Da | Base/min | Crescita/min² | Max vivi |
 |---|---|---|---|---|
 | Gelatina | 0:00 | 24 | 12 | 90 |
-| Sciame | 1:00 | 20 | 15 | 110 |
+| Sciame | 1:40 | 16 | 15 | 110 |
 | Corazzato | 2:30 | 4 | 2 | 25 |
 
 5 gelatine all'avvio; al massimo 220 nemici insieme (obiettivo prestazioni P0); nascita
-nell'anello 290–360 px dal player, sempre fuori vista.
+nell'anello 290–360 px dal player, sempre fuori vista. Lo sciame arriva a 1:40 (P0.6, da 1:00):
+quando di solito la squadra ha un secondo compagno.
+
+**Arco della run (`stages.ron: run`, P0.6)**
+
+| Parametro | Valore | Motivo |
+|---|---|---|
+| Durata | 10:00, poi le ondate si fermano ed entra il boss; sconfiggerlo è la vittoria | handoff: run di 10 minuti con boss finale |
+| Difficoltà | nemici di ondate ed élite +15% HP e +8% danno per minuto, alla nascita (a 10:00 ×2,5 e ×1,8) | la squadra cresce, le orde anche |
+| Élite | Gelatina Gigante a 2:30, poi ogni 75 s (~6 a run) | un pericolo da leggere, non da subire: si ferma e mostra la carica |
+| Boss | Re Gelatina, non scalato | tarato per la fine della run |
+| Preavvisi | almeno 0,5 s (validato), lampeggio sempre più rapido | "telegraph chiaro" dell'handoff |
+| Carte compagno | comuni (P0.6, prima non comuni) | la squadra arriva nei primi livelli |
 
 ## Misure
 
@@ -97,6 +112,17 @@ nell'anello 290–360 px dal player, sempre fuori vista.
   upgrade della P0.4.
 - **P0.3, carico:** 220 nemici a 59 FPS / 16,9 ms nel gioco (build dev, vsync); simulazione
   0,45–0,62 ms per passo con 50–500 nemici.
+- **P0.6, run completa (`tests/sim/run.rs`, seed 5, autoplay invulnerabile):** boss a 10:00,
+  vittoria a 11:49 con 3800 HP (combattimento 109 s), livello 37, 1592 sconfitti. Con 5000 HP il
+  gioco vero (seed 5, ×10) aveva dato gli stessi livello e sconfitti del headless (vittoria a
+  12:15).
+- **P0.6, sopravvivenza vera (`print_survival_with_upgrades`, 5 seed):** da fermi 0:18–0:19;
+  con l'autoplay e la scelta automatica che preferisce i compagni **1:37–2:53**, livello 3–9,
+  2–3 compagni (P0.5: 1:08–1:22). Passi: sciame a 1:40, invulnerabilità 0,75 s, gelatina 2
+  danni, carte compagno comuni.
+- **P0.6, bot che schiva (`print_survival_kiting`, 5 seed):** sopravvive tutti i 13 minuti ma
+  resta al livello 4–6 e non batte il boss (scappa da tutto, raccoglie poco). Un giocatore vero
+  sta nel mezzo: la difficoltà va tarata con una prova umana (P0.7).
 - **P0.5, squadra (5 seed, prima carta automatica):** con il player invulnerabile il livello
   finale a 10:00 passa da 14–25 a **33–36** (livello 10 a 2:47–5:01): tre compagni sconfiggono
   molti più nemici. Con l'autoplay e i danni la run dura ancora **1:08–1:22** (livello 2–3): si
@@ -121,8 +147,7 @@ nell'anello 290–360 px dal player, sempre fuori vista.
 | Gocci | acqua | onda in area attorno al player | danno, cadenza, raggio, rallentamento |
 | Frond | natura | foglie orbitanti | danno, n. foglie, raggio orbita, velocità |
 
-**Nemici ancora da fare:** 1 élite (versione grande con telegraph di carica); 1 boss al minuto
-10 con attacco telegrafato in rosso (P0.6).
+Élite e boss della P0.6 sono in `enemies.ron` (sprite segnaposto in attesa dell'art pass).
 
 **Upgrade (~10, tutti con effetto runtime testabile, P0.4):** danno +15%, cadenza −10%,
 proiettili +1, area +20%, raggio raccolta +25%, velocità +10%, HP massimi +20, rigenerazione,
@@ -131,7 +156,9 @@ formula, testo UI.
 
 ## Obiettivi di bilanciamento
 
-- Senza upgrade, il giocatore che resta fermo muore entro 90 s (non invincibile). **Oggi: 13 s.**
+- Senza upgrade, il giocatore che resta fermo muore entro 90 s (non invincibile). **Oggi: 18–19 s.**
 - Il primo level-up arriva entro 30–45 s (progressione percepibile). **Oggi: 0:30–0:41.**
 - A metà run almeno due build elementali diverse sono praticabili (scelte significative).
-- Il boss è sconfiggibile da una build media in 60–120 s.
+- Il boss è sconfiggibile da una build media in 60–120 s. **Oggi: 109 s** (run completa con
+  l'autoplay e 3800 HP; con 6000 erano 122 s, con 5000 138 s dopo il cambio della scelta
+  automatica).

@@ -1,0 +1,45 @@
+# Boss "Re Gelatina", SEGNAPOSTO P0.6 generato da forme semplici: gelatina enorme con corona
+# d'oro. La versione definitiva arriva dall'art pass.
+out: sprites/boss_enemy.png
+mirror: true
+---
+........................
+................y..y..y.
+................g..g..g.
+................g..g..g.
+................ggggggrg
+................GGGGGGGG
+..................kkkkkk
+..............kkkkqqqqqq
+............kkqqqqqqqqqq
+..........kkqqqqqqqqqqqq
+........kkqqqqqqqqqqqqqq
+.......kpqqqqqqqqqqqqqqq
+......kppqqqqqqqqqqqqqqq
+.....kpppqqqqqqqqqqqqqqq
+....kppppqqqqqqqqqqqqqqq
+...kpppppppppppppppppppp
+..kppppppppppppppppppppp
+..kppppppppppppppppppppp
+.kpppppppppppppppppppppp
+.kpppppppppppppppppppppp
+.kppppppppppppwwwkpppppp
+.kppppppppppppwwwkpppppp
+.kPPPpppppppppwwwkpppppp
+.kPPPpppppppppwwwkpppppp
+.kPPPppppppppppppppppppp
+.kPPPppppppppppppppppppp
+.kPPPppppppppppppppppppp
+.kPPPppppppppppppppppppp
+.kPPPpppppppppppppppRRRR
+..kPPppppppppppppppppppp
+..kPPppppppppppppppppppp
+..kPPppppppppppppppppppp
+...kPppppppppppppppppppp
+....kPPPPPPPPPPPPPPPPPPP
+....kPPPPPPPPPPPPPPPPPPP
+.....kPPPPPPPPPPPPPPPPPP
+......kPPPPPPPPPPPPPPPPP
+.......kPPPPPPPPPPPPPPPP
+........kPPPPPPPPPPPPPPP
+.........kkkkkkkkkkkkkkk

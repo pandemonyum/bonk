@@ -13,9 +13,9 @@ use super::orbit::OrbitAttack;
 use super::player::Player;
 use super::progression::{PickupRadius, Progression};
 use super::pulse::PulseAttack;
-use crate::app::{AppState, RunPhase, RunSeed};
+use crate::app::{AppState, RunPhase, RunSeed, RunSetup};
 use crate::data::GameConfig;
-use crate::data::schema::{Effect, RarityWeights, UpgradeData};
+use crate::data::schema::Effect;
 use crate::rng::Pcg32;
 
 /// Stream RNG dedicato al draft (vedi `Pcg32::new`).
@@ -46,8 +46,9 @@ pub struct Draft {
 #[derive(Message, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChooseUpgrade(pub usize);
 
-/// Sceglie da sola la prima carta dopo `delay_secs` secondi reali (autoplay, simulazioni
-/// headless). Senza questa risorsa il draft aspetta il giocatore.
+/// Sceglie da sola una carta dopo `delay_secs` secondi reali (autoplay, simulazioni headless),
+/// come farebbe un giocatore alle prime armi: un compagno nuovo se c'è, se no la prima carta
+/// ([`auto_choice`]). Senza questa risorsa il draft aspetta il giocatore.
 #[derive(Resource, Debug, Clone, Copy, PartialEq)]
 pub struct AutoPick {
     pub delay_secs: f32,
@@ -56,89 +57,8 @@ pub struct AutoPick {
 #[derive(Resource, Debug, Clone)]
 struct DraftRng(Pcg32);
 
-/// La squadra secondo i dati e le carte prese: il compagno iniziale, poi chi è arrivato con le
-/// carte `JoinCompanion`, fino ai posti di `player.ron`. Serve al draft (stessa regola di
-/// `companions::join_companions`, che crea davvero i compagni).
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PartyView {
-    pub members: Vec<String>,
-    pub free_slots: usize,
-}
-
-impl PartyView {
-    pub fn of(config: &GameConfig, stacks: &UpgradeStacks) -> Self {
-        let slots = config.player.companion_slots.len();
-        let mut members = vec![config.stage.starting_companion.clone()];
-        for (i, upgrade) in config.upgrades.iter().enumerate() {
-            if let Effect::JoinCompanion(id) = &upgrade.effect
-                && stacks.of(i) > 0
-                && !members.contains(id)
-                && members.len() < slots
-            {
-                members.push(id.clone());
-            }
-        }
-        let free_slots = slots.saturating_sub(members.len());
-        Self {
-            members,
-            free_slots,
-        }
-    }
-}
-
-/// Un upgrade si può proporre se non è al massimo e ha già tutti i requisiti; una carta
-/// "nuovo compagno" solo se c'è un posto libero e il compagno non è già in squadra.
-pub fn is_eligible(
-    upgrades: &[UpgradeData],
-    stacks: &UpgradeStacks,
-    index: usize,
-    party: &PartyView,
-) -> bool {
-    let upgrade = &upgrades[index];
-    let room = match &upgrade.effect {
-        Effect::JoinCompanion(id) => party.free_slots > 0 && !party.members.contains(id),
-        _ => true,
-    };
-    room && stacks.of(index) < upgrade.max_stack
-        && upgrade.requires.iter().all(|required| {
-            upgrades
-                .iter()
-                .position(|u| u.id == *required)
-                .is_some_and(|j| stacks.of(j) > 0)
-        })
-}
-
-/// Fino a `count` upgrade diversi, estratti senza ripetizione con probabilità proporzionale
-/// al peso della rarità. Meno carte se gli upgrade disponibili sono meno.
-pub fn draw_choices(
-    rng: &mut Pcg32,
-    upgrades: &[UpgradeData],
-    stacks: &UpgradeStacks,
-    party: &PartyView,
-    weights: &RarityWeights,
-    count: usize,
-) -> Vec<usize> {
-    let mut pool: Vec<(usize, f32)> = (0..upgrades.len())
-        .filter(|&i| is_eligible(upgrades, stacks, i, party))
-        .map(|i| (i, weights.of(upgrades[i].rarity)))
-        .filter(|&(_, weight)| weight > 0.0)
-        .collect();
-    let mut choices = Vec::with_capacity(count);
-    while choices.len() < count && !pool.is_empty() {
-        let total: f32 = pool.iter().map(|&(_, weight)| weight).sum();
-        let mut roll = rng.next_f32() * total;
-        let mut pick = pool.len() - 1; // ripiego per l'arrotondamento della somma
-        for (k, &(_, weight)) in pool.iter().enumerate() {
-            if roll < weight {
-                pick = k;
-                break;
-            }
-            roll -= weight;
-        }
-        choices.push(pool.remove(pick).0);
-    }
-    choices
-}
+mod rules;
+pub use rules::{PartyView, auto_choice, draw_choices, is_eligible};
 
 pub struct UpgradesPlugin;
 
@@ -184,6 +104,7 @@ fn reset_upgrades(mut commands: Commands, config: Res<GameConfig>, seed: Res<Run
 /// Se non resta nessun upgrade disponibile i livelli passano senza fermare la run.
 fn open_draft(
     config: Res<GameConfig>,
+    setup: Res<RunSetup>,
     stacks: Res<UpgradeStacks>,
     mut progression: ResMut<Progression>,
     player: Query<&Health, With<Player>>,
@@ -193,7 +114,7 @@ fn open_draft(
         return; // da sconfitti decide `declare_defeat`
     }
     let weights = &config.progression.rarity_weights;
-    let party = PartyView::of(&config, &stacks);
+    let party = PartyView::of(&config, &stacks, &setup.starter(&config).id);
     let available = (0..config.upgrades.len()).any(|i| {
         is_eligible(&config.upgrades, &stacks, i, &party)
             && weights.of(config.upgrades[i].rarity) > 0.0
@@ -211,6 +132,7 @@ fn open_draft(
 
 fn deal_draft(
     config: Res<GameConfig>,
+    setup: Res<RunSetup>,
     stacks: Res<UpgradeStacks>,
     mut progression: ResMut<Progression>,
     mut rng: ResMut<DraftRng>,
@@ -222,7 +144,7 @@ fn deal_draft(
         &mut rng.0,
         &config.upgrades,
         &stacks,
-        &PartyView::of(&config, &stacks),
+        &PartyView::of(&config, &stacks, &setup.starter(&config).id),
         &p.rarity_weights,
         p.draft_size as usize,
     );
@@ -239,6 +161,7 @@ fn deal_draft(
 fn auto_pick(
     auto: Res<AutoPick>,
     time: Res<Time<Real>>,
+    config: Res<GameConfig>,
     draft: Res<Draft>,
     mut waited: Local<f32>,
     mut choose: MessageWriter<ChooseUpgrade>,
@@ -249,7 +172,7 @@ fn auto_pick(
         *waited += time.delta_secs();
     }
     if *waited >= auto.delay_secs {
-        choose.write(ChooseUpgrade(0));
+        choose.write(ChooseUpgrade(auto_choice(&config.upgrades, &draft.choices)));
         *waited = f32::NEG_INFINITY; // una sola scelta per draft
     }
 }
@@ -260,6 +183,7 @@ fn auto_pick(
 fn apply_choice(
     mut choices: MessageReader<ChooseUpgrade>,
     config: Res<GameConfig>,
+    setup: Res<RunSetup>,
     mut stacks: ResMut<UpgradeStacks>,
     mut progression: ResMut<Progression>,
     mut rng: ResMut<DraftRng>,
@@ -296,7 +220,7 @@ fn apply_choice(
             &mut rng.0,
             &config.upgrades,
             &stacks,
-            &PartyView::of(&config, &stacks),
+            &PartyView::of(&config, &stacks, &setup.starter(&config).id),
             &p.rarity_weights,
             p.draft_size as usize,
         )

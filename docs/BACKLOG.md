@@ -24,7 +24,7 @@ seguenti (handoff §10: il companion che attacca è il primo elemento ludico dif
 | ~~P0.3~~ **DONE** | Spawn director: 3 archetipi nemici da dati, curva per minuto, cap per archetipo, spawn fuori camera e mai sul player; HP, danno al player, morte, hit feedback, despawn; griglia spaziale al posto della separazione O(n²) | gameplay-engineer + game-designer (valori) | test: nessuno spawn dentro la camera/il player, cap rispettato, restart non accumula entità; overlay con conteggi |
 | ~~P0.4~~ **DONE** | Gemme XP (drop una sola volta), raccolta per prossimità, livelli, draft di 3 carte con pausa, effetti applicati a caldo | gameplay-engineer + game-designer | test: +1 proiettile cambia i proiettili visibili, +danno cambia il danno effettivo; screenshot del draft |
 | ~~P0.5~~ **DONE** | Secondo e terzo companion (onda in area, foglie orbitanti), slot da dati; un compagno aggiunto a metà run deve nascere con gli upgrade già presi (oggi `refresh_modifiers` gira solo quando cambiano gli stack) | gameplay-engineer | test per ciascun pattern di attacco; test: compagno nuovo con i modificatori correnti; screenshot |
-| P0.6 | Timer 10 min, scala difficoltà, élite, boss con telegraph, stati MainMenu/GameOver/Victory, restart | gameplay-engineer | test headless: run completa a seed fisso con autoplay arriva a fine senza panic; restart pulisce lo stato |
+| ~~P0.6~~ **DONE** | Timer 10 min, scala difficoltà, élite, boss con telegraph, stati MainMenu/GameOver/Victory, restart | gameplay-engineer | test headless: run completa a seed fisso con autoplay arriva a fine senza panic; restart pulisce lo stato |
 | P0.7 | HUD (HP, compagni, tempo, risorse, abilità, XP) leggibile; test formule e bilanciamento base | gameplay-engineer + qa-performance | screenshot HUD; test formule XP/danno/cooldown |
 
 Gate P0: 10 minuti giocabili end-to-end senza crash, con prova umana o autoplay + screenshot.
@@ -60,8 +60,14 @@ opzioni, browser, release candidate).
   rivedere con la difficoltà della P0.6 (primo minuto più morbido, crescita più graduale) e
   con una prova umana. Una sonda con scelte sensate (non la prima carta) darebbe una misura
   più vicina a un giocatore.
-- Scelta del compagno iniziale tra i tre archetipi (handoff, loop §1): oggi è in
-  `stages.ron`; va nel menu della P0.6.
+- Sprite di élite, boss e segni di pericolo sono segnaposto P0.6: li sostituisce l'art pass
+  della sessione parallela (ramo `art-style-16bit`), con le icone dell'interfaccia da collegare.
+- Bilanciamento: un bot che schiva sopravvive 13 minuti ma non vince, l'autoplay cieco muore a
+  ~2 minuti; serve una prova umana per tarare difficoltà per minuto, élite e boss (P0.7).
+- L'élite carica anche quando è già a contatto (scatto inutile, innocuo): valutare una
+  distanza minima.
+- Il boss nasce fuori vista e può restare lontano: valutare un avviso a schermo "arriva il boss"
+  e una freccia verso di lui.
 - Foglie di Frond (6×6, lime) poco leggibili sull'erba: valutare contorno più marcato o una
   scia (P2, pixel-art-director).
 - Replay identici tra nativo e WASM: valutare la feature `libm` di Bevy/glam per `sin`/`cos`

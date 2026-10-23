@@ -142,3 +142,96 @@ fn print_step_cost_with_many_enemies() {
         println!("{enemies:3} nemici: {ms:.3} ms per passo (budget a 60 Hz: 16,7 ms)");
     }
 }
+
+/// Sopravvivenza vera (danni attivi) con la prima carta scelta in automatico: da fermi e con
+/// l'autoplay, fino alla fine della run. Stampa durata, livello, squadra e come è finita.
+#[test]
+#[ignore = "sonda manuale di bilanciamento"]
+fn print_survival_with_upgrades() {
+    use pixel_monster_survivor::gameplay::companions::Companion;
+    for seed in [1, 2, 3, 4, 5] {
+        for autoplay in [false, true] {
+            let mut app = headless_app(seed);
+            for step in 0..60 * 60 * 13 {
+                if autoplay {
+                    let t = step as f32 / 60.0;
+                    app.insert_resource(MoveIntent(autoplay_direction(t)));
+                }
+                app.update();
+                let phase = *app.world().resource::<State<RunPhase>>().get();
+                if matches!(phase, RunPhase::Defeated | RunPhase::Victory) {
+                    break;
+                }
+            }
+            let phase = *app.world().resource::<State<RunPhase>>().get();
+            let clock = app.world().resource::<RunClock>().label();
+            let level = app.world().resource::<Progression>().level;
+            let world = app.world_mut();
+            let party = world.query::<&Companion>().iter(world).count();
+            println!(
+                "seed {seed} autoplay {autoplay:5}: {phase:?} a {clock}, livello {level:2}, \
+                 compagni {party}"
+            );
+        }
+    }
+}
+
+/// Direzione di un bot che "kita": si allontana dai nemici entro `DANGER` px (pesati per
+/// vicinanza), resta lontano dai bordi dell'arena, altrimenti vaga come l'autoplay. Una stima
+/// rozza di un giocatore che schiva, per le sonde (non usata dal gioco).
+fn kiting_direction(app: &mut App, t: f32) -> Vec2 {
+    use pixel_monster_survivor::gameplay::kinematics::Position;
+    use pixel_monster_survivor::gameplay::player::Player;
+    use pixel_monster_survivor::world::ArenaBounds;
+    const DANGER: f32 = 90.0;
+    let arena = *app.world().resource::<ArenaBounds>();
+    let world = app.world_mut();
+    let me = world
+        .query_filtered::<&Position, With<Player>>()
+        .single(world)
+        .unwrap()
+        .0;
+    let mut away = Vec2::ZERO;
+    for at in world.query_filtered::<&Position, With<Enemy>>().iter(world) {
+        let delta = me - at.0;
+        let d2 = delta.length_squared();
+        if d2 < DANGER * DANGER && d2 > 1e-3 {
+            away += delta / d2;
+        }
+    }
+    // i bordi spingono verso il centro, più forte da vicino
+    let margin = 200.0;
+    let edge = Vec2::new(
+        ((arena.min.x + margin - me.x).max(0.0) - (me.x - (arena.max.x - margin)).max(0.0))
+            / margin,
+        ((arena.min.y + margin - me.y).max(0.0) - (me.y - (arena.max.y - margin)).max(0.0))
+            / margin,
+    );
+    let wander = autoplay_direction(t) * 0.01;
+    (away + edge * 0.05 + wander).normalize_or_zero()
+}
+
+/// Come `print_survival_with_upgrades`, con il bot che kita: quanto si arriva lontano se si
+/// schiva invece di camminare alla cieca.
+#[test]
+#[ignore = "sonda manuale di bilanciamento"]
+fn print_survival_kiting() {
+    for seed in [1, 2, 3, 4, 5] {
+        let mut app = headless_app(seed);
+        app.update();
+        for step in 0..60 * 60 * 13 {
+            let t = step as f32 / 60.0;
+            let direction = kiting_direction(&mut app, t);
+            app.insert_resource(MoveIntent(direction));
+            app.update();
+            let phase = *app.world().resource::<State<RunPhase>>().get();
+            if matches!(phase, RunPhase::Defeated | RunPhase::Victory) {
+                break;
+            }
+        }
+        let phase = *app.world().resource::<State<RunPhase>>().get();
+        let clock = app.world().resource::<RunClock>().label();
+        let level = app.world().resource::<Progression>().level;
+        println!("seed {seed} kiting: {phase:?} a {clock}, livello {level:2}");
+    }
+}

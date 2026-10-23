@@ -14,7 +14,7 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 
 | Modulo | Contenuto | Richiede GPU |
 |---|---|---|
-| `app` | `AppState` (`Loading`, `InRun`), sottostato `RunPhase` (`Playing`, `Paused`, `LevelUp`, `Defeated`), `RunSeed`, `restart_run`, `SimulationPlugin` | no |
+| `app` | `AppState` (`Loading`, `MainMenu`, `InRun`), sottostato `RunPhase` (`Playing`, `Paused`, `LevelUp`, `Defeated`, `Victory`), `RunSeed`, `RunSetup` (compagno scelto), `AfterLoading` (menu o run dopo il caricamento), `restart_run`, `back_to_menu`, `SimulationPlugin` | no |
 | `data` | schema dei file `game-data/*.ron`, `GameConfig` validata, `DataStatus`, `DataId`, copia incorporata per headless | no |
 | `data::loader` | sorgente `data://`, loader di testo, primo caricamento e ricarica a caldo | AssetServer (client) |
 | `options` | parsing CLI (`--seed`, `--autoplay`, `--overlay`, `--screenshot*`, `--exit-after`, `--window`, `--scale-factor`) | no |
@@ -22,10 +22,11 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `gameplay::kinematics` | `Position`, `PreviousPosition`, `body()` | no |
 | `gameplay::player` | `Player`, `MoveIntent`, movimento 8 direzioni dentro l'arena | no |
 | `gameplay::enemies` | `Enemy`, `enemy_bundle`, inseguimento, separazione (griglia, stile Jacobi), ostacoli, limiti, respinta dal player | no |
-| `gameplay::spawning` | spawn director: budget per ondata, limiti per archetipo e totali, punti validi fuori vista | no |
+| `gameplay::spawning` | spawn director: budget per ondata, limiti per archetipo e totali, punti validi fuori vista; difficoltà per minuto (`Scale`), élite periodiche, boss a fine durata | no |
 | `gameplay::spatial` | `EnemyGrid`: griglia 32 px ordinata per cella, ricostruita prima di `Resolve` e di `Combat` | no |
 | `gameplay::damage` | danno da contatto al player, `Invulnerability`, `GodMode`, passaggio a `Defeated` | no |
-| `gameplay::run` | `RunClock` (tempo di gioco, fermo in pausa e da sconfitti) | no |
+| `gameplay::run` | `RunClock` (tempo di gioco, fermo fuori da `Playing`), conto alla rovescia, vittoria in `PostUpdate` (boss nato e non più in campo, player vivo) | no |
+| `gameplay::threats` | `Charger` (carica dell'élite), `Slammer` (colpo ad area del boss), `Telegraph`, `PendingSlam`; preavvisi di almeno `MIN_TELEGRAPH_S` | no |
 | `gameplay::companions` | `Companion` (posto e angolo di formazione), `spawn_companion` con l'attacco del suo pattern e gli upgrade correnti, `join_companions` dalle carte `JoinCompanion` | no |
 | `gameplay::attacks` | pattern `Projectile`: `AutoAttack`, carica e cadenza (`attack_tick`, riusata dall'onda), scelta del bersaglio, raffiche | no |
 | `gameplay::pulse` | pattern `Pulse`: `PulseAttack`, onde (`Pulse`) che si allargano dal player, colpo una volta per onda, `Slowed` | no |
@@ -43,6 +44,10 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `presentation::sprites` | observer `On<Add<Player/Enemy>>` → `Sprite`; interpolazione + snap al pixel + y-sort; tinte di colpo e rallentamento | sì |
 | `presentation::attacks` | foglie come sprite; anello di gocce figlie dell'onda, al raggio interpolato e arrotondato al pixel | sì |
 | `presentation::hud` | livello, HP, tempo, barra XP, promemoria comandi, banner pausa e sconfitta, errori dei dati | sì |
+| `presentation::menu` | menu iniziale: carte dei compagni (sprite, elemento, attacco, barre relative), 1/2/3, frecce, clic, Invio | sì |
+| `presentation::results` | risultati di sconfitta e vittoria: tempo, livello, nemici, danni, squadra, potenziamenti | sì |
+| `presentation::boss_bar` | conto alla rovescia al centro in alto, poi nome e barra HP del boss | sì |
+| `presentation::telegraphs` | punti rossi in fila o in cerchio, figli del `Telegraph`, che lampeggiano verso lo scadere | sì |
 | `presentation::draft` | schermata del draft: carte con rarità, testo e stack, evidenziate al passaggio, clic → `ChooseUpgrade` | sì |
 | `diagnostics` | overlay F3, screenshot F12/programmati, autoplay, uscita automatica | sì |
 
@@ -58,8 +63,10 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
    ricostruita all'inizio) → `SimSet::Combat` (griglia ricostruita; spari e onde in partenza;
    colpi di proiettili, onde e foglie; gemme; morti; scadenza proiettili, fine tinta e
    rallentamento) →
-   `SimSet::Damage` (danno da contatto al player dai nemici vivi) → `SimSet::Pickup` (gemme
-   attirate e raccolte, rigenerazione) → `SimSet::Spawn` (spawn director). Una morte è contata
+   `SimSet::Damage` (danno da contatto al player dai nemici vivi, poi colpi ad area allo
+   scadere del preavviso, con le stesse regole: `strike_player`) → `SimSet::Pickup` (gemme
+   attirate e raccolte, rigenerazione) → `SimSet::Spawn` (spawn director: ondate ed élite fino a
+   fine durata, poi il boss). Una morte è contata
    una sola volta e lascia una sola gemma: `drop_xp_gems` gira tra i colpi e `resolve_deaths`,
    che rimuove il morto nello stesso passo; i colpi ignorano chi è a 0 HP. Il passo fisso gira
    solo con `simulation_running` (Playing, player vivo, nessun livello in attesa): il passo
@@ -88,7 +95,7 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 ## Dati
 
 Tutti i valori di bilanciamento sono in `game-data/` (`player`, `companions`, `attacks`,
-`enemies`, `stages`, `progression`, `upgrades`, schema versione 4). Restano nel codice solo le costanti strutturali
+`enemies`, `stages`, `progression`, `upgrades`, schema versione 5). Restano nel codice solo le costanti strutturali
 (dimensioni dell'arena e dei tile, frequenza della simulazione, densità degli ostacoli).
 
 ```text

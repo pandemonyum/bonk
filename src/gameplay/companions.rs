@@ -9,7 +9,7 @@ use super::SimSet;
 use super::kinematics::{Position, body};
 use super::player::{MoveIntent, PLAYER_SPAWN, Player};
 use super::upgrades::{Modifiers, UpgradeStacks};
-use crate::app::AppState;
+use crate::app::{AppState, RunSetup};
 use crate::data::schema::{AttackPattern, CompanionData, Effect, FollowData};
 use crate::data::{DataId, GameConfig};
 use crate::world::ArenaBounds;
@@ -87,8 +87,8 @@ pub fn spawn_companion(
     };
 }
 
-fn spawn_starting_companion(mut commands: Commands, config: Res<GameConfig>) {
-    let data = config.starting_companion();
+fn spawn_starting_companion(mut commands: Commands, config: Res<GameConfig>, setup: Res<RunSetup>) {
+    let data = setup.starter(&config);
     // a inizio run nessun upgrade: valori base
     spawn_companion(
         &mut commands,

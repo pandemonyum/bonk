@@ -1,6 +1,6 @@
 // Progressione della run: esperienza, gemme, draft delle carte.
 (
-    version: 4,
+    version: 5,
     // XP per passare dal livello n al n+1 = base + per_level × (n − 1): 5, 8, 11, 14, ...
     // Obiettivo GDD: primo level-up entro 30-45 s.
     xp_to_level: (base: 5.0, per_level: 3.0),
