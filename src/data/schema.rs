@@ -173,6 +173,10 @@ pub struct CompanionData {
     pub sprite: String,
     pub attack: String,
     pub follow: FollowData,
+    /// Fotogramma del foglio animato in `sprite` (4 colonne; righe: fermo, cammino, attacco).
+    /// Assente: immagine fissa.
+    #[serde(default)]
+    pub frame: Option<SheetFrame>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]

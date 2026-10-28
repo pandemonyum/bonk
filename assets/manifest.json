@@ -105,15 +105,29 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
-      "path": "sprites/ember_companion.png",
+      "path": "sprites/ember_sheet.png",
       "kind": "sprite",
       "size": [
-        16,
-        20
+        160,
+        180
       ],
-      "frames": 1,
-      "source": "assets-src/sprites/ember_companion.px",
-      "license": "original, project-owned (generated from assets-src)"
+      "frames": 20,
+      "frame": [
+        40,
+        36
+      ],
+      "columns": 4,
+      "rows": [
+        "idle",
+        "move_right",
+        "attack",
+        "move_up",
+        "move_down"
+      ],
+      "anchor": "bottom_center",
+      "palette": "assets-src/sprites/companions.palette.txt",
+      "source": "assets-src/sprites/ember_sheet.px",
+      "license": "user-provided (rights declared by the user, D-052), redrawn and cleaned in assets-src"
     },
     {
       "path": "sprites/fireball.png",
@@ -149,15 +163,54 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
-      "path": "sprites/sprout_companion.png",
+      "path": "sprites/spark_sheet.png",
       "kind": "sprite",
       "size": [
-        16,
-        20
+        160,
+        180
       ],
-      "frames": 1,
-      "source": "assets-src/sprites/sprout_companion.px",
-      "license": "original, project-owned (generated from assets-src)"
+      "frames": 20,
+      "frame": [
+        40,
+        36
+      ],
+      "columns": 4,
+      "rows": [
+        "idle",
+        "move_right",
+        "attack",
+        "move_up",
+        "move_down"
+      ],
+      "anchor": "bottom_center",
+      "palette": "assets-src/sprites/companions.palette.txt",
+      "source": "assets-src/sprites/spark_sheet.px",
+      "license": "user-provided (rights declared by the user, D-052), redrawn and cleaned in assets-src"
+    },
+    {
+      "path": "sprites/sprout_sheet.png",
+      "kind": "sprite",
+      "size": [
+        160,
+        180
+      ],
+      "frames": 20,
+      "frame": [
+        40,
+        36
+      ],
+      "columns": 4,
+      "rows": [
+        "idle",
+        "move_right",
+        "attack",
+        "move_up",
+        "move_down"
+      ],
+      "anchor": "bottom_center",
+      "palette": "assets-src/sprites/companions.palette.txt",
+      "source": "assets-src/sprites/sprout_sheet.px",
+      "license": "user-provided (rights declared by the user, D-052), redrawn and cleaned in assets-src"
     },
     {
       "path": "sprites/summoner_sheet.png",
@@ -221,15 +274,29 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
-      "path": "sprites/tide_companion.png",
+      "path": "sprites/tide_sheet.png",
       "kind": "sprite",
       "size": [
-        18,
-        18
+        160,
+        180
       ],
-      "frames": 1,
-      "source": "assets-src/sprites/tide_companion.px",
-      "license": "original, project-owned (generated from assets-src)"
+      "frames": 20,
+      "frame": [
+        40,
+        36
+      ],
+      "columns": 4,
+      "rows": [
+        "idle",
+        "move_right",
+        "attack",
+        "move_up",
+        "move_down"
+      ],
+      "anchor": "bottom_center",
+      "palette": "assets-src/sprites/companions.palette.txt",
+      "source": "assets-src/sprites/tide_sheet.px",
+      "license": "user-provided (rights declared by the user, D-052), redrawn and cleaned in assets-src"
     },
     {
       "path": "sprites/tree.png",
@@ -298,6 +365,17 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "ui/icon_electric.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/icon_electric.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "ui/icon_fire.png",
       "kind": "ui",
       "size": [
@@ -345,34 +423,49 @@
       "path": "ui/portrait_ember.png",
       "kind": "ui",
       "size": [
-        32,
-        32
+        40,
+        36
       ],
       "frames": 1,
+      "palette": "assets-src/sprites/companions.palette.txt",
       "source": "assets-src/ui/portrait_ember.px",
-      "license": "original, project-owned (generated from assets-src)"
+      "license": "user-provided (rights declared by the user, D-052), redrawn and cleaned in assets-src"
+    },
+    {
+      "path": "ui/portrait_spark.png",
+      "kind": "ui",
+      "size": [
+        40,
+        36
+      ],
+      "frames": 1,
+      "palette": "assets-src/sprites/companions.palette.txt",
+      "source": "assets-src/ui/portrait_spark.px",
+      "license": "user-provided (rights declared by the user, D-052), redrawn and cleaned in assets-src"
     },
     {
       "path": "ui/portrait_sprout.png",
       "kind": "ui",
       "size": [
-        32,
-        32
+        40,
+        36
       ],
       "frames": 1,
+      "palette": "assets-src/sprites/companions.palette.txt",
       "source": "assets-src/ui/portrait_sprout.px",
-      "license": "original, project-owned (generated from assets-src)"
+      "license": "user-provided (rights declared by the user, D-052), redrawn and cleaned in assets-src"
     },
     {
       "path": "ui/portrait_tide.png",
       "kind": "ui",
       "size": [
-        32,
-        32
+        40,
+        36
       ],
       "frames": 1,
+      "palette": "assets-src/sprites/companions.palette.txt",
       "source": "assets-src/ui/portrait_tide.px",
-      "license": "original, project-owned (generated from assets-src)"
+      "license": "user-provided (rights declared by the user, D-052), redrawn and cleaned in assets-src"
     },
     {
       "path": "ui/skull.png",
@@ -460,6 +553,17 @@
       ],
       "frames": 1,
       "source": "assets-src/ui/upgrade_join_ember.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_join_spark.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_join_spark.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {

@@ -32,7 +32,7 @@ NAME_RE = re.compile(r"^[a-z0-9_]+\.png$")
 DATA_SPRITE_RE = re.compile(r'\b(?:sprite|projectile_sprite)\s*:\s*"([^"]+)"')
 MAX_SPRITE = 64  # sprite singoli; vedi docs/ART_BIBLE.md
 MAX_FRAME = 96  # fotogrammi dei fogli animati (il boss e' 96x80)
-MAX_UI = 32  # icone e ritratti dell'interfaccia
+MAX_UI = 40  # icone e ritratti dell'interfaccia (i ritratti dei compagni sono 40x36)
 DATA_ID_RE = re.compile(r'^\s*id\s*:\s*"([a-z0-9_]+)"')
 
 

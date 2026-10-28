@@ -1,19 +1,20 @@
-# Carta join_tide: Nuovo compagno: Gocci (muso piccolo). 16x16, tema water.
+# Carta join_tide: Nuovo compagno: Ondino, testina del disegno dell'utente (D-052):
+# lontra delle bolle (testa blu, muso crema, orecchie tonde). 16x16, cornice del tema dell'elemento come le altre carte.
 out: ui/upgrade_join_tide.png
 ---
 .kkkkkkkkkkkkkk.
 klllllllllllllCk
-klCCCkkkCCCCCCCk
-klCCkLllkCCCCCCk
-klCCklcCnkCCCCCk
-klCkLlckkkkkCCCk
-klkLlccccccckCCk
-klkLwkccccwkckCk
-klklkkcccckkckCk
-klkllcLLLLLcCkCk
-klklcLLLLLLLckCk
-klnkcLLLLLLcknCk
-klnnkkCCCCkknnCk
-klnnnnkkkknnnnCk
+klCCCCCCCCCCCCCk
+klCCkkCCCCkkCCCk
+klCkuukCCkuukCCk
+klCkuuukkkuukCCk
+klkuuuuuuuuuukCk
+klkuwkuuuuwkukCk
+klkukkuuuukkukCk
+klku7wwwwww7ukCk
+klkuw77kk77wukCk
+klCkuwwwwwwukCCk
+klCCkkkkkkkkCCCk
+klCCCCCCCCCCCCCk
 kCCCCCCCCCCCCCCk
 .kkkkkkkkkkkkkk.

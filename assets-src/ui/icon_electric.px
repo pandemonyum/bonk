@@ -1,0 +1,20 @@
+# Icona elemento elettro (fila abilita' dell'HUD, bordo delle carte), 16x16, tema elettro:
+# bordo chiaro y in alto a sinistra, fondo G, bordo scuro h; fulmine bianco con luce y.
+out: ui/icon_electric.png
+---
+.kkkkkkkkkkkkkk.
+kyyyyyyyyyyyyyGk
+kyGGGGGGGkkkGGhk
+kyGGGGGGkwwkGGhk
+kyGGGGGkwwkGGGhk
+kyGGGGkwwkGGGGhk
+kyGGGkwwykkkkGhk
+kyGGkwwwwwwwkGhk
+kyGGkkkkkwwkGGhk
+kyGGGGGGkwkGGGhk
+kyGGGGGkwkGGGGhk
+kyGGGGkwkGGGGGhk
+kyGGGkykGGGGGGhk
+kyGGGkkGGGGGGGhk
+kGhhhhhhhhhhhhhk
+.kkkkkkkkkkkkkk.

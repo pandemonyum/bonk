@@ -248,3 +248,16 @@ fn duplicate_ids_and_bad_sprite_paths_are_reported() {
         "serve un percorso .png",
     );
 }
+
+/// Il foglio animato di un compagno segue la stessa regola dei nemici.
+#[test]
+fn companion_sheet_frames_are_checked() {
+    use crate::data::schema::SheetFrame;
+    let id = embedded().companions[0].id.clone();
+    assert_error(
+        |c| c.companions[0].frame = Some(SheetFrame { w: 27, h: 28 }),
+        &format!("companions.ron: {id}.frame = (27, 28): serve un fotogramma"),
+    );
+    let ok = errors_after(|c| c.companions[0].frame = Some(SheetFrame { w: 28, h: 28 }));
+    assert!(!ok.iter().any(|e| e.contains(".frame")), "{ok:?}");
+}

@@ -90,6 +90,20 @@ impl Report {
         }
     }
 
+    /// Fotogramma di un foglio animato: non vuoto e largo un numero pari di texel (lo sprite è
+    /// ancorato in basso al centro).
+    fn sheet_frame(&mut self, at: &str, frame: Option<crate::data::schema::SheetFrame>) {
+        if let Some(f) = frame
+            && (f.w == 0 || f.h == 0 || f.w % 2 != 0)
+        {
+            self.0.push(format!(
+                "{at} = ({}, {}): serve un fotogramma non vuoto e largo un numero pari di texel \
+                 (lo sprite è ancorato in basso al centro)",
+                f.w, f.h
+            ));
+        }
+    }
+
     /// Testo mostrato a schermo: solo caratteri che i font dell'interfaccia disegnano (D-044).
     fn ui_text(&mut self, at: &str, text: &str) {
         if let Some(c) = text.chars().find(|c| !ui_drawable(*c)) {
@@ -147,6 +161,7 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
         r.positive(&at("follow.max_speed"), c.follow.max_speed);
         r.positive(&at("follow.gain"), c.follow.gain);
         r.sprite(&at("sprite"), &c.sprite);
+        r.sheet_frame(&at("frame"), c.frame);
         r.ui_text(&at("display_name"), &c.display_name);
         let exists = config.attack(&c.attack).is_some();
         r.reference(&at("attack"), &c.attack, exists, "attacks.ron");

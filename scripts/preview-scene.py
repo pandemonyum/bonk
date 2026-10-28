@@ -293,9 +293,9 @@ def scene_gameplay() -> Image.Image:
         layer.actor("sprites/rock.png", x, y)
     px, py = 240, 150
     layer.actor(f"{PLAYER}#walk_down:0", px, py)
-    layer.actor("sprites/ember_companion.png", px - 18, py - 12)
-    layer.actor("sprites/tide_companion.png", px + 19, py - 12)
-    layer.actor("sprites/sprout_companion.png", px, py - 22)
+    layer.actor("sprites/ember_sheet.png#idle:0", px - 24, py - 12)
+    layer.actor("sprites/tide_sheet.png#idle:0", px + 25, py - 12)
+    layer.actor("sprites/sprout_sheet.png#idle:0", px, py - 26)
     rng = random.Random(7)
     kinds = ["blob"] * 11 + ["swarm"] * 6 + ["armored"] * 3
     placed: list[tuple[int, int]] = [(px, py)]
@@ -449,9 +449,9 @@ def scene_boss() -> Image.Image:
     layer.actor("sprites/boss_sheet.png#move:0", 240, 120)
     px, py = 240, 214
     layer.actor(f"{PLAYER}#idle_up:0", px, py)
-    layer.actor("sprites/ember_companion.png", px - 18, py + 2)
-    layer.actor("sprites/tide_companion.png", px + 19, py + 2)
-    layer.actor("sprites/sprout_companion.png", px, py + 12)
+    layer.actor("sprites/ember_sheet.png#idle:0", px - 24, py + 2)
+    layer.actor("sprites/tide_sheet.png#idle:0", px + 25, py + 2)
+    layer.actor("sprites/sprout_sheet.png#idle:0", px, py + 14)
     for x, y in ((170, 120), (318, 128)):
         layer.actor(enemy("elite", x, 240, random.Random(x)), x, y)
     rng = random.Random(3)

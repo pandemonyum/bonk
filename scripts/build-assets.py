@@ -413,7 +413,7 @@ def main() -> None:
     for folder, kind in PX_KINDS:
         for src in sorted((SRC / folder).glob("*.px")):
             header, rows = parse_px(src)
-            own_palette = src.parent / header["palette"] if "palette" in header else None
+            own_palette = (src.parent / header["palette"]).resolve() if "palette" in header else None
             if own_palette and not own_palette.is_file():
                 sys.exit(f"{src.name}: palette {header['palette']} non trovata")
             img = render_grid(rows, load_palette(own_palette) if own_palette else palette, src.name)

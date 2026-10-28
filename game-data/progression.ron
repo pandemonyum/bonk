@@ -16,6 +16,6 @@
     // peso relativo di estrazione nel draft
     rarity_weights: (common: 10.0, uncommon: 5.0, rare: 2.0),
     // nei draft dei livelli 2 e 3, con un posto libero, c'è sempre un "nuovo compagno": senza,
-    // un'estrazione sfortunata lasciava Brasa da sola all'arrivo dello sciame (P0.7)
+    // un'estrazione sfortunata lasciava Fiammetto da solo all'arrivo dello sciame (P0.7)
     companion_card_until_level: 3,
 )

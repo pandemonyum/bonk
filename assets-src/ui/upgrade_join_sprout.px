@@ -1,19 +1,20 @@
-# Carta join_sprout: Nuovo compagno: Frond (muso piccolo). 16x16, tema nature.
+# Carta join_sprout: Nuovo compagno: Foglin, testina del disegno dell'utente (D-052):
+# volpe delle foglie (pelo arancio, orecchie a foglia verdi). 16x16, cornice del tema dell'elemento come le altre carte.
 out: ui/upgrade_join_sprout.png
 ---
 .kkkkkkkkkkkkkk.
 keeeeeeeeeeeeeEk
-kevkkvvvvvkkvvEk
-kekiekvvvkeEkvEk
-kevkiekvkeEkvvEk
-kevvkiekeEkvvvEk
-kevvvkkvkkvvvvEk
-kevvkggggGGkvvEk
-keNkygkggkGGkNEk
-keNkygkggkGGkNEk
-keNkggmggmGGkNEk
-keNkGgggggGhkNEk
-keNNkGGGGGhkNNEk
-keNNNkkkkkkNNNEk
+kevkkvvvvvvkkvEk
+kekeEkvvvvkEekEk
+kekieEkkkkkEikEk
+kevkkfooooookkEk
+kevkfoooooooOkEk
+kekfowkoowkoOkEk
+kekfokkookkoOkEk
+kekfowwwwwwoOkEk
+kevkowwkkwwOkvEk
+kevvkowwwwOkvvEk
+kevvvkkkkkkvvvEk
+kevvvvvvvvvvvvEk
 kEEEEEEEEEEEEEEk
 .kkkkkkkkkkkkkk.

@@ -205,7 +205,8 @@ fn spawn_card(
     (dps, reach): (f32, f32),
 ) -> Entity {
     let (element, color) = element_label(companion.element);
-    let portrait = ui_icon(assets, &portrait_path(companion), 32.0, 32.0);
+    // figura intera del compagno (D-052), come il fermo di fronte del suo foglio
+    let portrait = ui_icon(assets, &portrait_path(companion), 40.0, 36.0);
     let element_icon = ui_icon(assets, element_icon_path(companion.element), 16.0, 16.0);
     let card = commands
         .spawn((

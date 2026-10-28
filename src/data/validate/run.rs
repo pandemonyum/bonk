@@ -33,17 +33,7 @@ pub(super) fn check(r: &mut Report, config: &GameConfig) {
     for e in &config.enemies {
         let at = |field: &str| format!("enemies.ron: {}.{field}", e.id);
         r.ui_text(&at("display_name"), &e.display_name);
-        if let Some(f) = e.frame
-            && (f.w == 0 || f.h == 0 || f.w % 2 != 0)
-        {
-            r.0.push(format!(
-                "{} = ({}, {}): serve un fotogramma non vuoto e largo un numero pari di texel \
-                 (lo sprite è ancorato in basso al centro)",
-                at("frame"),
-                f.w,
-                f.h
-            ));
-        }
+        r.sheet_frame(&at("frame"), e.frame);
         if let Some(c) = &e.charge {
             r.positive(&at("charge.every_s"), c.every_s);
             telegraph(r, &at("charge.windup_s"), c.windup_s);

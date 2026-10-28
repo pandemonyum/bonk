@@ -1,20 +1,20 @@
-# Carta join_ember: Nuovo compagno: Brasa (goccia di fiamma con gli occhi). 16x16, tema fire.
-# Aggiunta all'unione con la P0.6, nello stile delle altre carte compagno.
+# Carta join_ember: Nuovo compagno: Fiammetto, testina del disegno dell'utente (D-052):
+# lucertola di fuoco (cresta di spine nere, fiammelle sulle guance). 16x16, cornice del tema dell'elemento come le altre carte.
 out: ui/upgrade_join_ember.png
 ---
 .kkkkkkkkkkkkkk.
 kfffffffffffffOk
-kfOOOOOkOOOOOOOk
-kfOOOOkykOOOOOOk
-kfOOOOkyfkOOOOOk
-kfOOOkyffokOOOOk
-kfOOkyffoookOOOk
-kfOkyfoooookOOOk
-kfOkfwkoowkokOOk
-kfOkfkkookkookOk
-kfOkfooooooookOk
-kfOkxfoooooxkOOk
-kfOOkxxooxxkOOOk
-kfOOOkkkkkkOOOOk
+kfOOOkOOkOOkOOOk
+kfOOkkkkkkkkkOOk
+kfOkkkrrrrkkkOOk
+kfOkrroooorrkOOk
+kfkroooooooorkOk
+kfkrowkoowkorkOk
+kfkrokkookkorkOk
+kfyrooooooooryOk
+kffkrowwwworkfOk
+kfOkkrooooorkkOk
+kfOOkkkkkkkkOOOk
+kfOOOOOOOOOOOOOk
 kOOOOOOOOOOOOOOk
 .kkkkkkkkkkkkkk.

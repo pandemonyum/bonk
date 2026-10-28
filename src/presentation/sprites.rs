@@ -8,7 +8,6 @@ use bevy::sprite::Anchor;
 use super::{Z_ACTORS, Z_PICKUPS, Z_PROJECTILES};
 use crate::data::{DataId, GameConfig};
 use crate::gameplay::combat::{HitFlash, Projectile};
-use crate::gameplay::companions::Companion;
 use crate::gameplay::enemies::Enemy;
 use crate::gameplay::kinematics::{Position, PreviousPosition};
 use crate::gameplay::progression::XpGem;
@@ -46,7 +45,6 @@ impl Plugin for SpritesPlugin {
             tree: assets.load("sprites/tree.png"),
         };
         app.insert_resource(sprites)
-            .add_observer(attach_companion_sprite)
             .add_observer(attach_projectile_sprite)
             .add_observer(attach_gem_sprite)
             .add_observer(attach_obstacle_sprite)
@@ -86,23 +84,6 @@ pub(super) fn data_sprite(
         warn!("{kind} \"{}\" assente dai dati: nessuno sprite", id.0);
     }
     path
-}
-
-fn attach_companion_sprite(
-    add: On<Add<Companion>>,
-    mut commands: Commands,
-    assets: Res<AssetServer>,
-    config: Res<GameConfig>,
-    ids: Query<&DataId>,
-) {
-    let path = data_sprite("compagno", ids.get(add.entity).ok(), |id| {
-        config.companion(id).map(|c| c.sprite.clone())
-    });
-    if let Some(path) = path {
-        commands
-            .entity(add.entity)
-            .insert(actor_sprite(assets.load(path)));
-    }
 }
 
 /// I proiettili sono centrati sulla `Position` (lato pari) e disegnati sopra gli attori.

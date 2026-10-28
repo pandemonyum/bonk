@@ -1,5 +1,7 @@
 // Compagni mostriciattolo. `attack` rimanda a un id di attacks.ron.
-// display_name è un nome di lavorazione: i nomi definitivi vanno verificati (marchi).
+// display_name: nomi scelti dall'utente (D-052); da verificare come marchi prima di pubblicare.
+// `frame`: foglio animato 4×5 (fermo, cammino di profilo, attacco, in su, in giù), disegni
+// forniti dall'utente. La distanza di inseguimento segue i corpi del foglio (~30 di larghezza).
 // Il compagno iniziale è in stages.ron; gli altri arrivano con le carte JoinCompanion di
 // upgrades.ron, nei posti liberi di player.ron (companion_slots).
 (
@@ -7,13 +9,14 @@
     companions: [
         (
             id: "ember",
-            display_name: "Brasa",
+            display_name: "Fiammetto",
             element: Fire,
-            sprite: "sprites/ember_companion.png",
+            sprite: "sprites/ember_sheet.png",
+            frame: Some((w: 40, h: 36)),
             attack: "ember_bolt",
             follow: (
-                // px dietro al player quando si ferma
-                distance: 18.0,
+                // px dietro al player quando si ferma (da 18 con gli sprite piccoli)
+                distance: 26.0,
                 // px/s, più del player (anche con tutti gli upgrade) per recuperare
                 max_speed: 120.0,
                 // frazione della distanza recuperata al secondo
@@ -22,19 +25,21 @@
         ),
         (
             id: "tide",
-            display_name: "Gocci",
+            display_name: "Ondino",
             element: Water,
-            sprite: "sprites/tide_companion.png",
+            sprite: "sprites/tide_sheet.png",
+            frame: Some((w: 40, h: 36)),
             attack: "tide_pulse",
-            follow: (distance: 22.0, max_speed: 120.0, gain: 5.0),
+            follow: (distance: 30.0, max_speed: 120.0, gain: 5.0),
         ),
         (
             id: "sprout",
-            display_name: "Frond",
+            display_name: "Foglin",
             element: Nature,
-            sprite: "sprites/sprout_companion.png",
+            sprite: "sprites/sprout_sheet.png",
+            frame: Some((w: 40, h: 36)),
             attack: "leaf_orbit",
-            follow: (distance: 22.0, max_speed: 120.0, gain: 5.0),
+            follow: (distance: 30.0, max_speed: 120.0, gain: 5.0),
         ),
     ],
 )

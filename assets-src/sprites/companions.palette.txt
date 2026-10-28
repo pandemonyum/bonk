@@ -1,0 +1,39 @@
+# Palette dei compagni (fogli *_sheet.px di ember, tide, sprout, spark e ritratti ui/portrait_*),
+# presa dal foglio fornito dall'utente (D-052): i colori quasi identici del generatore (differenza
+# RGB < 14) sono uniti nel colore piu' usato del gruppo. Formato come assets-src/palette.txt.
+a 428fe6 colore-del-foglio-utente
+b fdd84b colore-del-foglio-utente
+c f18536 colore-del-foglio-utente
+d db2f3a colore-del-foglio-utente
+e f45f38 colore-del-foglio-utente
+f 3e3a4a colore-del-foglio-utente
+g 72c14e colore-del-foglio-utente
+h 140e16 colore-del-foglio-utente (unisce 110213, 100b16)
+i fddfa1 colore-del-foglio-utente
+9 3d5235 ombra-a-terra-(palette-del-progetto)
+j 4d583f colore-del-foglio-utente
+k 0d020e colore-del-foglio-utente (unisce 050304, 0f0305, 0e0b09)
+m 2055a7 colore-del-foglio-utente
+n fdf1dd colore-del-foglio-utente
+o e9a246 colore-del-foglio-utente
+p fdfbf4 colore-del-foglio-utente
+q fdcd57 colore-del-foglio-utente
+r e7cb9f colore-del-foglio-utente
+K 14021f colore-del-foglio-utente
+s fdee9b colore-del-foglio-utente
+t ba8577 colore-del-foglio-utente
+u edeeeb colore-del-foglio-utente
+v 535b85 colore-del-foglio-utente
+w 110c35 colore-del-foglio-utente
+x 5fa66e colore-del-foglio-utente
+y c8a7b9 colore-del-foglio-utente
+z 9f9cac colore-del-foglio-utente
+A 9e5d7b colore-del-foglio-utente
+B 1e2a58 colore-del-foglio-utente
+C 1e1a4e colore-del-foglio-utente
+D 708681 colore-del-foglio-utente
+E 311c53 colore-del-foglio-utente
+F 76317f colore-del-foglio-utente
+G accb96 colore-del-foglio-utente
+H 3b808e colore-del-foglio-utente
+I 429088 colore-del-foglio-utente

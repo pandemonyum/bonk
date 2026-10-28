@@ -407,6 +407,24 @@ e tenuti più grandi solo per élite (20) e boss (36): 24/24 vittorie, boss in 4
 a cupola con spine, testa e coda ricorda una tartaruga spinosa: insieme al player di D-050
 richiama Bowser; segnalato all'utente, accettato.
 
+## D-052 Compagni dal foglio dell'utente, con i suoi nomi *(utente)*
+Il primo disegno dei compagni mandato dall'utente riprendeva tratti riconoscibili di Pokémon
+(Charmander, Squirtle, Pikachu): non è stato usato, nemmeno ridisegnato con i tratti cambiati
+(due tentativi giudicati dall'utente troppo diversi, "sembrano delle palle"). L'utente ha poi
+fornito un suo foglio di sei creature in sei pose, che non riprende personaggi precisi
+(volpe di foglie, lontra con la bolla, lucertola di fuoco con creste nere, tartaruga di muschio,
+fuoco fatuo, gatto con la coda a stella), ne dichiara i diritti e ne chiede la riproduzione
+identica: tagliato a risoluzione nativa e ripulito, animato dalle sue pose (fermo di fronte,
+cammino di profilo specchiato, di schiena in su e di fronte in giù, attacco dalla posa felice
+con gli effetti). Abbinamento: Fiammetto (fuoco) = lucertola, Ondino (acqua) = lontra, Foglin
+(natura) = volpe di foglie, Tuonny (elettro) = gatto; tartaruga e fuoco fatuo restano fuori
+per ora. Nomi dell'utente al posto di Brasa, Gocci e Frond. Fogli 4×5 da 40×36 (campo `frame` di
+`companions.ron`, `presentation::companion_anim`), ritratti del menu a figura intera 40×36,
+distanze di inseguimento portate a 26–30 px e partenza delle palle di fuoco a 16 px per i
+corpi più grandi. La lucertola tiene la fiamma sulla punta della coda come nel disegno
+dell'utente: tratto che insieme al colore richiama ancora un personaggio noto, coperto dalla
+sua decisione. Tuonny è disegnato ma entra in gioco con il suo attacco elettrico (tranche dopo).
+
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale
 come seconda build separata dopo la P1.
