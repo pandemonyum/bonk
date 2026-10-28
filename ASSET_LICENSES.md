@@ -246,11 +246,10 @@ Cosa è stato fatto sul foglio dell'utente (2026-10-28, D-050):
 
 Il foglio originale e il ritaglio restano fuori dal repository.
 
-Anteprima dei compagni piccoli (2026-10-28, non in gioco e non in `assets/`):
-`assets-src/preview/<id>_sheet_28x24.px` ridisegna a mano a 28×24 le quattro pose approvate dei
-fogli da 40×36 (stessi personaggi dell'utente, stessa palette `companions.palette.txt`, D-052).
-`scripts/build-assets.py` non legge quella cartella; se l'utente li approva sostituiscono i
-fogli `assets-src/sprites/<id>_sheet.px` con la stessa voce di licenza qui sopra.
+Compagni piccoli (2026-10-28, approvati dall'utente, D-060): `assets-src/sprites/<id>_sheet.px`
+ridisegna a mano a 28×24 le quattro pose approvate dei fogli da 40×36 (stessi personaggi
+dell'utente, stessa palette `companions.palette.txt`, D-052) e ha preso il posto del foglio da
+40×36, con la stessa voce di licenza qui sopra. I fogli da 40×36 restano nella storia di git.
 
 ## Asset vietati
 

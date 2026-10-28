@@ -148,13 +148,13 @@
       "path": "sprites/ember_sheet.png",
       "kind": "sprite",
       "size": [
-        160,
-        180
+        112,
+        120
       ],
       "frames": 20,
       "frame": [
-        40,
-        36
+        28,
+        24
       ],
       "columns": 4,
       "rows": [
@@ -217,13 +217,13 @@
       "path": "sprites/spark_sheet.png",
       "kind": "sprite",
       "size": [
-        160,
-        180
+        112,
+        120
       ],
       "frames": 20,
       "frame": [
-        40,
-        36
+        28,
+        24
       ],
       "columns": 4,
       "rows": [
@@ -242,13 +242,13 @@
       "path": "sprites/sprout_sheet.png",
       "kind": "sprite",
       "size": [
-        160,
-        180
+        112,
+        120
       ],
       "frames": 20,
       "frame": [
-        40,
-        36
+        28,
+        24
       ],
       "columns": 4,
       "rows": [
@@ -328,13 +328,13 @@
       "path": "sprites/tide_sheet.png",
       "kind": "sprite",
       "size": [
-        160,
-        180
+        112,
+        120
       ],
       "frames": 20,
       "frame": [
-        40,
-        36
+        28,
+        24
       ],
       "columns": 4,
       "rows": [

@@ -490,6 +490,14 @@ effetti e il prossimo grado; frecce, Invio, Tab, R, clic. Del riferimento si è 
 l'impianto: i compagni sono i nostri, icone originali del pixel-art-director (96 nodi, 12
 intestazioni). Sonda con tutti gli alberi completi: 32/32 vittorie con il 53% dei danni subiti (56% prima del primo taglio del § 4, le Evoluzioni a 0,5% di danno per grado): sopra la guardia del 97%, perché con gli alberi completi il bot non arriva più alla stretta delle 3:30; da rivedere con la prova umana.
 
+## D-060 Compagni più piccoli del player *(utente)*
+L'utente li trovava grandi quanto l'evocatore. Il pixel-art-director ha ridisegnato a mano i
+quattro fogli a 28×24 (contenuto 20–22 px di altezza, circa 2/3 del player; niente riduzione
+automatica, che impastava i volti) dalle pose approvate di D-052; l'utente li ha approvati
+sull'anteprima. Nei dati: `frame` 28×24, partenza della palla di fuoco e del fulmine a 11 px dai
+piedi (erano 16), compagni a 19–22 px dietro al player (erano 26–30). I ritratti del menu (40×36)
+restano quelli grandi.
+
 ## D-053 Tuonny e il fulmine a catena
 Quarto compagno (elemento nuovo `Electric`, gatto con la coda a stella del foglio dell'utente,
 D-052) con un pattern nuovo `Chain`: colpisce il nemico vivo più vicino entro `range`, poi salta

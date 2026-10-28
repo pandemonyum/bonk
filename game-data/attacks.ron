@@ -25,8 +25,8 @@
                 // nemici extra attraversati da ogni proiettile
                 pierce: 0,
                 // altezza di partenza del colpo sopra i piedi di chi attacca
-                // dalla bocca della lucertola di fuoco del foglio 40×36 (da 9 con lo sprite piccolo)
-                muzzle_height: 16.0,
+                // dalla bocca della lucertola di fuoco del foglio 28×24 (16 con quello da 40×36)
+                muzzle_height: 11.0,
             )),
         ),
         (
@@ -81,8 +81,8 @@
                 // per 1,5 s). Senza, la squadra senza Ondino perdeva ancora 6 run su 10
                 slow: 0.6,
                 slow_s: 0.8,
-                // dalla stella sulla coda del gatto del foglio 40×36
-                muzzle_height: 16.0,
+                // dalla stella sulla coda del gatto del foglio 28×24 (16 con quello da 40×36)
+                muzzle_height: 11.0,
                 sprite: "sprites/spark.png",
             )),
         ),

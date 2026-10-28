@@ -12,7 +12,7 @@
             display_name: "Fiammetto",
             element: Fire,
             sprite: "sprites/ember_sheet.png",
-            frame: Some((w: 40, h: 36)),
+            frame: Some((w: 28, h: 24)),
             // tre rami (elemento, Supporto, Evoluzione), proposta del game-designer in
             // docs/design/TALENT_TREES_V2.md; un punto per grado, uno per livello del compagno
             // primo taglio del § 4 già fatto: DamagePct delle Evoluzioni a 0,5 per grado (con tutti
@@ -99,8 +99,8 @@
             ],
             attack: "ember_bolt",
             follow: (
-                // px dietro al player quando si ferma (da 18 con gli sprite piccoli)
-                distance: 26.0,
+                // px dietro al player quando si ferma (26 con i fogli da 40x36, D-060)
+                distance: 19.0,
                 // px/s, più del player (anche con tutti gli upgrade) per recuperare
                 max_speed: 120.0,
                 // frazione della distanza recuperata al secondo
@@ -112,7 +112,7 @@
             display_name: "Ondino",
             element: Water,
             sprite: "sprites/tide_sheet.png",
-            frame: Some((w: 40, h: 36)),
+            frame: Some((w: 28, h: 24)),
             // tre rami (elemento, Supporto, Evoluzione), proposta del game-designer in
             // docs/design/TALENT_TREES_V2.md; un punto per grado, uno per livello del compagno
             talents: [
@@ -196,14 +196,14 @@
                 ]),
             ],
             attack: "tide_pulse",
-            follow: (distance: 30.0, max_speed: 120.0, gain: 5.0),
+            follow: (distance: 22.0, max_speed: 120.0, gain: 5.0),
         ),
         (
             id: "sprout",
             display_name: "Foglin",
             element: Nature,
             sprite: "sprites/sprout_sheet.png",
-            frame: Some((w: 40, h: 36)),
+            frame: Some((w: 28, h: 24)),
             // tre rami (elemento, Supporto, Evoluzione), proposta del game-designer in
             // docs/design/TALENT_TREES_V2.md; un punto per grado, uno per livello del compagno
             talents: [
@@ -287,14 +287,14 @@
                 ]),
             ],
             attack: "leaf_orbit",
-            follow: (distance: 30.0, max_speed: 120.0, gain: 5.0),
+            follow: (distance: 22.0, max_speed: 120.0, gain: 5.0),
         ),
         (
             id: "spark",
             display_name: "Tuonny",
             element: Electric,
             sprite: "sprites/spark_sheet.png",
-            frame: Some((w: 40, h: 36)),
+            frame: Some((w: 28, h: 24)),
             // tre rami (elemento, Supporto, Evoluzione), proposta del game-designer in
             // docs/design/TALENT_TREES_V2.md; un punto per grado, uno per livello del compagno
             talents: [
@@ -378,7 +378,7 @@
                 ]),
             ],
             attack: "spark_chain",
-            follow: (distance: 30.0, max_speed: 120.0, gain: 5.0),
+            follow: (distance: 22.0, max_speed: 120.0, gain: 5.0),
         ),
     ],
 )

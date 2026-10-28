@@ -42,8 +42,7 @@ sono ancora quelli del codice attuale, le icone nuove non sono collegate).
 | Risoluzione virtuale | 480×270 | = | upscaling intero nearest, letterbox |
 | Tile | 16×16 | = | tileset a colonna (array texture), 42 tile |
 | Evocatore (player) | 16×21 | **foglio 144×304, fotogrammi 36×38** | 4×8 fotogrammi animati, personaggio dell'utente (D-050); in piedi 22–23×30 visibili più l'ombra, centrato tra le colonne 17 e 18; ingombro e limiti dell'arena sono del codice |
-| Compagni (Fiammetto, Ondino, Foglin, Tuonny) | 16×17–18×18 (Brasa, Gocci, Frond) | **fogli 160×180, fotogrammi 40×36** | personaggi dell'utente (D-052), 4×5 fotogrammi; ~30 px visibili, come il player |
-| Compagni piccoli (solo anteprima, non in gioco) | — | fogli 112×120, fotogrammi **28×24** | stessi personaggi ridisegnati a 2/3 del player: 20–22 px visibili, al massimo 24 di larghezza; `assets-src/preview/` |
+| Compagni (Fiammetto, Ondino, Foglin, Tuonny) | fogli 160×180 da 40×36 (D-052, grandi come il player) | **fogli 112×120, fotogrammi 28×24** | personaggi dell'utente ridisegnati a 2/3 del player (D-060): 20–22 px visibili, al massimo 24 di larghezza |
 | Scintilla del fulmine | — | **6×6** | `spark.png`, ancora al centro, senza contorno, ripetuta lungo il fulmine di Tuonny |
 | Gelatina, foglio | — | **28×24** (~22×18 visibili), 4×2 | stile del player; salto e sconfitta |
 | Sciame, foglio | — | **24×22** (~18×16), 4×2 | vola: ombra piccola sulla riga in basso |
@@ -60,7 +59,7 @@ sono ancora quelli del codice attuale, le icone nuove non sono collegate).
 | Roccia | 16×12 | **20×16** | masso tozzo nello stile del player; impronta r=7 a 4 px sopra la base, sulla parte bassa del masso |
 | Albero | 32×32 | **40×48** | chioma a ciuffi separati per tono, contorno solo sulla sagoma; impronta r=4 a 4 px sopra la base, sul piede del tronco |
 
-Massimi: comuni ≤ 20 px, fotogramma dei compagni 40×36, fotogramma del player 36×38, alberi ≤ 32, boss ≤ 64
+Massimi: comuni ≤ 20 px, fotogramma dei compagni 28×24, fotogramma del player 36×38, alberi ≤ 32, boss ≤ 64
 (validato; i fogli animati fotogramma per fotogramma, fino a 96 px per fotogramma). A
 480×270 una creatura comune resta sotto il 6% dell'altezza dello schermo: le orde restano
 leggibili. Verificato sull'anteprima con 75 nemici; lo screenshot del gioco (seed 20, 1:45 di
@@ -230,16 +229,14 @@ Scala: alla scala del foglio dell'utente i compagni sono alti ~30 px visibili, q
 (~30) e più dei nemici comuni. È voluto (stessa risoluzione del suo foglio); se in gioco
 coprono troppo, la scelta è del codice (distanza dei posti in `player.ron`), non del disegno.
 
-### Versione piccola (anteprima, non in gioco)
+### Versione piccola (in gioco dal 2026-10-28, D-060)
 
-Richiesta: compagni a circa 2/3 dell'altezza del player. Il gioco legge ancora i fogli da
-40×36; i nuovi aspettano l'approvazione dell'utente.
+Richiesta dell'utente: compagni a circa 2/3 dell'altezza del player. Approvata dall'utente
+sull'anteprima; i fogli `assets-src/sprites/<id>_sheet.px` sono ora quelli da 28×24 (i 40×36
+restano nella storia di git). Prova nel gioco: `docs/evidence/compagni-piccoli-gioco.png`.
 
 File:
-- `assets-src/preview/<id>_sheet_28x24.px`: fuori da `sprites/`, quindi `build-assets.py`
-  non li costruisce. Per adottarli si spostano in `assets-src/sprites/` come `<id>_sheet.px`
-  con `palette: companions.palette.txt`.
-- Anteprime ×4 in `screenshots/`:
+- Anteprime ×4 in `screenshots/` (fuori dal repository):
   - `anteprima-compagni-piccoli-squadra.png`: la squadra dietro al player;
   - `anteprima-compagni-attuali-squadra.png`: la stessa scena con i fogli attuali;
   - `anteprima-compagni-piccoli-<id>.png`: i 20 fotogrammi di ciascuno.

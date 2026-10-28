@@ -46,7 +46,7 @@ Testi in Tiny5 (numeri, etichette) e Pixelify Sans (titoli, frasi), D-044.
 | Foglin (natura) | 3 foglie a 34 px, mezzo giro al secondo, 6 danni, stesso nemico al massimo ogni 0,6 s | danno continuo appena fuori dal contatto: tiene lontani i più vicini |
 | Tuonny (elettro) | fulmine ogni 1,3 s sul nemico più vicino entro 130 px: 12 danni, poi fino a 5 salti entro 70 px, −20% a salto; scossa: colpiti al 60% della velocità per 0,8 s | spazza la calca come l'onda ma da lontano; regge la squadra senza Ondino (D-053) |
 | Nomi | Fiammetto, Ondino, Foglin e Tuonny dal foglio dell'utente (D-052); le misure più vecchie qui sotto li chiamano Brasa, Gocci e Frond | — |
-| Squadra | 3 posti (`player.ron`): dietro, dietro-sinistra e dietro-destra a ±55°; scia 18–22 px, max 120 px/s | tre compagni visibili senza sovrapporsi né coprire il player |
+| Squadra | 3 posti (`player.ron`): dietro, dietro-sinistra e dietro-destra a ±55°; scia 19–22 px, max 120 px/s | tre compagni visibili senza sovrapporsi né coprire il player; compagni a 2/3 del player (D-060) |
 | Ostacoli | densità 1,2%, zona libera 128 px, 60% alberi sull'erba | ~650 per arena, mai un vicolo cieco |
 
 **Nemici (`enemies.ron`)**
