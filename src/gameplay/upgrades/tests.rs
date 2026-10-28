@@ -365,18 +365,18 @@ fn cards_only_appear_when_someone_can_use_them() {
     assert!(!is_eligible(&config.upgrades, &none, pierce, &wave));
 }
 
-/// Nei primi draft, con un posto libero, c'è sempre un "nuovo compagno"; a squadra piena la
-/// garanzia non inventa carte, e senza garanzia l'estrazione resta quella di sempre.
+/// Ai livelli dei compagni il draft propone solo chi può unirsi, negli altri nessun compagno;
+/// a squadra piena anche il livello dei compagni dà un draft normale.
 #[test]
-fn early_drafts_always_offer_a_companion_while_a_slot_is_free() {
+fn companion_levels_offer_only_companions_and_other_levels_none() {
     let config = GameConfig::embedded();
     let stacks = UpgradeStacks(vec![0; config.upgrades.len()]);
     let party = PartyView::of(&config, &stacks, &config.stage.starting_companion);
     assert!(party.free_slots > 0);
     let is_join = |i: &usize| matches!(config.upgrades[*i].effect, Effect::JoinCompanion(_));
-    let mut without = 0;
-    for seed in 0..400 {
-        let draw = |guaranteed| {
+    let outside = config.companions.len() - 1;
+    for seed in 0..200 {
+        let draw = |companion_level| {
             let mut rng = Pcg32::new(seed, 2);
             draw_choices(
                 &mut rng,
@@ -385,32 +385,22 @@ fn early_drafts_always_offer_a_companion_while_a_slot_is_free() {
                 &party,
                 &WEIGHTS,
                 3,
-                guaranteed,
+                companion_level,
             )
         };
-        let plain = draw(false);
-        let guaranteed = draw(true);
-        assert_eq!(guaranteed.len(), 3);
+        let companions = draw(true);
+        assert_eq!(companions.len(), outside.min(3), "seed {seed}");
         assert!(
-            guaranteed.iter().any(is_join),
-            "seed {seed}: {guaranteed:?}"
+            companions.iter().all(is_join),
+            "seed {seed}: {companions:?}"
         );
-        if plain.iter().any(is_join) {
-            assert_eq!(plain, guaranteed, "seed {seed}: cambia solo se serve");
-        } else {
-            without += 1;
-            assert_eq!(
-                plain[..2],
-                guaranteed[..2],
-                "seed {seed}: cambia solo l'ultima"
-            );
-        }
+        let plain = draw(false);
+        assert_eq!(plain.len(), 3);
+        assert!(!plain.iter().any(is_join), "seed {seed}: {plain:?}");
     }
-    assert!(
-        without > 0,
-        "senza garanzia qualche draft resta senza compagni"
-    );
-    // squadra piena: nessuna carta compagno da garantire
+    assert!(offers_companions(&config.upgrades, &stacks, &party, true));
+    assert!(!offers_companions(&config.upgrades, &stacks, &party, false));
+    // squadra piena: al livello dei compagni un draft normale
     let full: Vec<u32> = config
         .upgrades
         .iter()
@@ -418,7 +408,9 @@ fn early_drafts_always_offer_a_companion_while_a_slot_is_free() {
         .collect();
     let full = UpgradeStacks(full);
     let party = PartyView::of(&config, &full, &config.stage.starting_companion);
+    assert!(!offers_companions(&config.upgrades, &full, &party, true));
     let mut rng = Pcg32::new(7, 2);
     let choices = draw_choices(&mut rng, &config.upgrades, &full, &party, &WEIGHTS, 3, true);
+    assert_eq!(choices.len(), 3);
     assert!(!choices.iter().any(is_join));
 }

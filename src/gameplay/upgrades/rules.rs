@@ -100,10 +100,23 @@ fn weighted(rng: &mut Pcg32, pool: &[(usize, f32)]) -> usize {
     pool.len() - 1 // ripiego per l'arrotondamento della somma
 }
 
+/// Se il draft di un livello dei compagni (`companion_level`) li propone davvero: serve una
+/// carta "nuovo compagno" proponibile, cioè un posto libero e qualcuno ancora fuori squadra.
+pub fn offers_companions(
+    upgrades: &[UpgradeData],
+    stacks: &UpgradeStacks,
+    party: &PartyView,
+    companion_level: bool,
+) -> bool {
+    companion_level
+        && (0..upgrades.len())
+            .any(|i| is_join(&upgrades[i]) && is_eligible(upgrades, stacks, i, party))
+}
+
 /// Fino a `count` upgrade diversi, estratti senza ripetizione con probabilità proporzionale
-/// al peso della rarità. Meno carte se gli upgrade disponibili sono meno. Con
-/// `companion_guaranteed`, se nessuna carta estratta è "nuovo compagno" ma ce n'è una
-/// proponibile, l'ultima carta lascia il posto a una di queste (estratta per rarità).
+/// al peso della rarità; meno carte se gli upgrade disponibili sono meno. Le carte "nuovo
+/// compagno" escono solo ai livelli dei compagni (`companion_level`), e lì da sole: il draft
+/// propone chi può unirsi alla squadra. A squadra piena anche quel draft è uno di quelli soliti.
 pub fn draw_choices(
     rng: &mut Pcg32,
     upgrades: &[UpgradeData],
@@ -111,9 +124,11 @@ pub fn draw_choices(
     party: &PartyView,
     weights: &RarityWeights,
     count: usize,
-    companion_guaranteed: bool,
+    companion_level: bool,
 ) -> Vec<usize> {
+    let companions = offers_companions(upgrades, stacks, party, companion_level);
     let mut pool: Vec<(usize, f32)> = (0..upgrades.len())
+        .filter(|&i| is_join(&upgrades[i]) == companions)
         .filter(|&i| is_eligible(upgrades, stacks, i, party))
         .map(|i| (i, weights.of(upgrades[i].rarity)))
         .filter(|&(_, weight)| weight > 0.0)
@@ -122,20 +137,6 @@ pub fn draw_choices(
     while choices.len() < count && !pool.is_empty() {
         let pick = weighted(rng, &pool);
         choices.push(pool.remove(pick).0);
-    }
-    if companion_guaranteed && !choices.iter().any(|&i| is_join(&upgrades[i])) {
-        // le carte compagno non estratte sono ancora nel pool
-        let joins: Vec<(usize, f32)> = pool
-            .into_iter()
-            .filter(|&(i, _)| is_join(&upgrades[i]))
-            .collect();
-        if !joins.is_empty() {
-            let join = joins[weighted(rng, &joins)].0;
-            match choices.last_mut() {
-                Some(last) => *last = join,
-                None => choices.push(join),
-            }
-        }
     }
     choices
 }

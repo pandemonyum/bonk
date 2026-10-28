@@ -15,7 +15,7 @@
     draft_size: 3,
     // peso relativo di estrazione nel draft
     rarity_weights: (common: 10.0, uncommon: 5.0, rare: 2.0),
-    // nei draft dei livelli 2 e 3, con un posto libero, c'è sempre un "nuovo compagno": senza,
-    // un'estrazione sfortunata lasciava Fiammetto da solo all'arrivo dello sciame (P0.7)
-    companion_card_until_level: 3,
+    // si parte con un compagno solo; a questi livelli il draft propone soltanto chi può unirsi
+    // alla squadra (negli altri draft non escono carte "nuovo compagno"): uno per posto libero
+    companion_levels: [4, 10],
 )

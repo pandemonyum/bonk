@@ -41,6 +41,8 @@ pub use modifiers::{Modifiers, pct_factor};
 #[derive(Resource, Debug, Clone, PartialEq, Eq, Default)]
 pub struct Draft {
     pub choices: Vec<usize>,
+    /// Draft di un livello dei compagni: le carte sono i compagni che possono unirsi.
+    pub companions: bool,
 }
 
 /// Scelta di una carta del draft aperto: indice in `Draft::choices` (0 = la prima).
@@ -59,7 +61,7 @@ pub struct AutoPick {
 struct DraftRng(Pcg32);
 
 mod rules;
-pub use rules::{PartyView, auto_choice, draw_choices, is_eligible};
+pub use rules::{PartyView, auto_choice, draw_choices, is_eligible, offers_companions};
 
 pub struct UpgradesPlugin;
 
@@ -142,15 +144,18 @@ fn deal_draft(
 ) {
     let p = &config.progression;
     let level = progression.level + 1 - progression.pending_levels;
+    let party = PartyView::of(&config, &stacks, &setup.starter(&config).id);
+    let companion_level = p.is_companion_level(level);
     draft.choices = draw_choices(
         &mut rng.0,
         &config.upgrades,
         &stacks,
-        &PartyView::of(&config, &stacks, &setup.starter(&config).id),
+        &party,
         &p.rarity_weights,
         p.draft_size as usize,
-        level <= p.companion_card_until_level,
+        companion_level,
     );
+    draft.companions = offers_companions(&config.upgrades, &stacks, &party, companion_level);
     if draft.choices.is_empty() {
         // impossibile con la configurazione che ha aperto il draft: si torna a giocare
         progression.pending_levels = 0;
@@ -220,15 +225,17 @@ fn apply_choice(
     let p = &config.progression;
     // livello del draft successivo (il prossimo ancora da scegliere)
     let level = progression.level + 1 - progression.pending_levels;
+    let party = PartyView::of(&config, &stacks, &setup.starter(&config).id);
+    let companion_level = p.is_companion_level(level);
     let again = if progression.pending_levels > 0 {
         draw_choices(
             &mut rng.0,
             &config.upgrades,
             &stacks,
-            &PartyView::of(&config, &stacks, &setup.starter(&config).id),
+            &party,
             &p.rarity_weights,
             p.draft_size as usize,
-            level <= p.companion_card_until_level,
+            companion_level,
         )
     } else {
         Vec::new()
@@ -236,10 +243,12 @@ fn apply_choice(
     if again.is_empty() {
         progression.pending_levels = 0;
         draft.choices.clear();
+        draft.companions = false;
         next.set(RunPhase::Playing);
     } else {
         log_draft(&config, level, &again);
         draft.choices = again;
+        draft.companions = offers_companions(&config.upgrades, &stacks, &party, companion_level);
     }
 }
 

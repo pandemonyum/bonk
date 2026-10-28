@@ -86,11 +86,25 @@ pub(super) fn check(r: &mut Report, config: &GameConfig) {
         .upgrades
         .iter()
         .any(|u| matches!(u.effect, Effect::JoinCompanion(_)));
-    if p.companion_card_until_level >= 2 && !has_join {
+    let levels = &p.companion_levels;
+    if !levels.is_empty() && !has_join {
         r.0.push(format!(
-            "progression.ron: companion_card_until_level = {}: upgrades.ron non ha carte \
-             \"nuovo compagno\" da garantire (0 per nessuna garanzia)",
-            p.companion_card_until_level
+            "progression.ron: companion_levels = {levels:?}: upgrades.ron non ha carte \
+             \"nuovo compagno\" da proporre ([] per nessuno)"
+        ));
+    }
+    let extra_slots = config.player.companion_slots.len().saturating_sub(1);
+    if levels.len() > extra_slots {
+        r.0.push(format!(
+            "progression.ron: companion_levels = {levels:?}: {} livelli ma solo {extra_slots} \
+             posti oltre al compagno iniziale (player.ron: companion_slots)",
+            levels.len()
+        ));
+    }
+    if levels.first().is_some_and(|&l| l < 2) || levels.windows(2).any(|w| w[0] >= w[1]) {
+        r.0.push(format!(
+            "progression.ron: companion_levels = {levels:?}: servono livelli da 2 in su (il \
+             primo draft è quello del livello 2), in ordine crescente e senza ripetizioni"
         ));
     }
     for rarity in [Rarity::Common, Rarity::Uncommon, Rarity::Rare] {

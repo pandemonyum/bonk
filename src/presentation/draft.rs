@@ -81,15 +81,25 @@ fn show_draft(
         return; // scelta fatta: la fase sta per tornare a Playing
     }
     let levels_left = progression.pending_levels;
+    let what = if draft.companions {
+        "Scegli chi si unisce alla squadra"
+    } else {
+        "Scegli un potenziamento"
+    };
     let subtitle = if levels_left > 1 {
         format!(
-            "Scegli un potenziamento: 1–{} o clic   ({levels_left} da scegliere)",
+            "{what}: 1–{} o clic   ({levels_left} da scegliere)",
             draft.choices.len()
         )
     } else {
-        format!("Scegli un potenziamento: 1–{} o clic", draft.choices.len())
+        format!("{what}: 1–{} o clic", draft.choices.len())
     };
     let level = progression.level + 1 - levels_left;
+    let title = if draft.companions {
+        format!("NUOVO COMPAGNO!  LIVELLO {level}")
+    } else {
+        format!("LEVEL UP!  LIVELLO {level}")
+    };
     let root = commands
         .spawn((
             Name::new("DraftScreen"),
@@ -106,11 +116,7 @@ fn show_draft(
             BackgroundColor(Color::srgba(0.0, 0.02, 0.08, 0.6)),
             DespawnOnExit(RunPhase::LevelUp),
             children![
-                (
-                    Text::new(format!("LEVEL UP!  LIVELLO {level}")),
-                    fonts::ui(33.0),
-                    TextColor(GOLD),
-                ),
+                (Text::new(title), fonts::ui(33.0), TextColor(GOLD),),
                 (
                     Text::new(subtitle),
                     fonts::ui(16.0),

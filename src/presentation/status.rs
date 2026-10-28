@@ -8,7 +8,10 @@ use super::abilities::AbilityRow;
 use super::fonts;
 use super::icons::ui_icon;
 use crate::app::AppState;
+use crate::data::GameConfig;
+use crate::data::schema::ProgressionFile;
 use crate::gameplay::combat::{Health, RunStats};
+use crate::gameplay::companions::Companion;
 use crate::gameplay::player::Player;
 use crate::gameplay::progression::Progression;
 
@@ -72,6 +75,23 @@ struct LevelText;
 
 #[derive(Component)]
 struct KillsText;
+
+#[derive(Component)]
+struct NextCompanionText;
+
+/// Riga sotto il livello: a che livello si sceglie il prossimo compagno, finché la squadra
+/// (`members` su `slots` posti) ha un posto libero; vuota quando non ne arrivano altri.
+pub fn next_companion_line(
+    progression: &ProgressionFile,
+    level: u32,
+    members: usize,
+    slots: usize,
+) -> String {
+    match progression.next_companion_level(level) {
+        Some(next) if members < slots => format!("compagno al LV {next}"),
+        _ => String::new(),
+    }
+}
 
 pub struct StatusPlugin;
 
@@ -187,6 +207,7 @@ fn spawn_right(mut commands: Commands, assets: Res<AssetServer>) {
                     (KillsText, label("", 16.0, TEXT)),
                 ],
             ),
+            (NextCompanionText, label("", 16.0, TEXT)),
         ],
     ));
 }
@@ -226,11 +247,30 @@ fn show_xp(progression: Res<Progression>, mut fill: Single<&mut Node, With<XpFil
     fill.width = percent(100.0 * progression.fraction().clamp(0.0, 1.0));
 }
 
+type OnlyLevel = (
+    With<LevelText>,
+    Without<KillsText>,
+    Without<NextCompanionText>,
+);
+type OnlyKills = (
+    With<KillsText>,
+    Without<LevelText>,
+    Without<NextCompanionText>,
+);
+type OnlyNext = (
+    With<NextCompanionText>,
+    Without<LevelText>,
+    Without<KillsText>,
+);
+
 fn show_right(
+    config: Res<GameConfig>,
     progression: Res<Progression>,
     stats: Res<RunStats>,
-    mut level: Single<&mut Text, (With<LevelText>, Without<KillsText>)>,
-    mut kills: Single<&mut Text, (With<KillsText>, Without<LevelText>)>,
+    companions: Query<(), With<Companion>>,
+    mut level: Single<&mut Text, OnlyLevel>,
+    mut kills: Single<&mut Text, OnlyKills>,
+    mut next: Single<&mut Text, OnlyNext>,
 ) {
     let line = format!("LV {}", progression.level);
     if level.0 != line {
@@ -239,6 +279,15 @@ fn show_right(
     let line = stats.defeated.to_string();
     if kills.0 != line {
         kills.0 = line;
+    }
+    let line = next_companion_line(
+        &config.progression,
+        progression.level,
+        companions.iter().count(),
+        config.player.companion_slots.len(),
+    );
+    if next.0 != line {
+        next.0 = line;
     }
 }
 
@@ -258,5 +307,16 @@ mod tests {
         assert_eq!(hearts(110.0, 110.0), [Full; 6]);
         assert_eq!(hearts(105.0, 110.0), [Full, Full, Full, Full, Full, Half]);
         assert_eq!(hearts(5.0, 5.0), [Full]);
+    }
+
+    #[test]
+    fn the_next_companion_level_shows_while_a_slot_is_free() {
+        let mut p = GameConfig::embedded().progression;
+        p.companion_levels = vec![4, 10];
+        assert_eq!(next_companion_line(&p, 1, 1, 3), "compagno al LV 4");
+        assert_eq!(next_companion_line(&p, 4, 2, 3), "compagno al LV 10");
+        assert_eq!(next_companion_line(&p, 10, 3, 3), "");
+        assert_eq!(next_companion_line(&p, 12, 2, 3), "", "nessun livello dopo");
+        assert_eq!(next_companion_line(&p, 2, 3, 3), "", "squadra piena");
     }
 }

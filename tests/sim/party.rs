@@ -241,3 +241,39 @@ fn restarting_brings_back_only_the_starting_companion() {
         0
     );
 }
+
+/// Si parte con un compagno solo; ai livelli dei compagni il draft propone soltanto chi può
+/// unirsi (e lo dice), negli altri draft nessun compagno. Alla fine la squadra è piena.
+#[test]
+fn companions_are_chosen_only_at_the_companion_levels() {
+    use crate::common::give_levels;
+    use pixel_monster_survivor::gameplay::upgrades::{ChooseUpgrade, Draft};
+    let mut app = xp_app();
+    let c = config(&app);
+    let levels = c.progression.companion_levels.clone();
+    let last = *levels.last().expect("i dati hanno livelli dei compagni");
+    assert_eq!(count::<Companion>(&mut app), 1, "si parte da soli");
+    let is_join = |i: &usize| matches!(c.upgrades[*i].effect, Effect::JoinCompanion(_));
+    for level in 2..=last + 2 {
+        give_levels(&mut app, 1);
+        run_steps(&mut app, 2);
+        assert_eq!(phase(&app), RunPhase::LevelUp, "livello {level}");
+        let draft = app.world().resource::<Draft>().clone();
+        let joins = draft.choices.iter().filter(|i| is_join(i)).count();
+        if levels.contains(&level) {
+            assert!(draft.companions, "livello {level}");
+            assert!(
+                joins > 0 && joins == draft.choices.len(),
+                "livello {level}: {draft:?}"
+            );
+        } else {
+            assert!(!draft.companions, "livello {level}");
+            assert_eq!(joins, 0, "livello {level}: {draft:?}");
+        }
+        app.world_mut().write_message(ChooseUpgrade(0));
+        run_steps(&mut app, 2);
+        assert_eq!(phase(&app), RunPhase::Playing);
+    }
+    assert_eq!(count::<Companion>(&mut app), 1 + levels.len());
+    assert_eq!(count::<Companion>(&mut app), c.player.companion_slots.len());
+}

@@ -95,10 +95,22 @@ pub struct ProgressionFile {
     /// Carte proposte a ogni livello.
     pub draft_size: u32,
     pub rarity_weights: RarityWeights,
-    /// Fino al draft di questo livello compreso (il primo draft è quello del livello 2), se la
-    /// squadra ha un posto libero almeno una carta è "nuovo compagno". 0 = nessuna garanzia.
+    /// Livelli del player a cui si sceglie un compagno nuovo: il draft di quel livello propone
+    /// solo carte "nuovo compagno" e negli altri non ne escono. Uno per ogni posto oltre al
+    /// primo, in ordine crescente.
     #[serde(default)]
-    pub companion_card_until_level: u32,
+    pub companion_levels: Vec<u32>,
+}
+
+impl ProgressionFile {
+    pub fn is_companion_level(&self, level: u32) -> bool {
+        self.companion_levels.contains(&level)
+    }
+
+    /// Il prossimo livello dei compagni dopo `level`, se c'è.
+    pub fn next_companion_level(&self, level: u32) -> Option<u32> {
+        self.companion_levels.iter().copied().find(|&l| l > level)
+    }
 }
 
 /// Effetto di uno stack di upgrade. Le percentuali si sommano tra stack (due stack di +15% =

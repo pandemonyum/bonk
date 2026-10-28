@@ -18,7 +18,7 @@ fn upgrade_where(c: &GameConfig, wanted: impl Fn(&Effect) -> bool) -> usize {
 
 /// La garanzia di un compagno nei primi draft ha senso solo se i dati hanno carte compagno.
 #[test]
-fn a_guaranteed_companion_card_needs_companion_cards() {
+fn companion_levels_need_companion_cards_free_slots_and_order() {
     let without_joins = |c: &mut GameConfig| {
         c.upgrades
             .retain(|u| !matches!(u.effect, Effect::JoinCompanion(_)));
@@ -26,20 +26,30 @@ fn a_guaranteed_companion_card_needs_companion_cards() {
     assert_error(
         |c| {
             without_joins(c);
-            c.progression.companion_card_until_level = 3;
+            c.progression.companion_levels = vec![5];
         },
-        "companion_card_until_level = 3: upgrades.ron non ha carte",
+        "companion_levels = [5]: upgrades.ron non ha carte",
     );
     let none = errors_after(|c| {
         without_joins(c);
-        c.progression.companion_card_until_level = 0;
+        c.progression.companion_levels = vec![];
     });
     assert!(
-        !none
-            .iter()
-            .any(|e| e.contains("companion_card_until_level")),
+        !none.iter().any(|e| e.contains("companion_levels")),
         "{none:?}"
     );
+    assert_error(
+        |c| {
+            let slots = c.player.companion_slots.len() as u32;
+            c.progression.companion_levels = (2..2 + slots).collect();
+        },
+        "posti oltre al compagno iniziale",
+    );
+    assert_error(
+        |c| c.progression.companion_levels = vec![8, 4],
+        "in ordine crescente",
+    );
+    assert_error(|c| c.progression.companion_levels = vec![1], "da 2 in su");
 }
 
 #[test]
