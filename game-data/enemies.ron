@@ -2,25 +2,31 @@
 // gelatina = base, sciame = veloce e fragile, corazzato = lento e resistente.
 // Più l'élite (carica telegrafata) e il boss (colpo ad area telegrafato), citati in stages.ron.
 // `charge` e `slam` sono facoltativi: senza, il nemico insegue e basta.
+// `frame`: fotogramma del foglio animato in `sprite` (4 colonne; righe movimento, sconfitta e,
+// con carica o colpo ad area, preparazione e attacco). Hurtbox, contatto e separazione seguono
+// i corpi dei fogli (misurati sui PNG); l'impronta resta quella dei piedi (max 9).
 (
     version: 5,
     enemies: [
         (
             id: "blob",
             display_name: "Gelatina",
-            sprite: "sprites/blob_enemy.png",
+            sprite: "sprites/blob_sheet.png",
+            frame: Some((w: 28, h: 24)),
             // 3 colpi di ember_bolt
             max_hp: 30.0,
             // ~53% del player: si distanzia ma non si ignora
             speed: 40.0,
             // cerchio colpibile, centrato `center_offset` px sopra i piedi
-            hurtbox: (radius: 7.0, center_offset: 7.0),
+            hurtbox: (radius: 9.0, center_offset: 8.0),
             // collisioni con gli ostacoli; max 9 (varco minimo 18 px)
             footprint_radius: 6.0,
             // distanza a cui smette di avanzare verso il player
+            // P0.7+: resta quella di prima dei fogli: con 12 le gelatine colpivano da troppo
+            // lontano (24 run del giocatore medio: da 23 a 16 vittorie insieme agli altri due)
             contact_distance: 10.0,
             // distanza minima tra due nemici
-            separation_radius: 14.0,
+            separation_radius: 18.0,
             // la base dell'orda: tante, poco danno ciascuna
             contact_damage: 2.0,
             xp: 1,
@@ -28,29 +34,32 @@
         (
             id: "swarm",
             display_name: "Sciame",
-            sprite: "sprites/swarm_enemy.png",
+            sprite: "sprites/swarm_sheet.png",
+            frame: Some((w: 24, h: 22)),
             // un colpo solo, ma arrivano in tanti
             max_hp: 12.0,
             // quasi quanto il player: non si semina, va abbattuto
             speed: 68.0,
-            hurtbox: (radius: 6.0, center_offset: 5.0),
+            // vola: il corpo sta più in alto dei piedi
+            hurtbox: (radius: 7.0, center_offset: 11.0),
             footprint_radius: 4.0,
             contact_distance: 8.0,
-            separation_radius: 12.0,
+            separation_radius: 16.0,
             contact_damage: 2.0,
             xp: 1,
         ),
         (
             id: "armored",
             display_name: "Corazzato",
-            sprite: "sprites/armored_enemy.png",
+            sprite: "sprites/armored_sheet.png",
+            frame: Some((w: 32, h: 28)),
             // 10 colpi: blocca la strada mentre gli altri arrivano
             max_hp: 120.0,
             speed: 28.0,
-            hurtbox: (radius: 9.0, center_offset: 7.0),
+            hurtbox: (radius: 12.0, center_offset: 10.0),
             footprint_radius: 8.0,
             contact_distance: 13.0,
-            separation_radius: 18.0,
+            separation_radius: 24.0,
             contact_damage: 6.0,
             // vale la fatica: 10 colpi
             xp: 6,
@@ -58,14 +67,15 @@
         (
             id: "elite_blob",
             display_name: "Gelatina Gigante",
-            sprite: "sprites/elite_enemy.png",
+            sprite: "sprites/elite_sheet.png",
+            frame: Some((w: 44, h: 38)),
             // ~33 colpi base: va affrontata, non ignorata
             max_hp: 400.0,
             speed: 34.0,
-            hurtbox: (radius: 12.0, center_offset: 10.0),
+            hurtbox: (radius: 15.0, center_offset: 14.0),
             footprint_radius: 9.0,
-            contact_distance: 16.0,
-            separation_radius: 26.0,
+            contact_distance: 20.0,
+            separation_radius: 34.0,
             contact_damage: 8.0,
             // vale la deviazione: quasi un livello intero a metà run
             xp: 25,
@@ -76,16 +86,17 @@
             id: "boss_king",
             // colosso a cupola della famiglia del corazzato (art pass v1)
             display_name: "Gran Corazzato",
-            sprite: "sprites/boss_enemy.png",
+            sprite: "sprites/boss_sheet.png",
+            frame: Some((w: 96, h: 80)),
             // obiettivo GDD: sconfitto da una build media in 60-120 s. P0.7: con il "giocatore
             // medio" delle sonde 3800 HP cadevano in ~50 s, quindi 5500
             max_hp: 5500.0,
             speed: 30.0,
-            hurtbox: (radius: 22.0, center_offset: 22.0),
+            hurtbox: (radius: 30.0, center_offset: 30.0),
             // impronta piccola: passa tra gli ostacoli come gli altri (varco minimo 18 px)
             footprint_radius: 9.0,
-            contact_distance: 28.0,
-            separation_radius: 44.0,
+            contact_distance: 36.0,
+            separation_radius: 60.0,
             contact_damage: 15.0,
             xp: 0,
             // cerchio rosso dove sei per 1 s, poi colpisce: 25 danni a chi resta dentro

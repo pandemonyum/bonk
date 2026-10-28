@@ -49,6 +49,8 @@ opzioni, browser, release candidate).
 
 | ID | Task | Owner | Criteri di done |
 |---|---|---|---|
+| ~~ART-P2~~ **DONE** | Nemici e boss animati (movimento, sconfitta, carica/scatto, preparazione/colpo), in proporzione al player (D-051) | pixel-art-director (fogli) + gameplay-engineer (`enemy_anim`, dati) + game-designer (hurtbox, contatto, separazione) | fogli validati e approvati dall'utente; test del contratto sui PNG; logica testata; nel gioco vero orda, élite e boss animati; bilanciamento rimisurato; gate verde |
+| ART-P3 *(in corso)* | Mappa nello stesso stile: tileset (stessi 42 indici e ruoli), rocce, alberi; togliere gli sprite fissi dei nemici rimasti inutilizzati | pixel-art-director | anteprime approvate dall'utente; generatore della mappa invariato; gate verde |
 | ~~ART-P1~~ **DONE** | Player animato: fermo e cammino in 4 direzioni, colpito, caduta; sprite identico a quello fornito dall'utente (D-050) | pixel-art-director (foglio, pipeline) + gameplay-engineer (`player_anim`, risultati dopo la caduta) | foglio 4×8 validato; test del contratto sul PNG; anteprime approvate dall'utente prima dell'integrazione; cammino nelle 4 direzioni e caduta nel gioco vero; gate verde |
 
 ## Debito tecnico e idee registrate

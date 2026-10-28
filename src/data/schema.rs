@@ -211,6 +211,18 @@ pub struct EnemyData {
     /// Colpo ad area telegrafato (boss): segna un cerchio dove sta il player, poi colpisce.
     #[serde(default)]
     pub slam: Option<SlamData>,
+    /// Fotogramma del foglio animato in `sprite` (4 colonne; righe: movimento, sconfitta e, per
+    /// chi carica o colpisce ad area, preparazione e attacco). Assente: immagine fissa.
+    #[serde(default)]
+    pub frame: Option<SheetFrame>,
+}
+
+/// Misure di un fotogramma in texel.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SheetFrame {
+    pub w: u32,
+    pub h: u32,
 }
 
 /// Carica: ogni `every_s` secondi, se il player è entro `range`, il nemico si ferma per

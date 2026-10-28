@@ -121,6 +121,11 @@ quando di solito la squadra ha un secondo compagno.
 
 ## Misure
 
+- **ART-P2, nemici in proporzione al player (`print_survival_medium_player`, 24 run):** con
+  hurtbox, separazione e contatto alzati per tutti 16/24 vittorie (morti fra 4:17 e 7:24); con
+  il contatto dei nemici piccoli come prima (gelatina 10, sciame 8, corazzato 13) e più grande
+  solo per élite (20) e boss (36): **24/24**, boss in 46–81 s (mediana ~61 s), danni 89–416.
+
 - **P0.7, "giocatore medio" (`print_survival_medium_player`, `tests/sim/bot.rs`, 8 seed per
   ognuno dei tre compagni iniziali, run riproducibili dopo D-047).** Il bot si allontana dai
   nemici girando loro attorno, esce dai segni di pericolo, prende le gemme più convenienti e

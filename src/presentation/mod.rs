@@ -7,6 +7,7 @@ pub mod boss_bar;
 pub mod boss_pointer;
 pub mod camera;
 pub mod draft;
+pub mod enemy_anim;
 pub mod fonts;
 pub mod health_bar;
 pub mod hud;
@@ -48,6 +49,6 @@ impl Plugin for PresentationPlugin {
             results::ResultsPlugin,
         ))
         // `add_plugins` accetta al massimo 15 plugin per tupla
-        .add_plugins(player_anim::PlayerAnimPlugin);
+        .add_plugins((player_anim::PlayerAnimPlugin, enemy_anim::EnemyAnimPlugin));
     }
 }

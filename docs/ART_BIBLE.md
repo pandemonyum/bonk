@@ -46,10 +46,15 @@ sono ancora quelli del codice attuale, le icone nuove non sono collegate).
 | Gocci | 16×14 | **18×18** | la bolla è la più larga dei tre; spazio per il ricciolo della cresta |
 | Frond | 16×17 | **16×20** | foglie più grandi con nervatura |
 | Gelatina | 16×13 | **16×14** | una riga per la bocca con le zanne |
+| Gelatina, foglio | — | **28×24** (~22×18 visibili), 4×2 | stile del player; salto e sconfitta |
 | Sciame | 12×8 | **14×11** | ali con membrana e corpo tondo leggibili; resta il più piccolo |
+| Sciame, foglio | — | **24×22** (~18×16), 4×2 | vola: ombra piccola sulla riga in basso |
 | Corazzato | 20×15 | = | ridisegnato a carapace viola |
+| Corazzato, foglio | — | **32×28** (~26×22), 4×2 | passo e guscio che si spacca |
 | Élite | (24–32) | **26×22** | gelatina grande e scura, spine rosse |
+| Gelatina Gigante, foglio | — | **44×38** (~36×30), 4×4 | passo, sconfitta, carica, scatto |
 | Boss | (48–64) | **56×47** | colosso a cupola, ~1/6 dell'altezza dello schermo |
+| Gran Corazzato, foglio | — | **96×80** (~80×66), 4×4 | passo, sconfitta, salto, schianto; ~1/4 dell'altezza dello schermo |
 | Proiettile di fuoco | 6×6 | **8×8** | sfera con nucleo bianco, visibile sopra l'orda |
 | Foglia orbitante | 6×6 | **8×8** | nervatura e contorno |
 | Goccia dell'onda | 4×4 | = | più chiara (`L`/`w`), senza contorno |
@@ -59,7 +64,7 @@ sono ancora quelli del codice attuale, le icone nuove non sono collegate).
 | Albero | 24×26 | **32×32** | chioma a ciuffi; impronta solo sul tronco |
 
 Massimi: comuni ≤ 20 px, compagni ≤ 24, fotogramma del player 36×38, alberi ≤ 32, boss ≤ 64
-(validato; i fogli animati fotogramma per fotogramma). A
+(validato; i fogli animati fotogramma per fotogramma, fino a 96 px per fotogramma). A
 480×270 una creatura comune resta sotto il 6% dell'altezza dello schermo: le orde restano
 leggibili. Verificato sull'anteprima con 75 nemici; lo screenshot del gioco (seed 20, 1:45 di
 gioco) ha un'orda piccola: la prova con 200 nemici nel gioco vero resta da fare.
@@ -156,6 +161,31 @@ Formato del sorgente (sezione "Pipeline"):
 
 Anteprime di controllo (non nel repository): `screenshots/anteprima-v2-animazioni.gif`,
 `-foglio.png`, `-confronto.png`. Nel repository c'è `docs/evidence/art-preview-player-sheet.png`.
+
+## Nemici e boss: fogli animati
+
+Un foglio per nemico (`assets-src/sprites/<nome>_sheet.px`), nello stile del player:
+- contorno quasi nero `k` (060102) e rampe di 5 toni con luce da nord-ovest;
+- forme tonde e tozze, viola con dettagli rossi;
+- palette condivisa `enemies.palette.txt`.
+
+Sono disegnati verso **destra** (il gioco specchia per la sinistra). In ogni fotogramma l'ombra
+è sulla riga in basso e il corpo è centrato tra le due colonne di mezzo. È lo stesso modello in
+ogni fotogramma: le deformazioni sono solo lo schiacciamento voluto delle gelatine. Riga 0
+cammino o volo (4 fotogrammi), riga 1 sconfitta, che finisce con un resto (pozza, macchia,
+guscio rotto) che il gioco fa sparire in dissolvenza.
+
+| Foglio | Fotogramma | Righe |
+|---|---|---|
+| `blob_sheet.png` | 28×24 | move (salto: carica, stacco, in aria), death |
+| `swarm_sheet.png` | 24×22 | move (battito d'ali, corpo su e giù di 1 px), death |
+| `armored_sheet.png` | 32×28 | move (zampe alternate), death |
+| `elite_sheet.png` | 44×38 | move, death, charge (si comprime, alone rosso, pronta: il 3 resta), dash (allungata, linee di velocità nel fotogramma) |
+| `boss_sheet.png` | 96×80 | move (passo pesante), death, windup (salto: il 3 resta fino all'impatto), slam (schianto, polvere nel fotogramma, ripresa) |
+
+Disegnati con forme ombreggiate in uno script usa e getta fuori dal repository e rifiniti
+nella griglia, come gli sprite grandi della v1. I vecchi sprite singoli (`blob_enemy.png` e
+gli altri) restano finché `game-data/enemies.ron` non passa ai fogli.
 
 ## Tileset `meadow_tileset.png` (indici in `src/world/tiles.rs`)
 

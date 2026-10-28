@@ -23,6 +23,11 @@ manifest `assets/manifest.json`.
 | `assets/sprites/elite_enemy.png` | `assets-src/sprites/elite_enemy.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/boss_enemy.png` | `assets-src/sprites/boss_enemy.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/telegraph.png` | `assets-src/sprites/telegraph.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
+| `assets/sprites/blob_sheet.png` (Gelatina, foglio 4×2 da 28×24) | `assets-src/sprites/blob_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |
+| `assets/sprites/swarm_sheet.png` (Sciame, 4×2 da 24×22) | `assets-src/sprites/swarm_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |
+| `assets/sprites/armored_sheet.png` (Corazzato, 4×2 da 32×28) | `assets-src/sprites/armored_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |
+| `assets/sprites/elite_sheet.png` (Gelatina Gigante, 4×4 da 44×38) | `assets-src/sprites/elite_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |
+| `assets/sprites/boss_sheet.png` (Gran Corazzato, 4×4 da 96×80) | `assets-src/sprites/boss_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |
 | `assets/ui/icon_fire.png` | `assets-src/ui/icon_fire.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/ui/icon_water.png` | `assets-src/ui/icon_water.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/ui/icon_nature.png` | `assets-src/ui/icon_nature.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
@@ -51,6 +56,7 @@ manifest `assets/manifest.json`.
 | `assets/ui/upgrade_join_sprout.png` | `assets-src/ui/upgrade_join_sprout.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/tiles/meadow_tileset.png` | generato da `scripts/build-assets.py` (seed 20261022, 42 tile dalla v1) | originale, proprietà del progetto |
 | Palette "Germoglio" v1 (`assets-src/palette.txt`, 56 colori) | definita per il progetto | originale, proprietà del progetto |
+| Palette dei nemici (`assets-src/sprites/enemies.palette.txt`, 18 colori) | definita per il progetto: viola e rossi della palette "Germoglio", contorno come il player | originale, proprietà del progetto |
 
 ## Terze parti distribuite in `assets/`
 

@@ -13,6 +13,31 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "nemici e boss animati" (2026-10-28)
+
+```text
+Task: ART-P2 - nemici e boss animati in proporzione al player
+Owner: orchestrator + pixel-art-director (5 fogli, palette, validatore) + gameplay-engineer
+       (src/presentation/enemy_anim.rs, schema `frame`) + game-designer (valori)
+Stato: DONE (la mappa, ART-P3, segue)
+File: src/presentation/enemy_anim.rs (nuovo), src/presentation/{mod,sprites}.rs,
+  src/data/schema.rs, src/data/validate/run.rs (+ tests), game-data/enemies.ron,
+  assets-src/sprites/{blob,swarm,armored,elite,boss}_sheet.px e enemies.palette.txt,
+  assets/sprites/*_sheet.png, assets/manifest.json, scripts/validate-assets.py,
+  ASSET_LICENSES.md, docs/{ART_BIBLE,DECISIONS,BACKLOG,PROGRESS,QA_REPORT}.md,
+  docs/evidence/{nemici,boss}-animati-gioco.png
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1   OK (fmt, clippy, 166 unit + 82 integrazione, 48 PNG e 2 font)
+  sonda giocatore medio (24 run): contatto alzato per tutti 16/24; contatto dei piccoli come
+    prima 24/24, boss 46–81 s, danni 89–416
+  gioco vero (autoplay ×10): orda animata con resti, élite, boss che si gira e colpisce
+Comportamento verificato: fogli approvati dall'utente prima dell'integrazione; nemici
+  specchiati sul verso; resti solo per chi muore
+Rischi noti: boss simile a una tartaruga spinosa (Bowser) insieme al player (accettato);
+  sprite fissi dei nemici ancora in assets/ finché la ART-P3 non li toglie
+Prossimo task: ART-P3 (mappa)
+```
+
 ## Report tranche "player animato" (2026-10-28)
 
 ```text

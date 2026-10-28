@@ -1,0 +1,23 @@
+# Palette condivisa dei nemici e del boss (fogli animati *_sheet.px), allineata al player:
+# contorno quasi nero come summoner_sheet (060102), rampe di 5 toni con luce da nord-ovest.
+# Formato come assets-src/palette.txt: <carattere> <hex RGB> <ruolo>. '.' e' trasparente.
+# I viola e i rossi sono quelli della palette del progetto (ruolo: nemici viola, dettagli e
+# pericolo rossi), piu' un viola-nero per le ombre profonde e un avorio d'ombra per denti e zanne.
+k 060102 contorno-come-il-player
+K 1b1428 linea-interna-scura
+Z 1e0f33 viola-nero
+z 35205a viola-scuro
+P 5b3a8c viola-ombra
+p 8e5bc8 viola
+q c79bf0 viola-luce
+Q ecd6ff viola-riflesso
+j 5c1a2c rosso-scuro
+R a8323a rosso-ombra
+r e2574c rosso
+X ff9a7a rosso-luce
+w f4f1e8 bianco-occhi-e-denti
+c c9bfae avorio-ombra
+T 5f6670 polvere-scura
+t 9aa0a8 polvere
+6 cdd2d8 polvere-chiara
+9 3d5235 ombra-a-terra

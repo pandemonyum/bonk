@@ -389,6 +389,24 @@ più grande dei compagni), palette propria del foglio (`summoner_sheet.palette.t
 più l'ombra del gioco), validata a parte. I limiti dell'arena restano quelli del corpo 16×24:
 contro la siepe il player sporge di ~6 texel a nord e 3–4 ai lati, disegnato davanti.
 
+## D-051 Nemici e boss animati, in proporzione al player *(utente)*
+Scelte dell'utente: disegni a mano del pixel-art-director (originali, stessa identità di prima)
+e misure in proporzione al player di D-050. Ogni nemico ha un foglio di 4 colonne (campo
+facoltativo `frame` in `enemies.ron`; senza, resta un'immagine fissa): riga 0 movimento, 1
+sconfitta, e per élite e boss 2 preparazione e 3 attacco. Fotogrammi: gelatina 28×24, sciame
+24×22, corazzato 32×28, gelatina gigante 44×38, Gran Corazzato 96×80 (palette comune
+`enemies.palette.txt`). `presentation::enemy_anim`: ciclo di movimento specchiato sul verso,
+carica e scatto dal `Charger`, preparazione del boss finché c'è il suo `PendingSlam` e colpo per
+0,4 s dopo, resti animati dove un nemico è morto (entità di sola grafica, caduta 0,4 s e
+dissolvenza 0,3 s; non per chi sparisce al restart). Valori nei dati misurati sui corpi dei
+fogli: hurtbox e separazione più grandi (es. gelatina raggio 7 → 9, separazione 14 → 18; boss
+22 → 30 e 44 → 60), impronte invariate (piedi, max 9). Lezione: alzare anche la distanza di
+contatto dei nemici piccoli faceva colpire da troppo lontano (24 run del giocatore medio: da
+23 a 16 vittorie, morti fra 4:17 e 7:24); tornati ai valori di prima (gli sprite si toccano già)
+e tenuti più grandi solo per élite (20) e boss (36): 24/24 vittorie, boss in 46–81 s. Il boss
+a cupola con spine, testa e coda ricorda una tartaruga spinosa: insieme al player di D-050
+richiama Bowser; segnalato all'utente, accettato.
+
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale
 come seconda build separata dopo la P1.

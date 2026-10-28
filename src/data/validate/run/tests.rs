@@ -143,3 +143,20 @@ fn a_charge_cannot_jump_over_the_player() {
     let too_fast = (elite.contact_distance + 1.0) * crate::gameplay::SIM_HZ as f32;
     assert_error(|c| charge_mut(c).speed = too_fast, "attraversa il player");
 }
+
+/// Il fotogramma di un foglio animato: non vuoto e largo un numero pari di texel.
+#[test]
+fn enemy_sheet_frames_are_checked() {
+    use crate::data::schema::SheetFrame;
+    let id = embedded().enemies[0].id.clone();
+    assert_error(
+        |c| c.enemies[0].frame = Some(SheetFrame { w: 27, h: 24 }),
+        &format!("enemies.ron: {id}.frame = (27, 24): serve un fotogramma"),
+    );
+    assert_error(
+        |c| c.enemies[0].frame = Some(SheetFrame { w: 28, h: 0 }),
+        &format!("enemies.ron: {id}.frame = (28, 0)"),
+    );
+    let ok = errors_after(|c| c.enemies[0].frame = Some(SheetFrame { w: 28, h: 24 }));
+    assert!(!ok.iter().any(|e| e.contains(".frame")), "{ok:?}");
+}

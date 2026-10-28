@@ -30,7 +30,8 @@ PALETTE = ROOT / "assets-src" / "palette.txt"
 NAME_RE = re.compile(r"^[a-z0-9_]+\.png$")
 # Campi sprite nei file RON di game-data/ (es. sprite: "sprites/x.png").
 DATA_SPRITE_RE = re.compile(r'\b(?:sprite|projectile_sprite)\s*:\s*"([^"]+)"')
-MAX_SPRITE = 64  # boss inclusi; vedi docs/ART_BIBLE.md
+MAX_SPRITE = 64  # sprite singoli; vedi docs/ART_BIBLE.md
+MAX_FRAME = 96  # fotogrammi dei fogli animati (il boss e' 96x80)
 MAX_UI = 32  # icone e ritratti dell'interfaccia
 DATA_ID_RE = re.compile(r'^\s*id\s*:\s*"([a-z0-9_]+)"')
 
@@ -47,14 +48,14 @@ def palette_colors(path: Path = PALETTE) -> set[tuple[int, int, int]]:
 
 def check_sheet(path: str, entry: dict, img: Image.Image) -> list[str]:
     """Foglio animato: misura multipla intera del fotogramma, griglia coerente con il manifest,
-    ogni fotogramma entro il limite degli sprite e non vuoto; con ancora in basso al centro
+    ogni fotogramma entro il limite dei fotogrammi (MAX_FRAME) e non vuoto; con ancora in basso al centro
     ogni fotogramma tocca la riga di base (piedi o ombra a terra)."""
     errors: list[str] = []
     fw, fh = entry["frame"]
     if fw <= 0 or fh <= 0 or img.width % fw or img.height % fh:
         return [f"{path}: {img.width}x{img.height} non è multiplo del fotogramma {fw}x{fh}"]
-    if max(fw, fh) > MAX_SPRITE:
-        errors.append(f"{path}: fotogramma {fw}x{fh} oltre {MAX_SPRITE}px")
+    if max(fw, fh) > MAX_FRAME:
+        errors.append(f"{path}: fotogramma {fw}x{fh} oltre {MAX_FRAME}px")
     columns, rows = img.width // fw, img.height // fh
     if entry.get("columns", columns) != columns:
         errors.append(f"{path}: 'columns' {entry['columns']} ma la griglia ne ha {columns}")

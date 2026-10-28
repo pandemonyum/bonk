@@ -1,5 +1,16 @@
 # QA REPORT
 
+## 2026-10-28 — Nemici e boss animati
+
+| Controllo | Esito | Prova |
+|---|---|---|
+| Contratto dei fogli | ogni PNG = 4 colonne × righe del nemico (2, o 4 con carica/colpo) per il suo `frame` | `enemy_sheets_match_their_frames`, `validate-assets.py` |
+| Logica | verso specchiato, preparazione e scatto dell'élite, preparazione e colpo del boss, resti che cadono e svaniscono | test di `presentation::enemy_anim` |
+| Validazione dei dati | `frame` non vuoto e largo un numero pari di texel | `enemy_sheet_frames_are_checked` |
+| Nel gioco vero | orda, sciame, élite e boss animati, specchiati sul verso | `docs/evidence/nemici-animati-gioco.png`, `boss-animato-gioco.png` |
+| Bilanciamento | 24/24 vittorie del giocatore medio, boss 46–81 s (prima della correzione del contatto 16/24) | GDD, Misure |
+| Gate | 166 unit + 82 integrazione, 48 PNG | `./scripts/check.ps1` |
+
 ## 2026-10-28 — Player animato (sprite dell'utente)
 
 | Controllo | Esito | Prova |

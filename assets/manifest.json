@@ -13,6 +13,28 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/armored_sheet.png",
+      "kind": "sprite",
+      "size": [
+        128,
+        56
+      ],
+      "frames": 8,
+      "frame": [
+        32,
+        28
+      ],
+      "columns": 4,
+      "rows": [
+        "move",
+        "death"
+      ],
+      "anchor": "bottom_center",
+      "palette": "assets-src/sprites/enemies.palette.txt",
+      "source": "assets-src/sprites/armored_sheet.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "sprites/blob_enemy.png",
       "kind": "sprite",
       "size": [
@@ -24,6 +46,28 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/blob_sheet.png",
+      "kind": "sprite",
+      "size": [
+        112,
+        48
+      ],
+      "frames": 8,
+      "frame": [
+        28,
+        24
+      ],
+      "columns": 4,
+      "rows": [
+        "move",
+        "death"
+      ],
+      "anchor": "bottom_center",
+      "palette": "assets-src/sprites/enemies.palette.txt",
+      "source": "assets-src/sprites/blob_sheet.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "sprites/boss_enemy.png",
       "kind": "sprite",
       "size": [
@@ -32,6 +76,30 @@
       ],
       "frames": 1,
       "source": "assets-src/sprites/boss_enemy.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/boss_sheet.png",
+      "kind": "sprite",
+      "size": [
+        384,
+        320
+      ],
+      "frames": 16,
+      "frame": [
+        96,
+        80
+      ],
+      "columns": 4,
+      "rows": [
+        "move",
+        "death",
+        "windup",
+        "slam"
+      ],
+      "anchor": "bottom_center",
+      "palette": "assets-src/sprites/enemies.palette.txt",
+      "source": "assets-src/sprites/boss_sheet.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -54,6 +122,30 @@
       ],
       "frames": 1,
       "source": "assets-src/sprites/elite_enemy.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/elite_sheet.png",
+      "kind": "sprite",
+      "size": [
+        176,
+        152
+      ],
+      "frames": 16,
+      "frame": [
+        44,
+        38
+      ],
+      "columns": 4,
+      "rows": [
+        "move",
+        "death",
+        "charge",
+        "dash"
+      ],
+      "anchor": "bottom_center",
+      "palette": "assets-src/sprites/enemies.palette.txt",
+      "source": "assets-src/sprites/elite_sheet.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -148,6 +240,28 @@
       ],
       "frames": 1,
       "source": "assets-src/sprites/swarm_enemy.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/swarm_sheet.png",
+      "kind": "sprite",
+      "size": [
+        96,
+        44
+      ],
+      "frames": 8,
+      "frame": [
+        24,
+        22
+      ],
+      "columns": 4,
+      "rows": [
+        "move",
+        "death"
+      ],
+      "anchor": "bottom_center",
+      "palette": "assets-src/sprites/enemies.palette.txt",
+      "source": "assets-src/sprites/swarm_sheet.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
