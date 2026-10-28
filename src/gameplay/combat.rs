@@ -65,6 +65,22 @@ pub struct Projectile {
     pub already_hit: Vec<Entity>,
 }
 
+/// Chi fa un colpo: indice del compagno in `companions.ron`. Sta sul compagno e su quello che
+/// lancia (proiettili, onde), così il riepilogo sa di chi sono danni, sconfitti e cure.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Source(pub usize);
+
+/// Il contributo di un compagno alla run.
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+pub struct Tally {
+    /// Danni andati a segno, senza l'eccesso oltre gli HP rimasti al nemico.
+    pub damage: f32,
+    /// Nemici finiti da un suo colpo.
+    pub kills: u32,
+    /// HP restituiti al player.
+    pub healing: f32,
+}
+
 /// Statistiche della run per HUD e schermata risultati.
 #[derive(Resource, Debug, Default, Clone, PartialEq)]
 pub struct RunStats {
@@ -77,6 +93,52 @@ pub struct RunStats {
     pub projectile_hits: u32,
     /// Danni subiti dal player.
     pub damage_taken: f32,
+    /// Contributo di ogni compagno, nell'ordine di `companions.ron` (si allunga al primo colpo).
+    pub by_companion: Vec<Tally>,
+    /// HP recuperati dal player con carte e rigenerazione (le cure dei compagni sono nel loro
+    /// `Tally`).
+    pub healing: f32,
+}
+
+impl RunStats {
+    pub fn tally(&self, source: Source) -> Tally {
+        self.by_companion.get(source.0).copied().unwrap_or_default()
+    }
+
+    pub fn tally_mut(&mut self, source: Source) -> &mut Tally {
+        if self.by_companion.len() <= source.0 {
+            self.by_companion.resize(source.0 + 1, Tally::default());
+        }
+        &mut self.by_companion[source.0]
+    }
+}
+
+/// Un colpo a un nemico vivo: toglie `damage` HP, conta il colpo e lo accredita a `source`
+/// (danno vero, e il nemico se è il colpo che lo finisce). Senza `source` (prove) conta solo.
+pub fn strike_enemy(
+    health: &mut Health,
+    damage: f32,
+    source: Option<Source>,
+    stats: &mut RunStats,
+) {
+    let dealt = damage.clamp(0.0, health.current.max(0.0));
+    health.current -= damage;
+    stats.hits += 1;
+    if let Some(source) = source {
+        let tally = stats.tally_mut(source);
+        tally.damage += dealt;
+        tally.kills += u32::from(health.is_dead() && dealt > 0.0);
+    }
+}
+
+/// Una cura al player: aggiunge fino agli HP massimi e restituisce quanto ha curato davvero.
+pub fn heal(health: &mut Health, amount: f32) -> f32 {
+    if health.is_dead() || amount <= 0.0 {
+        return 0.0;
+    }
+    let before = health.current;
+    health.current = (health.current + amount).min(health.max);
+    (health.current - before).max(0.0)
 }
 
 /// La catena del combattimento in `SimSet::Combat` (spari e onde → colpi di proiettili, onde
@@ -141,10 +203,10 @@ fn projectile_hits(
     mut commands: Commands,
     grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
-    mut projectiles: Query<(Entity, &Position, &mut Projectile)>,
+    mut projectiles: Query<(Entity, &Position, &mut Projectile, Option<&Source>)>,
     mut enemies: Query<(&Position, &Hurtbox, &mut Health), With<Enemy>>,
 ) {
-    for (projectile_entity, at, mut projectile) in &mut projectiles {
+    for (projectile_entity, at, mut projectile, source) in &mut projectiles {
         for entry in grid.candidates(at.0, projectile.radius) {
             if projectile.hits_left == 0 {
                 break;
@@ -162,11 +224,10 @@ fn projectile_hits(
                 hurtbox.center(feet.0),
                 hurtbox.radius,
             ) {
-                health.current -= projectile.damage;
+                strike_enemy(&mut health, projectile.damage, source.copied(), &mut stats);
                 commands.entity(enemy).try_insert(HitFlash(HIT_FLASH_SECS));
                 projectile.already_hit.push(enemy);
                 projectile.hits_left -= 1;
-                stats.hits += 1;
                 stats.projectile_hits += 1;
             }
         }
@@ -230,6 +291,43 @@ mod tests {
     fn overlap_includes_touching_circles() {
         assert!(circles_overlap(Vec2::ZERO, 3.0, Vec2::new(10.0, 0.0), 7.0));
         assert!(!circles_overlap(Vec2::ZERO, 3.0, Vec2::new(10.1, 0.0), 7.0));
+    }
+
+    #[test]
+    fn a_strike_credits_real_damage_and_the_final_blow() {
+        let mut stats = RunStats::default();
+        let mut health = Health::full(10.0);
+        strike_enemy(&mut health, 6.0, Some(Source(2)), &mut stats);
+        assert_eq!(stats.tally(Source(2)).damage, 6.0);
+        assert_eq!(stats.tally(Source(2)).kills, 0);
+        // il secondo colpo ne toglie 6 ma ne restavano 4: valgono 4, e finisce il nemico
+        strike_enemy(&mut health, 6.0, Some(Source(2)), &mut stats);
+        assert_eq!(
+            stats.tally(Source(2)),
+            Tally {
+                damage: 10.0,
+                kills: 1,
+                healing: 0.0
+            }
+        );
+        assert_eq!(stats.hits, 2);
+        // senza fonte conta il colpo e basta; altri compagni restano a zero
+        strike_enemy(&mut Health::full(5.0), 1.0, None, &mut stats);
+        assert_eq!(stats.hits, 3);
+        assert_eq!(stats.tally(Source(0)), Tally::default());
+    }
+
+    #[test]
+    fn healing_stops_at_max_hp() {
+        let mut health = Health {
+            current: 90.0,
+            max: 100.0,
+        };
+        assert_eq!(heal(&mut health, 30.0), 10.0);
+        assert_eq!(health.current, 100.0);
+        assert_eq!(heal(&mut health, 5.0), 0.0);
+        health.current = 0.0;
+        assert_eq!(heal(&mut health, 5.0), 0.0, "da morto niente cure");
     }
 
     #[test]

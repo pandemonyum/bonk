@@ -14,6 +14,7 @@ mod movement;
 mod party;
 mod patterns;
 mod progression;
+mod recap;
 mod run;
 mod spawning;
 mod threats;

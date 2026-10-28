@@ -5,7 +5,7 @@
 use bevy::prelude::*;
 
 use super::SIM_HZ;
-use super::combat::{Health, Hurtbox, Projectile, RunStats};
+use super::combat::{Health, Hurtbox, Projectile, RunStats, Source};
 use super::enemies::Enemy;
 use super::kinematics::{Position, body};
 use super::spatial::EnemyGrid;
@@ -113,11 +113,11 @@ pub(super) fn fire_auto_attacks(
     time: Res<Time>,
     grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
-    mut shooters: Query<(&Position, &mut AutoAttack)>,
+    mut shooters: Query<(&Position, &mut AutoAttack, Option<&Source>)>,
     enemies: Query<(&Position, &Hurtbox, &Health), With<Enemy>>,
 ) {
     let dt = time.delta_secs();
-    for (position, mut attack) in &mut shooters {
+    for (position, mut attack, source) in &mut shooters {
         if attack.charge + dt + CHARGE_EPSILON < attack.interval {
             attack.charge += dt; // in ricarica: niente ricerca del bersaglio
             continue;
@@ -135,7 +135,7 @@ pub(super) fn fire_auto_attacks(
         };
         let aim = (target - origin).normalize_or(Vec2::X);
         for direction in spread_directions(aim, attack.projectiles, attack.spread) {
-            commands.spawn((
+            let mut projectile = commands.spawn((
                 Name::new("Proiettile"),
                 DataId(attack.id.clone()),
                 Projectile {
@@ -150,6 +150,9 @@ pub(super) fn fire_auto_attacks(
                 body(origin),
                 DespawnOnExit(AppState::InRun),
             ));
+            if let Some(source) = source {
+                projectile.insert(*source);
+            }
             stats.projectiles_fired += 1;
         }
     }

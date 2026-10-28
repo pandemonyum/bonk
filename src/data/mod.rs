@@ -195,6 +195,11 @@ impl GameConfig {
         self.companions.iter().find(|c| c.id == id)
     }
 
+    /// Posizione del compagno `id` in `companions.ron`.
+    pub fn companion_index(&self, id: &str) -> Option<usize> {
+        self.companions.iter().position(|c| c.id == id)
+    }
+
     pub fn attack(&self, id: &str) -> Option<&AttackData> {
         self.attacks.iter().find(|a| a.id == id)
     }

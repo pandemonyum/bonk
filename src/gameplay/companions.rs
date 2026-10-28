@@ -6,6 +6,7 @@
 use bevy::prelude::*;
 
 use super::SimSet;
+use super::combat::Source;
 use super::kinematics::{Position, body};
 use super::player::{MoveIntent, PLAYER_SPAWN, Player};
 use super::upgrades::{Modifiers, UpgradeStacks};
@@ -80,6 +81,9 @@ pub fn spawn_companion(
         )),
         DespawnOnExit(AppState::InRun),
     ));
+    if let Some(index) = config.companion_index(&data.id) {
+        entity.insert(Source(index));
+    }
     match &attack.pattern {
         AttackPattern::Projectile(p) => entity.insert(modifiers.projectile(attack, p)),
         AttackPattern::Pulse(p) => entity.insert(modifiers.pulse(attack, p)),

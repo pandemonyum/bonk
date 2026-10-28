@@ -6,7 +6,7 @@
 use bevy::prelude::*;
 
 use super::attacks::{CHARGE_EPSILON, STEP, attack_tick};
-use super::combat::{HIT_FLASH_SECS, Health, HitFlash, Hurtbox, RunStats};
+use super::combat::{HIT_FLASH_SECS, Health, HitFlash, Hurtbox, RunStats, Source, strike_enemy};
 use super::enemies::Enemy;
 use super::kinematics::{Position, body};
 use super::player::Player;
@@ -97,11 +97,11 @@ pub(super) fn fire_pulses(
     time: Res<Time>,
     grid: Res<EnemyGrid>,
     player: Single<&Position, With<Player>>,
-    mut attacks: Query<&mut PulseAttack>,
+    mut attacks: Query<(&mut PulseAttack, Option<&Source>)>,
     enemies: Query<(&Position, &Hurtbox, &Health), (With<Enemy>, Without<Player>)>,
 ) {
     let dt = time.delta_secs();
-    for mut attack in &mut attacks {
+    for (mut attack, source) in &mut attacks {
         if attack.charge + dt + CHARGE_EPSILON < attack.interval {
             attack.charge += dt; // in ricarica: niente ricerca dei bersagli
             continue;
@@ -125,7 +125,7 @@ pub(super) fn fire_pulses(
         if !fire {
             continue;
         }
-        commands.spawn((
+        let mut pulse = commands.spawn((
             Name::new("Onda"),
             DataId(attack.id.clone()),
             Pulse {
@@ -141,6 +141,9 @@ pub(super) fn fire_pulses(
             body(center),
             DespawnOnExit(AppState::InRun),
         ));
+        if let Some(source) = source {
+            pulse.insert(*source);
+        }
     }
 }
 
@@ -162,11 +165,11 @@ pub(super) fn pulse_hits(
     mut commands: Commands,
     grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
-    mut pulses: Query<(Entity, &Position, &mut Pulse)>,
+    mut pulses: Query<(Entity, &Position, &mut Pulse, Option<&Source>)>,
     mut enemies: Query<(&Position, &Hurtbox, &mut Health, Option<&Slowed>), With<Enemy>>,
 ) {
     let mut slows: Vec<(Entity, Slowed)> = Vec::new();
-    for (entity, center, mut pulse) in &mut pulses {
+    for (entity, center, mut pulse, source) in &mut pulses {
         let front = pulse.radius;
         for entry in grid.candidates(center.0, front) {
             let enemy = entry.entity;
@@ -181,9 +184,8 @@ pub(super) fn pulse_hits(
             {
                 continue;
             }
-            health.current -= pulse.damage;
+            strike_enemy(&mut health, pulse.damage, source.copied(), &mut stats);
             pulse.already_hit.push(enemy);
-            stats.hits += 1;
             let slow = Slowed {
                 factor: pulse.slow,
                 remaining: pulse.slow_secs,

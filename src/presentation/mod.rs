@@ -15,6 +15,7 @@ pub mod hud;
 pub mod icons;
 pub mod menu;
 pub mod player_anim;
+pub mod recap;
 pub mod results;
 pub mod sprites;
 pub mod status;

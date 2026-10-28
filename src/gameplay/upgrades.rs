@@ -8,7 +8,7 @@ use bevy::prelude::*;
 use super::SimSet;
 use super::attacks::AutoAttack;
 use super::chain::ChainAttack;
-use super::combat::Health;
+use super::combat::{Health, RunStats, heal};
 use super::companions::join_companions;
 use super::orbit::OrbitAttack;
 use super::player::Player;
@@ -190,6 +190,7 @@ fn apply_choice(
     mut progression: ResMut<Progression>,
     mut rng: ResMut<DraftRng>,
     mut draft: ResMut<Draft>,
+    mut stats: ResMut<RunStats>,
     mut player: Query<&mut Health, With<Player>>,
     mut next: ResMut<NextState<RunPhase>>,
 ) {
@@ -212,7 +213,7 @@ fn apply_choice(
     );
     if let Effect::Heal(amount) = chosen.effect {
         for mut health in &mut player {
-            health.current = (health.current + amount).min(health.max);
+            stats.healing += heal(&mut health, amount);
         }
     }
     progression.pending_levels = progression.pending_levels.saturating_sub(1);
@@ -260,6 +261,7 @@ fn refresh_modifiers(
     mut pulses: Query<&mut PulseAttack>,
     mut orbits: Query<&mut OrbitAttack>,
     mut chains: Query<&mut ChainAttack>,
+    mut stats: ResMut<RunStats>,
     mut player: Query<(&mut Player, &mut Health, &mut PickupRadius)>,
 ) {
     let m = Modifiers::from_stacks(&config.upgrades, &stacks);
@@ -325,23 +327,21 @@ fn refresh_modifiers(
         let max = base.max_hp + m.max_hp_bonus;
         let gained = (max - health.max).max(0.0);
         health.max = max;
-        health.current = (health.current + gained).min(max);
+        stats.healing += heal(&mut health, gained);
     }
 }
 
 fn regenerate(
     time: Res<Time>,
     modifiers: Res<Modifiers>,
+    mut stats: ResMut<RunStats>,
     mut player: Query<&mut Health, With<Player>>,
 ) {
     if modifiers.regen_per_s <= 0.0 {
         return;
     }
     for mut health in &mut player {
-        if !health.is_dead() {
-            health.current =
-                (health.current + modifiers.regen_per_s * time.delta_secs()).min(health.max);
-        }
+        stats.healing += heal(&mut health, modifiers.regen_per_s * time.delta_secs());
     }
 }
 

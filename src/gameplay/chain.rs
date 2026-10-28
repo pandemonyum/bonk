@@ -9,7 +9,7 @@
 use bevy::prelude::*;
 
 use super::attacks::{CHARGE_EPSILON, STEP, attack_tick, nearest_target};
-use super::combat::{HIT_FLASH_SECS, Health, HitFlash, Hurtbox, RunStats};
+use super::combat::{HIT_FLASH_SECS, Health, HitFlash, Hurtbox, RunStats, Source, strike_enemy};
 use super::enemies::Enemy;
 use super::kinematics::Position;
 use super::pulse::{Slowed, combine_slow};
@@ -100,11 +100,11 @@ pub(super) fn fire_chains(
     time: Res<Time>,
     grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
-    mut casters: Query<(&Position, &mut ChainAttack)>,
+    mut casters: Query<(&Position, &mut ChainAttack, Option<&Source>)>,
     mut enemies: Query<(&Position, &Hurtbox, &mut Health, Option<&Slowed>), With<Enemy>>,
 ) {
     let dt = time.delta_secs();
-    for (position, mut attack) in &mut casters {
+    for (position, mut attack, source) in &mut casters {
         if attack.charge + dt + CHARGE_EPSILON < attack.interval {
             attack.charge += dt; // in ricarica: niente ricerca del bersaglio
             continue;
@@ -142,14 +142,13 @@ pub(super) fn fire_chains(
         let mut points = vec![origin];
         for (enemy, at, damage) in hits {
             if let Ok((_, _, mut health, slowed)) = enemies.get_mut(enemy) {
-                health.current -= damage;
+                strike_enemy(&mut health, damage, source.copied(), &mut stats);
                 if shock.remaining > 0.0 {
                     let slow = combine_slow(slowed.copied(), shock);
                     commands.entity(enemy).try_insert(slow);
                 }
             }
             commands.entity(enemy).try_insert(HitFlash(HIT_FLASH_SECS));
-            stats.hits += 1;
             points.push(at);
         }
         commands.spawn((

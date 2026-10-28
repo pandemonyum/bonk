@@ -1,5 +1,5 @@
 //! Schermata dei risultati a fine run, per la sconfitta e per la vittoria: durata, livello,
-//! nemici sconfitti, danni subiti, squadra e potenziamenti presi. Invio o F5 per una run nuova
+//! nemici sconfitti, danni subiti, riepilogo della squadra (`recap`) e potenziamenti presi. Invio o F5 per una run nuova
 //! con lo stesso compagno, M per il menu (`gameplay::input`). Titolo e frasi in Pixelify Sans,
 //! numeri e tasti in Tiny5.
 
@@ -7,10 +7,11 @@ use bevy::prelude::*;
 
 use super::fonts;
 use super::player_anim::DEFEAT_HOLD_S;
+use super::recap::{PartyLine, party_lines, spawn_recap};
 use crate::app::RunPhase;
+use crate::data::GameConfig;
 use crate::data::schema::Effect;
-use crate::data::{DataId, GameConfig};
-use crate::gameplay::combat::RunStats;
+use crate::gameplay::combat::{RunStats, Source};
 use crate::gameplay::companions::Companion;
 use crate::gameplay::progression::Progression;
 use crate::gameplay::run::RunClock;
@@ -65,7 +66,8 @@ fn spawn_defeat(
     clock: Res<RunClock>,
     progression: Res<Progression>,
     stacks: Res<UpgradeStacks>,
-    party: Query<(&DataId, &Companion)>,
+    assets: Res<AssetServer>,
+    party: Query<(&Source, &Companion)>,
 ) {
     if wait.0 <= 0.0 {
         return;
@@ -74,7 +76,7 @@ fn spawn_defeat(
     if wait.0 > 0.0 {
         return;
     }
-    let party = party_names(&config, party.iter().map(|(id, c)| (c.slot, id)));
+    let party = party_lines(&config, &stats, party.iter().map(|(s, c)| (c.slot, *s)));
     let summary = Summary {
         victory: false,
         config: &config,
@@ -84,7 +86,7 @@ fn spawn_defeat(
         stacks: &stacks,
         party,
     };
-    spawn_results(commands, summary);
+    spawn_results(commands, &assets, summary);
 }
 
 fn spawn_victory(
@@ -94,9 +96,10 @@ fn spawn_victory(
     clock: Res<RunClock>,
     progression: Res<Progression>,
     stacks: Res<UpgradeStacks>,
-    party: Query<(&DataId, &Companion)>,
+    assets: Res<AssetServer>,
+    party: Query<(&Source, &Companion)>,
 ) {
-    let party = party_names(&config, party.iter().map(|(id, c)| (c.slot, id)));
+    let party = party_lines(&config, &stats, party.iter().map(|(s, c)| (c.slot, *s)));
     let summary = Summary {
         victory: true,
         config: &config,
@@ -106,24 +109,7 @@ fn spawn_victory(
         stacks: &stacks,
         party,
     };
-    spawn_results(commands, summary);
-}
-
-/// Nomi dei compagni in ordine di posto.
-fn party_names<'a>(
-    config: &GameConfig,
-    members: impl Iterator<Item = (usize, &'a DataId)>,
-) -> Vec<String> {
-    let mut members: Vec<(usize, String)> = members
-        .map(|(slot, id)| {
-            let name = config
-                .companion(&id.0)
-                .map_or(id.0.clone(), |c| c.display_name.clone());
-            (slot, name)
-        })
-        .collect();
-    members.sort();
-    members.into_iter().map(|(_, name)| name).collect()
+    spawn_results(commands, &assets, summary);
 }
 
 struct Summary<'a> {
@@ -133,10 +119,10 @@ struct Summary<'a> {
     clock: &'a RunClock,
     progression: &'a Progression,
     stacks: &'a UpgradeStacks,
-    party: Vec<String>,
+    party: Vec<PartyLine>,
 }
 
-fn spawn_results(mut commands: Commands, s: Summary) {
+fn spawn_results(mut commands: Commands, assets: &AssetServer, s: Summary) {
     info!(
         "run finita: {} a {}, livello {}, sconfitti {}",
         if s.victory { "vittoria" } else { "sconfitta" },
@@ -168,25 +154,14 @@ fn spawn_results(mut commands: Commands, s: Summary) {
         s.stats.defeated
     );
     let damage = format!("Danni subiti {:.0}", s.stats.damage_taken);
-    let party = format!("Squadra: {}", s.party.join(", "));
     let build = build_summary(s.config, s.stacks);
     let build = if build.is_empty() {
         "Potenziamenti: nessuno".to_string()
     } else {
         format!("Potenziamenti: {}", build.join(", "))
     };
-    commands.spawn((
-        Name::new("Results"),
-        Node {
-            width: percent(100),
-            height: percent(100),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..default()
-        },
-        BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.55)),
-        DespawnOnExit(phase),
-        children![(
+    let panel = commands
+        .spawn((
             Node {
                 width: px(620),
                 flex_direction: FlexDirection::Column,
@@ -215,7 +190,19 @@ fn spawn_results(mut commands: Commands, s: Summary) {
                     fonts::hud(16.0),
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.75)),
                 ),
-                (Text::new(party), fonts::ui(16.0), TextColor(Color::WHITE),),
+            ],
+        ))
+        .id();
+    let recap = spawn_recap(&mut commands, assets, &s.party, s.stats.healing);
+    let footer = commands
+        .spawn((
+            Node {
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                row_gap: px(10),
+                ..default()
+            },
+            children![
                 (
                     Text::new(build),
                     fonts::ui(16.0),
@@ -228,8 +215,23 @@ fn spawn_results(mut commands: Commands, s: Summary) {
                     TextColor(GOLD),
                 ),
             ],
-        )],
-    ));
+        ))
+        .id();
+    commands.entity(panel).add_children(&[recap, footer]);
+    commands
+        .spawn((
+            Name::new("Results"),
+            Node {
+                width: percent(100),
+                height: percent(100),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.55)),
+            DespawnOnExit(phase),
+        ))
+        .add_child(panel);
 }
 
 #[cfg(test)]

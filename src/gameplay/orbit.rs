@@ -6,7 +6,9 @@ use std::f32::consts::TAU;
 
 use bevy::prelude::*;
 
-use super::combat::{HIT_FLASH_SECS, Health, HitFlash, Hurtbox, RunStats, circles_overlap};
+use super::combat::{
+    HIT_FLASH_SECS, Health, HitFlash, Hurtbox, RunStats, Source, circles_overlap, strike_enemy,
+};
 use super::enemies::Enemy;
 use super::kinematics::{Position, body};
 use super::player::Player;
@@ -140,23 +142,24 @@ pub(super) fn leaf_hits(
     time: Res<Time>,
     grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
-    mut owners: Query<&mut OrbitAttack>,
+    mut owners: Query<(&mut OrbitAttack, Option<&Source>)>,
     leaves: Query<(&Leaf, &Position)>,
     mut enemies: Query<(&Position, &Hurtbox, &mut Health), (With<Enemy>, Without<Leaf>)>,
 ) {
     let dt = time.delta_secs();
     // l'attesa si arrotonda al passo più vicino (0,54 s = 32 passi, non 33): nessuno sbilancio
     // sistematico per eccesso con gli upgrade di cadenza
-    for mut attack in &mut owners {
+    for (mut attack, _) in &mut owners {
         attack.recent.retain_mut(|(_, wait)| {
             *wait -= dt;
             *wait > 0.5 * dt
         });
     }
     for (leaf, at) in &leaves {
-        let Ok(mut attack) = owners.get_mut(leaf.owner) else {
+        let Ok((mut attack, source)) = owners.get_mut(leaf.owner) else {
             continue;
         };
+        let source = source.copied();
         for entry in grid.candidates(at.0, attack.leaf_radius) {
             let enemy = entry.entity;
             if attack.recent.iter().any(|(e, _)| *e == enemy) {
@@ -175,10 +178,9 @@ pub(super) fn leaf_hits(
             {
                 continue;
             }
-            health.current -= attack.damage;
+            strike_enemy(&mut health, attack.damage, source, &mut stats);
             let wait = attack.rehit_interval;
             attack.recent.push((enemy, wait));
-            stats.hits += 1;
             commands.entity(enemy).try_insert(HitFlash(HIT_FLASH_SECS));
         }
     }
