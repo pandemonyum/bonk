@@ -81,7 +81,7 @@ impl Plugin for SimulationPlugin {
             .init_resource::<RunSetup>()
             .init_resource::<AfterLoading>()
             .insert_resource(RunSeed(self.seed))
-            .add_plugins((GameplayPlugin, WorldPlugin))
+            .add_plugins((GameplayPlugin, WorldPlugin, crate::profile::ProfilePlugin))
             .add_systems(
                 Update,
                 start_run_when_ready.run_if(in_state(AppState::Loading)),

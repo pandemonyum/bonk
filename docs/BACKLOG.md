@@ -56,6 +56,19 @@ opzioni, browser, release candidate).
 | ART-P5 | Tartaruga di muschio e fuoco fatuo del foglio dell'utente come compagni futuri (servono attacchi propri) | game-designer + gameplay-engineer | da proporre all'utente |
 | ~~ART-P1~~ **DONE** | Player animato: fermo e cammino in 4 direzioni, colpito, caduta; sprite identico a quello fornito dall'utente (D-050) | pixel-art-director (foglio, pipeline) + gameplay-engineer (`player_anim`, risultati dopo la caduta) | foglio 4×8 validato; test del contratto sul PNG; anteprime approvate dall'utente prima dell'integrazione; cammino nelle 4 direzioni e caduta nel gioco vero; gate verde |
 
+## Richieste dell'utente (2026-10-28, sera)
+
+| ID | Task | Owner | Stato |
+|---|---|---|---|
+| ~~U-RECAP~~ **DONE** | Riepilogo di fine run: danni, quota, sconfitti, cure, esperienza per compagno (D-054) | orchestrator + gameplay-engineer | test dei crediti con i quattro pattern; gioco vero |
+| ~~U-SQUAD~~ **DONE** | Un compagno all'inizio, gli altri ai livelli 3 e 9, tre posti (D-055) | orchestrator + game-designer | test del draft e della run fino alla squadra piena |
+| ~~U-HORDE~~ **DONE** | Run da 15 minuti, orde a 5:00 e 10:00 con annuncio (D-056) | orchestrator + game-designer | test dell'orda; sonda 84% |
+| ~~U-CHEST~~ **DONE** | Monete, forzieri lontani con freccia, reliquie (D-057) | orchestrator + game-designer + pixel-art-director | test di monete, forzieri e reliquie; gioco vero |
+| ~~U-TALENT~~ **DONE** | Talenti persistenti: profilo, esperienza, alberi, sei meccaniche, schermata nel menu (D-058) | orchestrator + game-designer + pixel-art-director | test di profilo, punti e meccaniche; sonda al massimo |
+| U-SMALL | Compagni più piccoli (28×24, ~2/3 del player): ridisegnati in `assets-src/preview/`, **in attesa del via dell'utente** | pixel-art-director + orchestrator | anteprima inviata |
+| P1-SAVE | Profilo nel `localStorage` sul web (oggi solo in memoria) | web-release | con la P1 |
+| U-PLAY | Prova umana: forzieri e orde si sentono? Squadra senza Ondino, talenti al massimo | utente | — |
+
 ## Debito tecnico e idee registrate
 
 - Player (D-050): somiglianza con personaggi Nintendo accettata dall'utente, **da rivalutare

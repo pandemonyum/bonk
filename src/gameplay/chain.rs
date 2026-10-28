@@ -14,6 +14,7 @@ use super::enemies::Enemy;
 use super::kinematics::Position;
 use super::pulse::{Slowed, combine_slow};
 use super::spatial::EnemyGrid;
+use super::talents::{TalentKit, TalentState};
 use crate::app::AppState;
 use crate::data::schema::{AttackData, ChainData};
 
@@ -94,72 +95,156 @@ pub fn chain_targets(
     hits
 }
 
-/// Nella catena del combattimento, dopo proiettili e onde: i fulmini pronti scoccano.
+type ChainEnemies<'w, 's> = Query<
+    'w,
+    's,
+    (
+        &'static Position,
+        &'static Hurtbox,
+        &'static mut Health,
+        Option<&'static Slowed>,
+    ),
+    With<Enemy>,
+>;
+
+/// Nemici vivi entro `radius` da `center` (entità e centro della hurtbox).
+fn alive(
+    grid: &EnemyGrid,
+    enemies: &ChainEnemies,
+    center: Vec2,
+    radius: f32,
+) -> Vec<(Entity, Vec2)> {
+    grid.candidates(center, radius)
+        .filter_map(|entry| {
+            let (feet, hurtbox, health, _) = enemies.get(entry.entity).ok()?;
+            (!health.is_dead()).then(|| (entry.entity, hurtbox.center(feet.0)))
+        })
+        .collect()
+}
+
+/// Un fulmine da `origin` con il primo colpo da `damage`: salti, scossa, segno a schermo.
+#[allow(clippy::too_many_arguments)]
+fn cast(
+    commands: &mut Commands,
+    grid: &EnemyGrid,
+    stats: &mut RunStats,
+    enemies: &mut ChainEnemies,
+    attack: &ChainAttack,
+    origin: Vec2,
+    first: (Entity, Vec2),
+    damage: f32,
+    source: Option<Source>,
+) {
+    // candidati ai salti: tutti i vivi a portata della catena intera dal primo bersaglio
+    let reach = attack.jump_range * attack.jumps as f32;
+    let nearby = alive(grid, enemies, first.1, reach);
+    let hits = chain_targets(
+        first,
+        &nearby,
+        attack.jumps,
+        attack.jump_range,
+        damage,
+        attack.falloff,
+    );
+    let shock = Slowed {
+        factor: attack.slow,
+        remaining: attack.slow_s,
+    };
+    let mut points = vec![origin];
+    for (enemy, at, damage) in hits {
+        if let Ok((_, _, mut health, slowed)) = enemies.get_mut(enemy) {
+            strike_enemy(&mut health, damage, source, stats);
+            if shock.remaining > 0.0 {
+                let slow = combine_slow(slowed.copied(), shock);
+                commands.entity(enemy).try_insert(slow);
+            }
+        }
+        commands.entity(enemy).try_insert(HitFlash(HIT_FLASH_SECS));
+        points.push(at);
+    }
+    commands.spawn((
+        Name::new("Fulmine"),
+        ChainBolt {
+            id: attack.id.clone(),
+            points,
+            remaining: BOLT_S,
+        },
+        DespawnOnExit(AppState::InRun),
+    ));
+}
+
+/// Nella catena del combattimento, dopo proiettili e onde: i fulmini pronti scoccano. Con il
+/// talento dell'eco il fulmine riparte poco dopo, più debole (scossa compresa).
+#[allow(clippy::type_complexity)]
 pub(super) fn fire_chains(
     mut commands: Commands,
     time: Res<Time>,
     grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
-    mut casters: Query<(&Position, &mut ChainAttack, Option<&Source>)>,
-    mut enemies: Query<(&Position, &Hurtbox, &mut Health, Option<&Slowed>), With<Enemy>>,
+    mut casters: Query<(
+        &Position,
+        &mut ChainAttack,
+        Option<&Source>,
+        Option<&TalentKit>,
+        Option<&mut TalentState>,
+    )>,
+    mut enemies: ChainEnemies,
 ) {
     let dt = time.delta_secs();
-    for (position, mut attack, source) in &mut casters {
+    for (position, mut attack, source, kit, mut state) in &mut casters {
+        let origin = position.0 + Vec2::Y * attack.muzzle_height;
+        let source = source.copied();
+        let echo = kit.and_then(|k| k.echo);
+        if let (Some(echo), Some(state)) = (echo, state.as_deref_mut())
+            && let Some(wait) = state.echo_in.as_mut()
+        {
+            *wait -= dt;
+            if *wait <= 0.0 {
+                state.echo_in = None;
+                let near = alive(&grid, &enemies, origin, attack.range);
+                if let Some(first) = nearest_target(origin, near, attack.range) {
+                    let damage = attack.damage * echo.damage_pct / 100.0;
+                    let (grid, stats) = (&grid, &mut stats);
+                    cast(
+                        &mut commands,
+                        grid,
+                        stats,
+                        &mut enemies,
+                        &attack,
+                        origin,
+                        first,
+                        damage,
+                        source,
+                    );
+                }
+            }
+        }
         if attack.charge + dt + CHARGE_EPSILON < attack.interval {
             attack.charge += dt; // in ricarica: niente ricerca del bersaglio
             continue;
         }
-        let origin = position.0 + Vec2::Y * attack.muzzle_height;
-        let alive = |center: Vec2, radius: f32| -> Vec<(Entity, Vec2)> {
-            grid.candidates(center, radius)
-                .filter_map(|entry| {
-                    let (feet, hurtbox, health, _) = enemies.get(entry.entity).ok()?;
-                    (!health.is_dead()).then(|| (entry.entity, hurtbox.center(feet.0)))
-                })
-                .collect()
-        };
-        let first = nearest_target(origin, alive(origin, attack.range), attack.range);
+        let near = alive(&grid, &enemies, origin, attack.range);
+        let first = nearest_target(origin, near, attack.range);
         let (charge, fire) = attack_tick(attack.charge, attack.interval, dt, first.is_some());
         attack.charge = charge;
         let (true, Some(first)) = (fire, first) else {
             continue; // armato: scocca appena un nemico entra nel raggio
         };
-        // candidati ai salti: tutti i vivi a portata della catena intera dal primo bersaglio
-        let reach = attack.jump_range * attack.jumps as f32;
-        let nearby = alive(first.1, reach);
-        let hits = chain_targets(
+        let damage = attack.damage;
+        cast(
+            &mut commands,
+            &grid,
+            &mut stats,
+            &mut enemies,
+            &attack,
+            origin,
             first,
-            &nearby,
-            attack.jumps,
-            attack.jump_range,
-            attack.damage,
-            attack.falloff,
+            damage,
+            source,
         );
-        let shock = Slowed {
-            factor: attack.slow,
-            remaining: attack.slow_s,
-        };
-        let mut points = vec![origin];
-        for (enemy, at, damage) in hits {
-            if let Ok((_, _, mut health, slowed)) = enemies.get_mut(enemy) {
-                strike_enemy(&mut health, damage, source.copied(), &mut stats);
-                if shock.remaining > 0.0 {
-                    let slow = combine_slow(slowed.copied(), shock);
-                    commands.entity(enemy).try_insert(slow);
-                }
-            }
-            commands.entity(enemy).try_insert(HitFlash(HIT_FLASH_SECS));
-            points.push(at);
+        if let (Some(echo), Some(state)) = (echo, state.as_deref_mut()) {
+            state.echo_in = Some(echo.delay);
         }
-        commands.spawn((
-            Name::new("Fulmine"),
-            ChainBolt {
-                id: attack.id.clone(),
-                points,
-                remaining: BOLT_S,
-            },
-            DespawnOnExit(AppState::InRun),
-        ));
     }
 }
 

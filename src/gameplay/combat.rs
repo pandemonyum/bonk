@@ -15,6 +15,10 @@ use super::orbit::{leaf_hits, move_leaves, sync_leaves};
 use super::progression::drop_xp_gems;
 use super::pulse::{expand_pulses, fire_pulses, pulse_hits, wear_off_slow};
 use super::spatial::EnemyGrid;
+use super::talent_effects::{
+    AreaHit, Burning, Burns, Explosive, Shape, fade_blasts, fire_strikes, resolve_area_hits,
+    tick_burns,
+};
 use super::treasure::drop_coins;
 use crate::app::AppState;
 use crate::world::inside_arena;
@@ -122,9 +126,20 @@ pub fn strike_enemy(
     source: Option<Source>,
     stats: &mut RunStats,
 ) {
+    stats.hits += 1;
+    credit_damage(health, damage, source, stats);
+}
+
+/// Danno senza un colpo (la bruciatura): toglie HP e lo accredita a `source` come
+/// [`strike_enemy`], ma non conta come colpo andato a segno.
+pub fn credit_damage(
+    health: &mut Health,
+    damage: f32,
+    source: Option<Source>,
+    stats: &mut RunStats,
+) {
     let dealt = damage.clamp(0.0, health.current.max(0.0));
     health.current -= damage;
-    stats.hits += 1;
     if let Some(source) = source {
         let tally = stats.tally_mut(source);
         tally.damage += dealt;
@@ -172,9 +187,12 @@ impl Plugin for CombatPlugin {
                     fire_auto_attacks,
                     fire_pulses,
                     fire_chains,
+                    fire_strikes,
                     projectile_hits,
                     pulse_hits,
                     leaf_hits,
+                    resolve_area_hits,
+                    tick_burns,
                     drop_xp_gems,
                     drop_coins,
                     resolve_deaths,
@@ -182,6 +200,7 @@ impl Plugin for CombatPlugin {
                     fade_hit_flash,
                     wear_off_slow,
                     fade_bolts,
+                    fade_blasts,
                 )
                     .chain()
                     .in_set(CombatSteps)
@@ -201,20 +220,31 @@ fn move_projectiles(time: Res<Time>, mut projectiles: Query<(&Projectile, &mut P
     }
 }
 
+/// Un proiettile colpisce chi tocca (una volta per nemico, fino alla perforazione); con i
+/// talenti esplode sul colpito (`AreaHit` sugli altri) e lo fa bruciare.
+#[allow(clippy::type_complexity)]
 fn projectile_hits(
     mut commands: Commands,
     grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
-    mut projectiles: Query<(Entity, &Position, &mut Projectile, Option<&Source>)>,
-    mut enemies: Query<(&Position, &Hurtbox, &mut Health), With<Enemy>>,
+    mut projectiles: Query<(
+        Entity,
+        &Position,
+        &mut Projectile,
+        Option<&Source>,
+        Option<&Explosive>,
+        Option<&Burns>,
+    )>,
+    mut enemies: Query<(&Position, &Hurtbox, &mut Health, Option<&Burning>), With<Enemy>>,
+    mut area_hits: MessageWriter<AreaHit>,
 ) {
-    for (projectile_entity, at, mut projectile, source) in &mut projectiles {
+    for (projectile_entity, at, mut projectile, source, explosive, burns) in &mut projectiles {
         for entry in grid.candidates(at.0, projectile.radius) {
             if projectile.hits_left == 0 {
                 break;
             }
             let enemy = entry.entity;
-            let Ok((feet, hurtbox, mut health)) = enemies.get_mut(enemy) else {
+            let Ok((feet, hurtbox, mut health, burning)) = enemies.get_mut(enemy) else {
                 continue;
             };
             if health.is_dead() || projectile.already_hit.contains(&enemy) {
@@ -228,6 +258,22 @@ fn projectile_hits(
             ) {
                 strike_enemy(&mut health, projectile.damage, source.copied(), &mut stats);
                 commands.entity(enemy).try_insert(HitFlash(HIT_FLASH_SECS));
+                if let Some(Burns(burn)) = burns.copied() {
+                    let next = Burning::from_hit(burn, projectile.damage, source.copied(), burning);
+                    commands.entity(enemy).try_insert(next);
+                }
+                if let Some(Explosive(blast)) = explosive.copied() {
+                    area_hits.write(AreaHit {
+                        shape: Shape::Circle {
+                            center: hurtbox.center(feet.0),
+                            radius: blast.radius,
+                        },
+                        damage: projectile.damage * blast.damage_pct / 100.0,
+                        source: source.copied(),
+                        exclude: Some(enemy),
+                        burn: None,
+                    });
+                }
                 projectile.already_hit.push(enemy);
                 projectile.hits_left -= 1;
                 stats.projectile_hits += 1;

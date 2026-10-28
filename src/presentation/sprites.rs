@@ -12,6 +12,7 @@ use crate::gameplay::enemies::Enemy;
 use crate::gameplay::kinematics::{Position, PreviousPosition};
 use crate::gameplay::progression::XpGem;
 use crate::gameplay::pulse::Slowed;
+use crate::gameplay::talent_effects::Burning;
 use crate::world::obstacles::{Obstacle, ObstacleKind};
 
 /// Profondità per pixel di y: chi sta più in basso è disegnato davanti.
@@ -20,6 +21,8 @@ const Y_SORT: f32 = 1.0e-4;
 pub(super) const HIT_TINT: Color = Color::srgb(1.0, 0.45, 0.45);
 /// Tinta di un nemico rallentato dall'onda: azzurrata, il colpo ha la precedenza.
 const SLOW_TINT: Color = Color::srgb(0.6, 0.85, 1.0);
+/// Tinta di un nemico che brucia (talenti): arancio, dopo il colpo e prima del rallentamento.
+const BURN_TINT: Color = Color::srgb(1.0, 0.7, 0.4);
 
 #[derive(Resource)]
 pub struct SpriteAssets {
@@ -138,11 +141,16 @@ fn attach_obstacle_sprite(
 }
 
 /// Tinta di colpo sui nemici (stesso segnale del player, che la riceve in `player_anim`),
-/// tinta fredda sui nemici rallentati.
-fn tint_hit_enemies(mut enemies: Query<(&mut Sprite, Has<HitFlash>, Has<Slowed>), With<Enemy>>) {
-    for (mut sprite, flashing, slowed) in &mut enemies {
+/// arancio su chi brucia, tinta fredda sui nemici rallentati.
+#[allow(clippy::type_complexity)]
+fn tint_hit_enemies(
+    mut enemies: Query<(&mut Sprite, Has<HitFlash>, Has<Burning>, Has<Slowed>), With<Enemy>>,
+) {
+    for (mut sprite, flashing, burning, slowed) in &mut enemies {
         let wanted = if flashing {
             HIT_TINT
+        } else if burning {
+            BURN_TINT
         } else if slowed {
             SLOW_TINT
         } else {

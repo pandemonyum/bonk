@@ -10,6 +10,7 @@ pub mod diagnostics;
 pub mod gameplay;
 pub mod options;
 pub mod presentation;
+pub mod profile;
 pub mod rng;
 pub mod world;
 
@@ -58,6 +59,15 @@ pub fn client_app(options: LaunchOptions) -> App {
         diagnostics::DiagnosticsPlugin,
     ))
     .insert_resource(GodMode(options.god));
+    // il profilo del dispositivo; le run automatiche, invulnerabili o accelerate non lo salvano
+    if let Some(path) = profile::default_path() {
+        let saves = !options.autoplay && !options.god && options.time_scale == 1.0;
+        let mut profile = profile::Profile::open(path);
+        if !saves {
+            profile.path = None;
+        }
+        app.insert_resource(profile);
+    }
     // il menu all'avvio; con l'autoplay si parte subito con il compagno dello stage
     let first = if options.autoplay {
         AppState::InRun

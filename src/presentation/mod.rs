@@ -21,6 +21,8 @@ pub mod recap;
 pub mod results;
 pub mod sprites;
 pub mod status;
+pub mod talent_art;
+pub mod talents_menu;
 pub mod telegraphs;
 pub mod treasure_art;
 
@@ -61,6 +63,8 @@ impl Plugin for PresentationPlugin {
             horde_banner::HordeBannerPlugin,
             treasure_art::TreasureArtPlugin,
             chest_ui::ChestUiPlugin,
+            talent_art::TalentArtPlugin,
+            talents_menu::TalentsMenuPlugin,
         ));
     }
 }

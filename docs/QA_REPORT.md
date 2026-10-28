@@ -1,5 +1,17 @@
 # QA REPORT
 
+## 2026-10-28 — Riepilogo, squadra per livelli, orde, forzieri, talenti
+
+| Controllo | Esito | Prova |
+|---|---|---|
+| Riepilogo | ogni sconfitto e ogni punto di danno al compagno giusto con i quattro pattern; cure delle carte senza eccesso | `tests/sim/recap.rs`; `docs/evidence/riepilogo-squadra.png`, `riepilogo-esperienza.png` |
+| Squadra per livelli | ai livelli 3 e 9 solo compagni, altrove nessuno, squadra piena alla fine | `tests/sim/party.rs`, test di `upgrades` |
+| Orde | nascono tutte, attorno al player e fuori vista, nella loro durata; stessa seed, stessa orda | `tests/sim/hordes.rs`; `docs/evidence/orda-annuncio.png`, `orda-in-corso.png` |
+| Monete e forzieri | l'élite paga, la calamita le porta; forziere solo con le monete, reliquie, prezzo che sale, forziere nuovo, rinascita vicina; reliquie mai nel draft | `tests/sim/treasure.rs`; `docs/evidence/forziere-reliquie.png`, `monete-freccia-forziere.png` |
+| Talenti | esplosione, soffio e bruciatura, cura con tetto ed eco, radici a tempo, statistiche dei rami; profilo su file (anche rovinato) | `tests/sim/talents.rs`, test di `profile`; `docs/evidence/talenti-effetti.png`, `talenti-menu.png` |
+| Bilanciamento | 27/32 senza talenti; con tutti i talenti 32/32 anche dopo il taglio dei nodi 3, danni subiti 23–127 (~37% di quelli senza talenti): la guardia del 97%/50% resta superata, da rivedere con la prova umana o con l'albero nuovo | GDD, Misure |
+| Avvio del gioco | si apriva e si chiudeva subito (risorsa mancante nell'HUD): corretto, menu e run controllati | screenshot del menu e delle run |
+
 ## 2026-10-28 — Compagni dell'utente e Tuonny
 
 | Controllo | Esito | Prova |

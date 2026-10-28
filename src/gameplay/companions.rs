@@ -14,6 +14,7 @@ use super::upgrades::{Modifiers, UpgradeStacks};
 use crate::app::{AppState, RunSetup};
 use crate::data::schema::{AttackPattern, CompanionData, Effect, FollowData};
 use crate::data::{DataId, GameConfig};
+use crate::profile::Profile;
 use crate::world::ArenaBounds;
 
 /// Posti al massimo nella squadra (validato nei dati): oltre, la formazione si affolla.
@@ -111,13 +112,19 @@ pub fn spawn_companion(
     entity.insert((kit, TalentState::default()));
 }
 
+/// I talenti imparati nel profilo (nessuno senza profilo).
+fn talents_of(profile: Option<&Profile>) -> LearnedTalents {
+    profile.map(Profile::learned).unwrap_or_default()
+}
+
 fn spawn_starting_companion(
     mut commands: Commands,
     config: Res<GameConfig>,
     setup: Res<RunSetup>,
-    learned: Res<LearnedTalents>,
+    profile: Option<Res<Profile>>,
 ) {
     let data = setup.starter(&config);
+    let learned = talents_of(profile.as_deref());
     // a inizio run nessun upgrade: valori base
     spawn_companion(
         &mut commands,
@@ -139,10 +146,11 @@ pub(super) fn join_companions(
     config: Res<GameConfig>,
     stacks: Res<UpgradeStacks>,
     modifiers: Res<Modifiers>,
-    learned: Res<LearnedTalents>,
+    profile: Option<Res<Profile>>,
     player: Single<&Position, With<Player>>,
     present: Query<(&DataId, &Companion)>,
 ) {
+    let learned = talents_of(profile.as_deref());
     let mut party: Vec<&str> = present.iter().map(|(id, _)| id.0.as_str()).collect();
     // tutti i compagni seguono la stessa direzione di marcia
     let trail = present.iter().next().map_or(Vec2::X, |(_, c)| c.trail);

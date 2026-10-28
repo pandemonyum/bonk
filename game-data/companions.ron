@@ -14,7 +14,9 @@
             sprite: "sprites/ember_sheet.png",
             frame: Some((w: 40, h: 36)),
             // due rami: ogni nodo richiede il precedente del suo ramo; un punto per livello
-            // del compagno (dal 2 al 7); per una meccanica vale l'ultimo nodo preso del ramo
+            // del compagno (dal 2 al 7); per una meccanica vale l'ultimo nodo preso del ramo.
+            // I nodi 3 sono un terzo sotto la proposta: con tutti i talenti la sonda vinceva
+            // 32/32 con il 40% dei danni (guardia del GDD: 97% e 50%)
             talents: [
                 (name: "Scoppio", nodes: [
                     (id: "ember_a1", name: "Brace che scoppia",
@@ -25,7 +27,7 @@
                      effects: [Explode(radius: 30.0, damage_pct: 30.0)]),
                     (id: "ember_a3", name: "Brace che cova",
                      description: "Chi è colpito brucia per 3 s",
-                     effects: [Burn(dps_pct: 30.0, duration_s: 3.0)]),
+                     effects: [Burn(dps_pct: 20.0, duration_s: 3.0)]),
                 ]),
                 (name: "Soffio", nodes: [
                     (id: "ember_b1", name: "Soffio rovente",
@@ -35,8 +37,8 @@
                      description: "Soffio ogni 5 attacchi e più lungo",
                      effects: [Cone(every: 5, half_angle_deg: 25.0, range: 88.0, damage_pct: 80.0)]),
                     (id: "ember_b3", name: "Soffio ardente",
-                     description: "Il soffio fa tutto il danno del colpo",
-                     effects: [Cone(every: 5, half_angle_deg: 25.0, range: 88.0, damage_pct: 100.0)]),
+                     description: "Il soffio fa quasi tutto il danno del colpo",
+                     effects: [Cone(every: 5, half_angle_deg: 25.0, range: 88.0, damage_pct: 87.0)]),
                 ]),
             ],
             attack: "ember_bolt",
@@ -67,7 +69,7 @@
                      effects: [SlowFactor(0.45), SlowSecs(2.0)]),
                     (id: "tide_a3", name: "Marea alta",
                      description: "Onda più ampia",
-                     effects: [RangePct(15.0)]),
+                     effects: [RangePct(10.0)]),
                 ]),
                 (name: "Sorgente", nodes: [
                     (id: "tide_b1", name: "Acqua che ristora",
@@ -78,7 +80,7 @@
                      effects: [Strike(every_s: 6.0, range: 120.0, radius: 24.0, damage_pct: 150.0)]),
                     (id: "tide_b3", name: "Sorgente viva",
                      description: "L'onda cura di più",
-                     effects: [HealPerHit(hp: 0.25, cap: 1.0)]),
+                     effects: [HealPerHit(hp: 0.23, cap: 0.85)]),
                 ]),
             ],
             attack: "tide_pulse",
@@ -102,7 +104,7 @@
                      effects: [ExtraCount(1)]),
                     (id: "sprout_a3", name: "Rovo largo",
                      description: "Orbita più ampia e più veloce",
-                     effects: [RangePct(15.0), AngularSpeedPct(15.0)]),
+                     effects: [RangePct(10.0), AngularSpeedPct(10.0)]),
                 ]),
                 (name: "Radici", nodes: [
                     (id: "sprout_b1", name: "Radici che afferrano",
@@ -113,7 +115,7 @@
                      effects: [Strike(every_s: 5.0, range: 130.0, radius: 24.0, damage_pct: 150.0)]),
                     (id: "sprout_b3", name: "Radici spinose",
                      description: "Radici più larghe e più forti",
-                     effects: [Strike(every_s: 5.0, range: 130.0, radius: 30.0, damage_pct: 200.0)]),
+                     effects: [Strike(every_s: 5.0, range: 130.0, radius: 28.0, damage_pct: 167.0)]),
                 ]),
             ],
             attack: "leaf_orbit",
@@ -148,7 +150,7 @@
                      effects: [Strike(every_s: 5.0, range: 160.0, radius: 24.0, damage_pct: 100.0)]),
                     (id: "spark_b3", name: "Lampo grande",
                      description: "Lampo più largo e più forte",
-                     effects: [Strike(every_s: 5.0, range: 160.0, radius: 28.0, damage_pct: 150.0)]),
+                     effects: [Strike(every_s: 5.0, range: 160.0, radius: 27.0, damage_pct: 133.0)]),
                 ]),
             ],
             attack: "spark_chain",

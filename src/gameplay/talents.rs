@@ -11,9 +11,9 @@ use super::pulse::PulseAttack;
 use super::upgrades::Modifiers;
 use crate::data::schema::{TalentBranch, TalentEffect};
 
-/// Nodi imparati per compagno all'inizio della run (id del compagno, id dei nodi). Senza
-/// profilo (prove, headless) nessuno.
-#[derive(Resource, Debug, Clone, Default, PartialEq)]
+/// Nodi imparati per compagno (id del compagno, id dei nodi), dal profilo
+/// (`profile::Profile::learned`) quando il compagno entra in squadra.
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct LearnedTalents(pub Vec<(String, Vec<String>)>);
 
 impl LearnedTalents {
@@ -22,14 +22,6 @@ impl LearnedTalents {
             .iter()
             .find(|(id, _)| id == companion)
             .map_or(&[], |(_, nodes)| nodes.as_slice())
-    }
-}
-
-pub struct TalentsPlugin;
-
-impl Plugin for TalentsPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_resource::<LearnedTalents>();
     }
 }
 

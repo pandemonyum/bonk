@@ -13,6 +13,8 @@ use super::enemies::Enemy;
 use super::kinematics::{Position, body};
 use super::player::Player;
 use super::spatial::EnemyGrid;
+use super::talent_effects::Burning;
+use super::talents::TalentKit;
 use crate::app::AppState;
 use crate::data::DataId;
 use crate::data::schema::{AttackData, OrbitData};
@@ -142,30 +144,34 @@ pub(super) fn leaf_hits(
     time: Res<Time>,
     grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
-    mut owners: Query<(&mut OrbitAttack, Option<&Source>)>,
+    mut owners: Query<(&mut OrbitAttack, Option<&Source>, Option<&TalentKit>)>,
     leaves: Query<(&Leaf, &Position)>,
-    mut enemies: Query<(&Position, &Hurtbox, &mut Health), (With<Enemy>, Without<Leaf>)>,
+    mut enemies: Query<
+        (&Position, &Hurtbox, &mut Health, Option<&Burning>),
+        (With<Enemy>, Without<Leaf>),
+    >,
 ) {
     let dt = time.delta_secs();
     // l'attesa si arrotonda al passo più vicino (0,54 s = 32 passi, non 33): nessuno sbilancio
     // sistematico per eccesso con gli upgrade di cadenza
-    for (mut attack, _) in &mut owners {
+    for (mut attack, _, _) in &mut owners {
         attack.recent.retain_mut(|(_, wait)| {
             *wait -= dt;
             *wait > 0.5 * dt
         });
     }
     for (leaf, at) in &leaves {
-        let Ok((mut attack, source)) = owners.get_mut(leaf.owner) else {
+        let Ok((mut attack, source, kit)) = owners.get_mut(leaf.owner) else {
             continue;
         };
         let source = source.copied();
+        let burn = kit.and_then(|k| k.burn);
         for entry in grid.candidates(at.0, attack.leaf_radius) {
             let enemy = entry.entity;
             if attack.recent.iter().any(|(e, _)| *e == enemy) {
                 continue;
             }
-            let Ok((feet, hurtbox, mut health)) = enemies.get_mut(enemy) else {
+            let Ok((feet, hurtbox, mut health, burning)) = enemies.get_mut(enemy) else {
                 continue;
             };
             if health.is_dead()
@@ -179,6 +185,10 @@ pub(super) fn leaf_hits(
                 continue;
             }
             strike_enemy(&mut health, attack.damage, source, &mut stats);
+            if let Some(burn) = burn {
+                let next = Burning::from_hit(burn, attack.damage, source, burning);
+                commands.entity(enemy).try_insert(next);
+            }
             let wait = attack.rehit_interval;
             attack.recent.push((enemy, wait));
             commands.entity(enemy).try_insert(HitFlash(HIT_FLASH_SECS));

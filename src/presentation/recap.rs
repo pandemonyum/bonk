@@ -1,6 +1,7 @@
 //! Riepilogo della squadra a fine run: per ogni compagno danni, quota sul danno della squadra,
-//! nemici finiti e HP curati; in fondo le cure di carte e rigenerazione. Il compagno che ha
-//! fatto più danni è in oro. Nomi in Pixelify Sans, numeri in Tiny5 a 16 px.
+//! nemici finiti, HP curati ed esperienza guadagnata (con il livello nuovo, se sale: un talento
+//! da spendere nel menu); in fondo le cure di carte e rigenerazione. Il compagno che ha fatto
+//! più danni è in oro. Nomi in Pixelify Sans, numeri in Tiny5 a 16 px.
 
 use bevy::prelude::*;
 
@@ -9,11 +10,13 @@ use super::icons::{element_icon_path, ui_icon};
 use crate::data::GameConfig;
 use crate::data::schema::Element;
 use crate::gameplay::combat::{RunStats, Source, Tally};
+use crate::profile::RunXp;
 
 const GOLD: Color = Color::srgb(0.95, 0.78, 0.3);
 const DIM: Color = Color::srgba(1.0, 1.0, 1.0, 0.6);
-/// Larghezze delle colonne (px dell'interfaccia, pari): compagno, danni, quota, sconfitti, cure.
-const COLUMNS: [f32; 5] = [200.0, 110.0, 70.0, 100.0, 84.0];
+/// Larghezze delle colonne (px dell'interfaccia, pari): compagno, danni, quota, sconfitti,
+/// cure, esperienza.
+const COLUMNS: [f32; 6] = [180.0, 100.0, 60.0, 96.0, 70.0, 120.0];
 
 /// Una riga del riepilogo.
 #[derive(Debug, Clone, PartialEq)]
@@ -23,12 +26,16 @@ pub struct PartyLine {
     pub tally: Tally,
     /// Quota del danno di tutta la squadra, tra 0 e 1.
     pub share: f32,
+    /// Esperienza guadagnata nella run e livello nuovo del compagno, se è salito.
+    pub xp: u32,
+    pub level_up: Option<u32>,
 }
 
 /// Le righe dei compagni `members` (posto in squadra, fonte dei colpi), in ordine di posto.
 pub fn party_lines(
     config: &GameConfig,
     stats: &RunStats,
+    run_xp: &RunXp,
     members: impl Iterator<Item = (usize, Source)>,
 ) -> Vec<PartyLine> {
     let mut members: Vec<(usize, Source)> = members.collect();
@@ -39,6 +46,7 @@ pub fn party_lines(
         .filter_map(|(_, source)| {
             let data = config.companions.get(source.0)?;
             let tally = stats.tally(source);
+            let xp = run_xp.0.iter().find(|l| l.id == data.id);
             Some(PartyLine {
                 name: data.display_name.clone(),
                 element: data.element,
@@ -48,6 +56,10 @@ pub fn party_lines(
                 } else {
                     0.0
                 },
+                xp: xp.map_or(0, |l| l.gain.total()),
+                level_up: xp
+                    .filter(|l| l.level_after > l.level_before)
+                    .map(|l| l.level_after),
             })
         })
         .collect()
@@ -110,7 +122,7 @@ pub fn spawn_recap(
         ))
         .id();
     let header = row(commands);
-    let titles = ["Squadra", "Danni", "%", "Sconfitti", "Cure"];
+    let titles = ["Squadra", "Danni", "%", "Sconfitti", "Cure", "Esperienza"];
     for (column, title) in titles.into_iter().enumerate() {
         let title = commands
             .spawn(cell(title.to_string(), column, fonts::ui(16.0), DIM))
@@ -163,6 +175,12 @@ pub fn spawn_recap(
                 .id();
             commands.entity(entity).add_child(number);
         }
+        let (xp, xp_color) = match line.level_up {
+            Some(level) => (format!("+{} Lv {level}!", line.xp), GOLD),
+            None => (format!("+{}", line.xp), color),
+        };
+        let xp = commands.spawn(cell(xp, 5, fonts::hud(16.0), xp_color)).id();
+        commands.entity(entity).add_child(xp);
         commands.entity(table).add_child(entity);
     }
     if player_healing >= 0.5 {
@@ -189,6 +207,24 @@ pub fn spawn_recap(
             .add_children(&[label, spacer, value]);
         commands.entity(table).add_child(entity);
     }
+    let promoted: Vec<&str> = lines
+        .iter()
+        .filter(|l| l.level_up.is_some())
+        .map(|l| l.name.as_str())
+        .collect();
+    if !promoted.is_empty() {
+        let note = commands
+            .spawn((
+                Text::new(format!(
+                    "Nuovo talento per {}: nel menu premi T",
+                    promoted.join(", ")
+                )),
+                fonts::ui(16.0),
+                TextColor(GOLD),
+            ))
+            .id();
+        commands.entity(table).add_child(note);
+    }
     table
 }
 
@@ -214,9 +250,20 @@ mod tests {
         stats.tally_mut(Source(0)).damage = 100.0;
         stats.tally_mut(Source(0)).kills = 7;
         // il compagno 1 sta nel posto 0, lo 0 nel posto 2, il 2 non ha fatto nulla
+        let run_xp = RunXp(vec![crate::profile::XpLine {
+            id: config.companions[1].id.clone(),
+            gain: crate::data::schema::XpGain {
+                time: 40,
+                kills: 5,
+                victory: 20,
+            },
+            level_before: 1,
+            level_after: 2,
+        }]);
         let lines = party_lines(
             &config,
             &stats,
+            &run_xp,
             [(2, Source(0)), (0, Source(1)), (1, Source(2))].into_iter(),
         );
         let names: Vec<&str> = lines.iter().map(|l| l.name.as_str()).collect();
@@ -229,5 +276,7 @@ mod tests {
         assert_eq!(lines[1].share, 0.0);
         assert_eq!(lines[2].share, 0.25);
         assert_eq!(lines[2].tally.kills, 7);
+        assert_eq!((lines[0].xp, lines[0].level_up), (65, Some(2)));
+        assert_eq!((lines[1].xp, lines[1].level_up), (0, None));
     }
 }

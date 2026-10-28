@@ -237,6 +237,31 @@ fn print_survival_kiting() {
     }
 }
 
+/// Profilo con tutti i nodi di tutti i compagni.
+fn veteran_profile(config: &GameConfig) -> pixel_monster_survivor::profile::Profile {
+    use pixel_monster_survivor::profile::{CompanionProgress, Profile, ProfileData};
+    let companions = config
+        .companions
+        .iter()
+        .map(|c| CompanionProgress {
+            id: c.id.clone(),
+            xp: u32::MAX / 2,
+            learned: c
+                .talents
+                .iter()
+                .flat_map(|b| b.nodes.iter().map(|n| n.id.clone()))
+                .collect(),
+        })
+        .collect();
+    Profile {
+        data: ProfileData {
+            companions,
+            ..ProfileData::default()
+        },
+        path: None,
+    }
+}
+
 /// Run vera (danni attivi) del "giocatore medio" (`bot`): come finisce, livello a 5:00 e a
 /// 10:00, compagni, durata dello scontro con il boss e danni subiti. È il termine di paragone
 /// per la difficoltà (GDD, obiettivi di bilanciamento): l'autoplay cieco muore presto, il bot
@@ -258,8 +283,16 @@ fn print_survival_medium_player() {
     }
     println!("compagno iniziale: {}", config.stage.starting_companion);
     let mut wins = 0;
+    // `PMS_TALENTS=1`: tutti i compagni con l'albero completo (il veterano dopo ~20 run)
+    let veteran = std::env::var("PMS_TALENTS").is_ok();
+    if veteran {
+        println!("talenti: tutti");
+    }
     for &seed in &seeds {
         let mut app = headless_app_with(seed, config.clone());
+        if veteran {
+            app.insert_resource(veteran_profile(&config));
+        }
         bot::take_over(&mut app);
         app.update();
         let (mut at5, mut at10, mut boss_at) = (None, None, None);

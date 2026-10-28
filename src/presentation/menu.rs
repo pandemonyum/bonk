@@ -22,7 +22,7 @@ const MUTED: Color = Color::srgb_u8(0x5a, 0x6d, 0x99);
 
 /// Compagno selezionato, per id: resta giusto anche se una ricarica cambia l'ordine.
 #[derive(Resource, Debug, Clone, PartialEq, Eq)]
-struct MenuChoice(String);
+pub(super) struct MenuChoice(pub(super) String);
 
 /// Carta del compagno con questo id.
 #[derive(Component)]
@@ -38,7 +38,11 @@ impl Plugin for MenuPlugin {
         app.add_systems(OnEnter(AppState::MainMenu), spawn_menu)
             .add_systems(
                 Update,
-                (choose_with_keys, highlight_choice, hover_cards)
+                (
+                    choose_with_keys.run_if(super::talents_menu::panel_closed),
+                    highlight_choice,
+                    hover_cards,
+                )
                     .chain()
                     .run_if(in_state(AppState::MainMenu)),
             );
@@ -189,7 +193,9 @@ fn spawn_menu(
         .id();
     let hint = commands
         .spawn((
-            Text::new("1–4 o clic per scegliere · WASD o frecce per muoverti, Esc per la pausa"),
+            Text::new(
+                "1–4 o clic per scegliere · T talenti · WASD o frecce per muoverti, Esc pausa",
+            ),
             fonts::hud(16.0),
             TextColor(Color::srgba(1.0, 1.0, 1.0, 0.6)),
         ))

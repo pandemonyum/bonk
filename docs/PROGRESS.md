@@ -13,6 +13,33 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "riepilogo, squadra per livelli, orde, forzieri, talenti" (2026-10-28)
+
+```text
+Task: U-RECAP, U-SQUAD, U-HORDE, U-CHEST, U-TALENT - richieste dell'utente (D-054..D-058)
+Owner: orchestrator (codice e integrazione) + game-designer (proposta di talenti, monete,
+       forzieri, livelli: docs/design/TALENTS_AND_CHESTS.md) + pixel-art-director (moneta,
+       forziere, icone HUD, 9 reliquie, 24 talenti; compagni piccoli in anteprima)
+Stato: DONE (tranne U-SMALL, in attesa del via dell'utente)
+File nuovi: src/profile.rs, src/gameplay/{hordes,treasure,talents,talent_effects}.rs,
+  src/data/schema/{run,treasure,talents}.rs, src/presentation/{recap,horde_banner,
+  treasure_art,chest_ui,talent_art,talents_menu}.rs, tests/sim/{recap,hordes,treasure,
+  talents}.rs
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1   OK (vedi QA_REPORT per i numeri dell'ultimo giro)
+  sonda giocatore medio: 27/32 senza talenti (84%); con tutti i talenti 32/32 anche dopo il taglio dei nodi 3, danni subiti 23–127 (~37% di quelli senza talenti): la guardia del 97%/50% resta superata, da rivedere con la prova umana o con l'albero nuovo
+  gioco vero: riepilogo con esperienza, orda a 5:00 con annuncio, forziere aperto con le
+    reliquie, freccia e monete nell'HUD, esplosione e soffio dei talenti, schermata dei talenti
+Problemi trovati e risolti: l'HUD leggeva i dati di gioco prima del caricamento e il gioco si
+  chiudeva all'avvio (già nel commit 36993a2; i test non lo vedevano perché hanno i dati
+  subito); i compagni nascevano prima che il profilo passasse i talenti alla run (ora li
+  leggono dal profilo); la freccia del forziere copriva il draft; "1 monete"; Clessidra −20%
+  oltre i limiti dell'onda; frecce ← → non disegnate dai font
+Rischi noti: talenti al massimo ancora molto forti per il bot; profilo sul web solo in memoria
+  fino alla P1; i compagni sono ancora grandi quanto il player (U-SMALL)
+Prossimo task: via dell'utente sui compagni piccoli; prova umana; P1
+```
+
 ## Report tranche "compagni dell'utente e Tuonny" (2026-10-28)
 
 ```text

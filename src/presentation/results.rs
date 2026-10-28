@@ -16,6 +16,7 @@ use crate::gameplay::companions::Companion;
 use crate::gameplay::progression::Progression;
 use crate::gameplay::run::RunClock;
 use crate::gameplay::upgrades::UpgradeStacks;
+use crate::profile::RunXp;
 
 const PANEL: Color = Color::srgba(0.05, 0.05, 0.12, 0.96);
 const GOLD: Color = Color::srgb(0.95, 0.78, 0.3);
@@ -38,7 +39,10 @@ impl Plugin for ResultsPlugin {
                 },
             )
             .add_systems(Update, spawn_defeat.run_if(in_state(RunPhase::Defeated)))
-            .add_systems(OnEnter(RunPhase::Victory), spawn_victory);
+            .add_systems(
+                OnEnter(RunPhase::Victory),
+                spawn_victory.after(crate::profile::ProfileAward),
+            );
     }
 }
 
@@ -67,6 +71,7 @@ fn spawn_defeat(
     progression: Res<Progression>,
     stacks: Res<UpgradeStacks>,
     assets: Res<AssetServer>,
+    run_xp: Res<RunXp>,
     party: Query<(&Source, &Companion)>,
 ) {
     if wait.0 <= 0.0 {
@@ -76,7 +81,12 @@ fn spawn_defeat(
     if wait.0 > 0.0 {
         return;
     }
-    let party = party_lines(&config, &stats, party.iter().map(|(s, c)| (c.slot, *s)));
+    let party = party_lines(
+        &config,
+        &stats,
+        &run_xp,
+        party.iter().map(|(s, c)| (c.slot, *s)),
+    );
     let summary = Summary {
         victory: false,
         config: &config,
@@ -97,9 +107,15 @@ fn spawn_victory(
     progression: Res<Progression>,
     stacks: Res<UpgradeStacks>,
     assets: Res<AssetServer>,
+    run_xp: Res<RunXp>,
     party: Query<(&Source, &Companion)>,
 ) {
-    let party = party_lines(&config, &stats, party.iter().map(|(s, c)| (c.slot, *s)));
+    let party = party_lines(
+        &config,
+        &stats,
+        &run_xp,
+        party.iter().map(|(s, c)| (c.slot, *s)),
+    );
     let summary = Summary {
         victory: true,
         config: &config,
@@ -163,7 +179,7 @@ fn spawn_results(mut commands: Commands, assets: &AssetServer, s: Summary) {
     let panel = commands
         .spawn((
             Node {
-                width: px(620),
+                width: px(680),
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Center,
                 row_gap: px(10),

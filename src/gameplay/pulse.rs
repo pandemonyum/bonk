@@ -6,11 +6,15 @@
 use bevy::prelude::*;
 
 use super::attacks::{CHARGE_EPSILON, STEP, attack_tick};
-use super::combat::{HIT_FLASH_SECS, Health, HitFlash, Hurtbox, RunStats, Source, strike_enemy};
+use super::combat::{
+    HIT_FLASH_SECS, Health, HitFlash, Hurtbox, RunStats, Source, heal, strike_enemy,
+};
 use super::enemies::Enemy;
 use super::kinematics::{Position, body};
 use super::player::Player;
 use super::spatial::EnemyGrid;
+use super::talent_effects::HealsOnHit;
+use super::talents::{TalentKit, TalentState};
 use crate::app::AppState;
 use crate::data::DataId;
 use crate::data::schema::{AttackData, PulseData};
@@ -97,16 +101,39 @@ pub(super) fn fire_pulses(
     time: Res<Time>,
     grid: Res<EnemyGrid>,
     player: Single<&Position, With<Player>>,
-    mut attacks: Query<(&mut PulseAttack, Option<&Source>)>,
+    mut attacks: Query<(
+        &mut PulseAttack,
+        Option<&Source>,
+        Option<&TalentKit>,
+        Option<&mut TalentState>,
+    )>,
     enemies: Query<(&Position, &Hurtbox, &Health), (With<Enemy>, Without<Player>)>,
 ) {
     let dt = time.delta_secs();
-    for (mut attack, source) in &mut attacks {
+    for (mut attack, source, kit, mut state) in &mut attacks {
+        let center = player.0 + Vec2::Y * attack.center_height;
+        let kit = kit.copied().unwrap_or_default();
+        // l'eco del talento: la stessa onda più debole, senza cura
+        if let (Some(echo), Some(state)) = (kit.echo, state.as_deref_mut())
+            && let Some(wait) = state.echo_in.as_mut()
+        {
+            *wait -= dt;
+            if *wait <= 0.0 {
+                state.echo_in = None;
+                spawn_pulse(
+                    &mut commands,
+                    &attack,
+                    center,
+                    attack.damage * echo.damage_pct / 100.0,
+                    source,
+                    None,
+                );
+            }
+        }
         if attack.charge + dt + CHARGE_EPSILON < attack.interval {
             attack.charge += dt; // in ricarica: niente ricerca dei bersagli
             continue;
         }
-        let center = player.0 + Vec2::Y * attack.center_height;
         let in_reach = grid.candidates(center, attack.radius).any(|entry| {
             enemies
                 .get(entry.entity)
@@ -125,25 +152,49 @@ pub(super) fn fire_pulses(
         if !fire {
             continue;
         }
-        let mut pulse = commands.spawn((
-            Name::new("Onda"),
-            DataId(attack.id.clone()),
-            Pulse {
-                radius: 0.0,
-                previous_radius: 0.0,
-                max_radius: attack.radius,
-                speed: attack.speed,
-                damage: attack.damage,
-                slow: attack.slow,
-                slow_secs: attack.slow_secs,
-                already_hit: Vec::new(),
-            },
-            body(center),
-            DespawnOnExit(AppState::InRun),
-        ));
-        if let Some(source) = source {
-            pulse.insert(*source);
+        spawn_pulse(
+            &mut commands,
+            &attack,
+            center,
+            attack.damage,
+            source,
+            kit.heal,
+        );
+        if let (Some(echo), Some(state)) = (kit.echo, state.as_deref_mut()) {
+            state.echo_in = Some(echo.delay);
         }
+    }
+}
+
+fn spawn_pulse(
+    commands: &mut Commands,
+    attack: &PulseAttack,
+    center: Vec2,
+    damage: f32,
+    source: Option<&Source>,
+    heal: Option<super::talents::HealPerHit>,
+) {
+    let mut pulse = commands.spawn((
+        Name::new("Onda"),
+        DataId(attack.id.clone()),
+        Pulse {
+            radius: 0.0,
+            previous_radius: 0.0,
+            max_radius: attack.radius,
+            speed: attack.speed,
+            damage,
+            slow: attack.slow,
+            slow_secs: attack.slow_secs,
+            already_hit: Vec::new(),
+        },
+        body(center),
+        DespawnOnExit(AppState::InRun),
+    ));
+    if let Some(source) = source {
+        pulse.insert(*source);
+    }
+    if let Some(heal) = heal {
+        pulse.insert(HealsOnHit { heal, given: 0.0 });
     }
 }
 
@@ -165,11 +216,18 @@ pub(super) fn pulse_hits(
     mut commands: Commands,
     grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
-    mut pulses: Query<(Entity, &Position, &mut Pulse, Option<&Source>)>,
+    mut pulses: Query<(
+        Entity,
+        &Position,
+        &mut Pulse,
+        Option<&Source>,
+        Option<&mut HealsOnHit>,
+    )>,
     mut enemies: Query<(&Position, &Hurtbox, &mut Health, Option<&Slowed>), With<Enemy>>,
+    mut player: Query<&mut Health, (With<Player>, Without<Enemy>)>,
 ) {
     let mut slows: Vec<(Entity, Slowed)> = Vec::new();
-    for (entity, center, mut pulse, source) in &mut pulses {
+    for (entity, center, mut pulse, source, mut heals) in &mut pulses {
         let front = pulse.radius;
         for entry in grid.candidates(center.0, front) {
             let enemy = entry.entity;
@@ -186,6 +244,18 @@ pub(super) fn pulse_hits(
             }
             strike_enemy(&mut health, pulse.damage, source.copied(), &mut stats);
             pulse.already_hit.push(enemy);
+            // il talento della cura: ogni colpito restituisce HP, fino al tetto dell'onda
+            if let Some(heals) = heals.as_deref_mut() {
+                let room = (heals.heal.cap - heals.given).max(0.0);
+                let amount = heals.heal.hp.min(room);
+                for mut me in &mut player {
+                    let healed = heal(&mut me, amount);
+                    heals.given += amount;
+                    if let Some(source) = source {
+                        stats.tally_mut(*source).healing += healed;
+                    }
+                }
+            }
             let slow = Slowed {
                 factor: pulse.slow,
                 remaining: pulse.slow_secs,

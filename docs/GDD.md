@@ -6,8 +6,8 @@ Documento pratico del game-designer. Fonte dei requisiti: handoff §1 e §7. I v
 ## Fantasia e loop
 
 Un giovane evocatore corre nella "Prateria dei Germogli" con compagni mostriciattolo
-originali che attaccano da soli. Run di 10 minuti: muoviti, raccogli XP, scegli 1 carta su 3
-a ogni livello, sopravvivi alle orde, batti il boss. Fine run: vittoria o morte, risultati,
+originali che attaccano da soli. Run di 15 minuti: muoviti, raccogli XP e monete, scegli 1
+carta su 3 a ogni livello, apri i forzieri lontani, sopravvivi alle orde, batti il boss. Fine run: vittoria o morte, risultati,
 restart immediato.
 
 ## Comandi
@@ -71,7 +71,10 @@ contatto. Essere circondati costa caro, uscirne in tempo no: muoversi è la dife
 | Raccolta | raggio 28 px dai piedi; poi la gemma vola a 220 px/s e si prende a 6 px | bisogna avvicinarsi alle gemme: muoversi rende |
 | Gemme a terra | al massimo 300, oltre l'XP si somma alla gemma più vicina | nessuna XP persa, nessuna esplosione di entità |
 | Draft | 3 carte, pesi di rarità comune 10, non comune 5, rara 2 | scelte frequenti, le rare si notano |
-| Compagno garantito | nei draft dei livelli 2 e 3, con un posto libero, almeno una carta "nuovo compagno" (`companion_card_until_level: 3`, P0.7) | un'estrazione sfortunata lasciava Brasa da sola all'arrivo dello sciame: run deboli fino alla fine |
+| Compagni per livello | si parte da soli; ai livelli 3 e 9 il draft propone solo chi può unirsi, negli altri nessun compagno (`companion_levels`, D-055) | richiesta dell'utente: la squadra cresce a tappe; al livello 4 Fiammetto da solo moriva nello sciame |
+| Monete | gelatine e sciame 3%, corazzati 15%, élite 6; stessa calamita delle gemme; al massimo 100 a terra (D-057) | ~7 forzieri a run per chi ci va |
+| Forzieri | 2 sulla mappa a 600–1000 px fuori vista; prezzo 10, +5 a ogni apertura; aperto uno ne nasce un altro, oltre 1800 px rinasce vicino | far girare il player per la mappa invece di girare attorno ai mostri |
+| Reliquie | 1 su 3 a forziere, una volta per run, mai nel draft: +50% danno, −12% intervallo, +2 proiettili, +40% portata, +50 HP, 0,6 HP/s, +20% movimento, monete ×2; poi il Banchetto (cura 50) | molto più forti delle carte: il premio della deviazione |
 
 **Upgrade (`upgrades.ron`).** Le percentuali si sommano sul valore base (2 × +15% = +30%) e
 tutto si ricalcola dai dati base più gli stack a ogni scelta.
@@ -113,14 +116,32 @@ quando di solito la squadra ha un secondo compagno.
 
 | Parametro | Valore | Motivo |
 |---|---|---|
-| Durata | 10:00, poi le ondate si fermano ed entra il boss; sconfiggerlo è la vittoria | handoff: run di 10 minuti con boss finale |
-| Difficoltà | nemici di ondate ed élite +15% HP e +12% danno per minuto, alla nascita (a 10:00 ×2,5 e ×2,2; P0.7, danno da +8%) | la squadra cresce, le orde anche; la seconda metà deve far paura |
-| Élite | Gelatina Gigante a 2:30, poi ogni 75 s (~6 a run) | un pericolo da leggere, non da subire: si ferma e mostra la carica |
+| Durata | 15:00, poi le ondate si fermano ed entra il boss; sconfiggerlo è la vittoria (D-056) | richiesta dell'utente; era 10:00 |
+| Orde | a 5:00 e 10:00: 120 e 165 nemici (sciame, gelatine, corazzati) in 8 s in cerchio attorno al player, fino a 320 vivi; annuncio 4 s prima | richiesta dell'utente: un'ondata massiccia ogni 5 minuti |
+| Difficoltà | nemici di ondate, orde ed élite +14% HP e +9% danno per minuto, alla nascita (a 15:00 ×3,1 e ×2,35) | la squadra cresce, le orde anche; la seconda metà deve far paura |
+| Sciame | dalle 2:00 (era 1:40) | arriva dopo il secondo compagno |
+| Élite | Gelatina Gigante a 2:30, poi ogni 75 s (~10 a run) | un pericolo da leggere, non da subire: si ferma e mostra la carica |
 | Boss | Gran Corazzato, non scalato | tarato per la fine della run |
 | Preavvisi | almeno 0,5 s (validato), lampeggio sempre più rapido | "telegraph chiaro" dell'handoff |
 | Carte compagno | comuni (P0.6, prima non comuni) | la squadra arriva nei primi livelli |
 
+## Talenti (D-058)
+
+Persistenti, per compagno: esperienza a fine run (⌊s in squadra ÷ 15⌋ + ⌊sconfitti ÷ 40⌋ + 20 se
+vittoria), livello n → n + 1 con 100 + 50 × (n − 1), un punto per livello dal 2 al 7. Due rami
+da tre nodi (`companions.ron: talents`), nel menu con T; azzeramento gratis. Alberi e conti in
+`docs/design/TALENTS_AND_CHESTS.md`; i nodi 3 sono un terzo sotto la proposta (Brace che cova
+20%/s, Soffio ardente 87%, Marea alta +10%, Sorgente viva 0,23 HP fino a 0,85, Rovo largo +10%,
+Radici spinose 28 px 167%, Lampo grande 27 px 133%).
+
 ## Misure
+
+- **Run da 15 minuti con orde, compagni per livello, forzieri (D-055–D-057; sonda, 8 seed per
+  partenza):** Fiammetto 5/8, Ondino 8/8, Foglin 6/8, Tuonny 8/8 = **27/32 (84%)**, ~7
+  forzieri a run, sconfitte verso 3:30 (prima del terzo compagno) e nella prima orda (5:20–5:40).
+  Prima taratura (compagni a 4 e 10, sciame a 1:40): Fiammetto 1/8, morto al livello 3 a 2:15.
+- **Talenti al massimo (`PMS_TALENTS=1`):** con i valori proposti 32/32 vittorie e danni subiti
+  al ~40% (20–130 contro 70–260): nodi 3 tagliati di un terzo; dopo il taglio 32/32 anche dopo il taglio dei nodi 3, danni subiti 23–127 (~37% di quelli senza talenti): la guardia del 97%/50% resta superata, da rivedere con la prova umana o con l'albero nuovo.
 
 - **Tuonny (`print_survival_medium_player`, 8 seed per partenza, D-053):** con la prima
   taratura del fulmine Tuonny 4/8 e Foglin 3/8: ogni sconfitta era della squadra senza Ondino

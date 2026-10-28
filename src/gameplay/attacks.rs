@@ -9,6 +9,8 @@ use super::combat::{Health, Hurtbox, Projectile, RunStats, Source};
 use super::enemies::Enemy;
 use super::kinematics::{Position, body};
 use super::spatial::EnemyGrid;
+use super::talent_effects::{AreaHit, Burns, Explosive, Shape};
+use super::talents::{TalentKit, TalentState};
 use crate::app::AppState;
 use crate::data::DataId;
 use crate::data::schema::{AttackData, ProjectileData};
@@ -107,17 +109,26 @@ pub fn spread_directions(aim: Vec2, count: u32, spread: f32) -> Vec<Vec2> {
         .collect()
 }
 
-/// Primo passo della catena `combat::CombatSteps`.
+/// Primo passo della catena `combat::CombatSteps`. Con i talenti i proiettili esplodono e
+/// fanno bruciare, e ogni N raffiche parte anche un cono verso il bersaglio.
+#[allow(clippy::type_complexity)]
 pub(super) fn fire_auto_attacks(
     mut commands: Commands,
     time: Res<Time>,
     grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
-    mut shooters: Query<(&Position, &mut AutoAttack, Option<&Source>)>,
+    mut shooters: Query<(
+        &Position,
+        &mut AutoAttack,
+        Option<&Source>,
+        Option<&TalentKit>,
+        Option<&mut TalentState>,
+    )>,
     enemies: Query<(&Position, &Hurtbox, &Health), With<Enemy>>,
+    mut area_hits: MessageWriter<AreaHit>,
 ) {
     let dt = time.delta_secs();
-    for (position, mut attack, source) in &mut shooters {
+    for (position, mut attack, source, kit, state) in &mut shooters {
         if attack.charge + dt + CHARGE_EPSILON < attack.interval {
             attack.charge += dt; // in ricarica: niente ricerca del bersaglio
             continue;
@@ -134,6 +145,24 @@ pub(super) fn fire_auto_attacks(
             continue; // armato: spara appena un nemico entra nel raggio
         };
         let aim = (target - origin).normalize_or(Vec2::X);
+        let kit = kit.copied().unwrap_or_default();
+        if let (Some(cone), Some(mut state)) = (kit.cone, state) {
+            state.attacks += 1;
+            if state.attacks.is_multiple_of(cone.every) {
+                area_hits.write(AreaHit {
+                    shape: Shape::Cone {
+                        origin,
+                        direction: aim,
+                        range: cone.range,
+                        half_angle: cone.half_angle,
+                    },
+                    damage: attack.damage * cone.damage_pct / 100.0,
+                    source: source.copied(),
+                    exclude: None,
+                    burn: None,
+                });
+            }
+        }
         for direction in spread_directions(aim, attack.projectiles, attack.spread) {
             let mut projectile = commands.spawn((
                 Name::new("Proiettile"),
@@ -152,6 +181,12 @@ pub(super) fn fire_auto_attacks(
             ));
             if let Some(source) = source {
                 projectile.insert(*source);
+            }
+            if let Some(blast) = kit.explode {
+                projectile.insert(Explosive(blast));
+            }
+            if let Some(burn) = kit.burn {
+                projectile.insert(Burns(burn));
             }
             stats.projectiles_fired += 1;
         }

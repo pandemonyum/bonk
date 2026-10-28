@@ -17,6 +17,7 @@ pub mod pulse;
 pub mod run;
 pub mod spatial;
 pub mod spawning;
+pub mod talent_effects;
 pub mod talents;
 pub mod threats;
 pub mod treasure;
@@ -101,12 +102,13 @@ impl Plugin for GameplayPlugin {
                 spawning::SpawningPlugin,
                 hordes::HordesPlugin,
                 treasure::TreasurePlugin,
-                talents::TalentsPlugin,
                 combat::CombatPlugin,
                 damage::DamagePlugin,
                 progression::ProgressionPlugin,
                 upgrades::UpgradesPlugin,
                 threats::ThreatsPlugin,
-            ));
+            ))
+            // `add_plugins` accetta al massimo 15 plugin per tupla
+            .add_plugins(talent_effects::TalentEffectsPlugin);
     }
 }

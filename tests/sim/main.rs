@@ -18,6 +18,7 @@ mod progression;
 mod recap;
 mod run;
 mod spawning;
+mod talents;
 mod threats;
 mod treasure;
 mod upgrades;

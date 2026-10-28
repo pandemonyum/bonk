@@ -425,6 +425,55 @@ corpi più grandi. La lucertola tiene la fiamma sulla punta della coda come nel 
 dell'utente: tratto che insieme al colore richiama ancora un personaggio noto, coperto dalla
 sua decisione. Tuonny è disegnato ma entra in gioco con il suo attacco elettrico (tranche dopo).
 
+## D-054 Riepilogo di fine run per compagno *(utente)*
+Ogni colpo porta chi l'ha fatto (`Source`, indice del compagno in `companions.ron`, sul compagno
+e su proiettili e onde) e passa da `combat::strike_enemy`: danno vero senza l'eccesso oltre gli
+HP del nemico, il nemico finito al colpo di grazia, le cure dei talenti al compagno. I risultati
+mostrano per compagno danni, quota, sconfitti, cure ed esperienza; le cure di carte e
+rigenerazione hanno una riga a parte. Le statistiche stanno in `RunStats` (vettore per indice,
+niente `HashMap`, D-047).
+
+## D-055 Compagni sbloccati ai livelli 3 e 9 *(utente)*
+Si parte con il solo compagno scelto nel menu; ai livelli di `progression.ron: companion_levels`
+il draft propone soltanto i compagni che possono unirsi (negli altri draft le carte "nuovo
+compagno" non escono più; sostituisce `companion_card_until_level`). Tre posti: uno dei quattro
+resta fuori (scelta dell'utente). L'esempio dell'utente era 6/12/18, il game-designer ha
+proposto 4 e 10; con la sonda Fiammetto da solo arrivava al livello 4 verso 2:00, dentro lo
+sciame (1/8 vittorie): secondo compagno al 3 e sciame a 2:00, terzo al 9 (prima del muro delle
+3:15). L'HUD mostra "compagno al LV n" sotto il livello.
+
+## D-056 Run di 15 minuti con un'orda ogni 5 *(utente)*
+15:00 di ondate, poi il boss. A 5:00 e 10:00 un'orda (`stages.ron: run.hordes`): 120 e 165 nemici
+in 8 s, in cerchio attorno al player e fuori vista, oltre i limiti delle ondate fino a 320 vivi,
+annunciata 4 s prima ("ARRIVA L'ORDA!"); un RNG suo, così gli spawn normali restano quelli di
+prima. Crescita dei nemici +14% HP e +9% danno al minuto (a 15:00 ×3,1 e ×2,35). Con la sonda le
+sconfitte cadono verso 3:30 e nella prima orda (27/32 vittorie, 84%).
+
+## D-057 Monete, forzieri e reliquie *(utente)*
+Per far girare il player per la mappa: alcuni nemici lasciano monete (3% gelatine e sciame,
+15% corazzati, 6 sicure dalle élite) che si raccolgono come le gemme; due forzieri stanno a
+600–1000 px, fuori vista, e con abbastanza monete (10, +5 a ogni apertura) ci si passa sopra e
+si sceglie una reliquia su tre. Le reliquie sono upgrade di rarità `Relic` (mai nel draft dei
+livelli, una volta per run, il Banchetto quando sono finite): riusano carte, icone, stack ed
+effetti; un effetto nuovo, `CoinGainPct`. La Clessidra è −12% e non −20% come proposto: con 5
+Respiro rapido l'onda di Ondino sarebbe durata più del suo intervallo (validazione dei limiti).
+Freccia al bordo verso il forziere più vicino col prezzo, dorata se basta.
+
+## D-058 Talenti persistenti dei compagni *(utente)*
+Scelta dell'utente: i talenti restano tra una run e l'altra. Profilo RON nella cartella dei
+dati dell'utente (`%APPDATA%\PixelMonsterSurvivor\profile.ron` su Windows; sul web per ora solo
+in memoria, `localStorage` nella P1), niente account; le run con `--autoplay`, `--god` o
+`--time-scale` non salvano. A fine run ogni compagno in squadra guadagna ⌊s in squadra ÷ 15⌋ +
+⌊sconfitti ÷ 40⌋ + 20 se vittoria; per salire dal livello n servono 100 + 50 × (n − 1); un punto
+per livello dal 2 al 7. Due rami da tre nodi per compagno (`companions.ron: talents`, proposta in
+`docs/design/TALENTS_AND_CHESTS.md`): statistiche che si sommano alle carte e sei meccaniche
+generiche (esplosione, cono ogni N attacchi, cura per colpito, eco, colpo periodico,
+bruciatura); di una meccanica vale l'ultimo nodo preso del ramo. Si imparano e si azzerano
+gratis dal menu (T). I compagni leggono i talenti dal profilo quando entrano in squadra. Con
+tutti i talenti la sonda vinceva 32/32 con il 40% dei danni: i nodi 3 sono stati tagliati di un
+terzo (guardia del game-designer: 97% e 50%). Gli effetti usano lo sprite dell'attacco del
+compagno; le icone dei nodi sono del pixel-art-director.
+
 ## D-053 Tuonny e il fulmine a catena
 Quarto compagno (elemento nuovo `Electric`, gatto con la coda a stella del foglio dell'utente,
 D-052) con un pattern nuovo `Chain`: colpisce il nemico vivo più vicino entro `range`, poi salta
