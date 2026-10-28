@@ -288,13 +288,14 @@ fn limits_at_max(r: &mut Report, config: &GameConfig) {
         let base_count = match &a.pattern {
             AttackPattern::Projectile(p) => Some(p.count),
             AttackPattern::Orbit(o) => Some(o.count),
+            AttackPattern::Chain(c) => Some(c.jumps),
             AttackPattern::Pulse(_) => None,
         };
         let most = base_count.map(|n| u64::from(n) + extra_projectiles);
         if let Some(most) = most.filter(|&n| n > u64::from(MAX_PROJECTILES)) {
             r.0.push(format!(
-                "upgrades.ron: con tutti gli upgrade {} arriva a {most} proiettili o foglie, al \
-                 massimo {MAX_PROJECTILES}",
+                "upgrades.ron: con tutti gli upgrade {} arriva a {most} proiettili, foglie o \
+                 salti, al massimo {MAX_PROJECTILES}",
                 a.id
             ));
         }

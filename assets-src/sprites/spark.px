@@ -1,0 +1,11 @@
+# Scintilla del fulmine a catena di Tuonny (VFX), 6x6, ancora al centro: nucleo bianco w, bordo
+# giallo chiaro y in alto a sinistra e azzurro elettrico W in basso a destra; senza contorno,
+# come le gocce dell'onda (D-037), perche' si ripete lungo ogni segmento del fulmine.
+out: sprites/spark.png
+---
+..yy..
+.ywwW.
+ywwwwW
+ywwwwW
+.WwwW.
+..WW..

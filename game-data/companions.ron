@@ -41,5 +41,14 @@
             attack: "leaf_orbit",
             follow: (distance: 30.0, max_speed: 120.0, gain: 5.0),
         ),
+        (
+            id: "spark",
+            display_name: "Tuonny",
+            element: Electric,
+            sprite: "sprites/spark_sheet.png",
+            frame: Some((w: 40, h: 36)),
+            attack: "spark_chain",
+            follow: (distance: 30.0, max_speed: 120.0, gain: 5.0),
+        ),
     ],
 )

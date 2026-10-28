@@ -42,9 +42,8 @@ sono ancora quelli del codice attuale, le icone nuove non sono collegate).
 | Risoluzione virtuale | 480×270 | = | upscaling intero nearest, letterbox |
 | Tile | 16×16 | = | tileset a colonna (array texture), 42 tile |
 | Evocatore (player) | 16×21 | **foglio 144×304, fotogrammi 36×38** | 4×8 fotogrammi animati, personaggio dell'utente (D-050); in piedi 22–23×30 visibili più l'ombra, centrato tra le colonne 17 e 18; ingombro e limiti dell'arena sono del codice |
-| Brasa | 16×17 | **16×20** | punta di fiamma più alta e pancia; resta la più alta e stretta dei tre |
-| Gocci | 16×14 | **18×18** | la bolla è la più larga dei tre; spazio per il ricciolo della cresta |
-| Frond | 16×17 | **16×20** | foglie più grandi con nervatura |
+| Compagni (Fiammetto, Ondino, Foglin, Tuonny) | 16×17–18×18 (Brasa, Gocci, Frond) | **fogli 160×180, fotogrammi 40×36** | personaggi dell'utente (D-052), 4×5 fotogrammi; ~30 px visibili, come il player |
+| Scintilla del fulmine | — | **6×6** | `spark.png`, ancora al centro, senza contorno, ripetuta lungo il fulmine di Tuonny |
 | Gelatina, foglio | — | **28×24** (~22×18 visibili), 4×2 | stile del player; salto e sconfitta |
 | Sciame, foglio | — | **24×22** (~18×16), 4×2 | vola: ombra piccola sulla riga in basso |
 | Corazzato, foglio | — | **32×28** (~26×22), 4×2 | passo e guscio che si spacca |
@@ -58,7 +57,7 @@ sono ancora quelli del codice attuale, le icone nuove non sono collegate).
 | Roccia | 16×12 | **20×16** | masso tozzo nello stile del player; impronta r=7 a 4 px sopra la base, sulla parte bassa del masso |
 | Albero | 32×32 | **40×48** | chioma a ciuffi separati per tono, contorno solo sulla sagoma; impronta r=4 a 4 px sopra la base, sul piede del tronco |
 
-Massimi: comuni ≤ 20 px, compagni ≤ 24, fotogramma del player 36×38, alberi ≤ 32, boss ≤ 64
+Massimi: comuni ≤ 20 px, fotogramma dei compagni 40×36, fotogramma del player 36×38, alberi ≤ 32, boss ≤ 64
 (validato; i fogli animati fotogramma per fotogramma, fino a 96 px per fotogramma). A
 480×270 una creatura comune resta sotto il 6% dell'altezza dello schermo: le orde restano
 leggibili. Verificato sull'anteprima con 75 nemici; lo screenshot del gioco (seed 20, 1:45 di
@@ -76,10 +75,10 @@ rampe. Ogni rampa va dal riflesso allo scuro.
 |---|---|
 | Contorno e neutri | `k` contorno, `K` ombra neutra, `w` bianco, `9` ombra a terra |
 | Pelle | `s` `S` |
-| Alleato teal (mantello, Gocci) | `L` `l` `c` `C` `n` |
-| Oro (fermagli, Frond) | `y` `g` `G` `h` |
-| Fuoco alleato (Brasa) | `y` nucleo, `f` `o` `O` `x` — arancio, mai il rosso dei pericoli |
-| Natura alleato (Frond, foglie) | `i` `e` `E` `v` — più chiaro e giallo dell'erba |
+| Alleato teal (icone e carte dell'acqua) | `L` `l` `c` `C` `n` |
+| Oro (carta selezionata, icone) | `y` `g` `G` `h` |
+| Fuoco alleato (icone e carte del fuoco, palla di fuoco) | `y` nucleo, `f` `o` `O` `x` — arancio, mai il rosso dei pericoli |
+| Natura alleato (icone e carte della natura, foglie orbitanti) | `i` `e` `E` `v` — più chiaro e giallo dell'erba |
 | Nemici | `Q` `q` `p` `P` `z` viola |
 | Pericoli e danni | `X` `r` `R` `j` rosso (anche cuori HP e barra del boss nella UI) |
 | Gemme XP | `W` `u` `U` `V` blu |
@@ -182,6 +181,52 @@ Disegnati con forme ombreggiate in uno script usa e getta fuori dal repository e
 nella griglia, come gli sprite grandi della v1. I vecchi sprite singoli dei nemici
 (`blob_enemy.png` e gli altri) sono stati rimossi quando `game-data/enemies.ron` è passato ai fogli.
 
+## Compagni: fogli animati (D-052)
+
+I quattro compagni sono i personaggi del foglio fornito dall'utente, che ne dichiara i diritti e
+ne ha chiesto la riproduzione identica (D-052, stesso trattamento del player).
+
+Origine:
+- Il foglio originale (6 creature × 6 pose: di fronte, di profilo a destra, di schiena, di
+  profilo a sinistra, felice con gli effetti, sdraiata) è stato tagliato a risoluzione nativa e
+  ripulito. I colori quasi identici del generatore sono uniti in 36 colori dell'utente
+  (`assets-src/sprites/companions.palette.txt`).
+- Abbinamento: `ember` Fiammetto = lucertola di fuoco, `tide` Ondino = lontra delle bolle,
+  `sprout` Foglin = volpe delle foglie, `spark` Tuonny = gatto con la coda a stella. La
+  tartaruga e lo spirito del foglio non sono usati e non sono nel repository.
+
+**Contratto** (`sprites/<id>_sheet.png`):
+- fotogrammi 40×36, 4 colonne, 5 righe (160×180);
+- piedi e ombra sulla riga 35 (il taglio era alto 35: una riga vuota in cima);
+- centro tra le colonne 19 e 20 (guida `|`), ancora in basso al centro.
+
+| Riga | Nome | Fotogrammi |
+|---|---|---|
+| 0 | `idle` | 0 master (posa di fronte dell'utente), 1–2 respiro (testa e spalle giù di 1 px), 3 battito di ciglia |
+| 1 | `move_right` | master = posa di profilo a destra (il gioco specchia per la sinistra): 0 passo aperto (gruppi di zampe a ±2 px), 1 passaggio (corpo su di 1 px, piede dietro alzato di 2, coda o bolla su di 1), 2 piedi incrociati, 3 passaggio (piede davanti alzato, coda giù) |
+| 2 | `attack` | 0 carica dalla posa di fronte (giù di 1 px), 1 posa felice con la metà degli effetti più vicina al corpo, 2 posa felice con tutti gli effetti, 3 di nuovo di fronte |
+| 3 | `move_up` | master = posa di schiena: piedi alternati alzati di 2 px, passaggi con il corpo su di 1 px |
+| 4 | `move_down` | come la riga 3 con la posa di fronte |
+
+Regole:
+- **Master:** le pose dell'utente restano identiche (solo pulizia), e ogni altro fotogramma ne
+  deriva alla stessa scala.
+- **Ombra:** quella a terra viene rimessa dal master dopo ogni spostamento dei piedi.
+- **Fiammetto:** le fiamme sono attaccate al corpo, quindi lancio ed effetto pieno differiscono
+  per poche scintille e il passaggio dalla carica al lancio fa da colpo.
+
+Altri file:
+- **Ritratti** `ui/portrait_<id>.png`: 40×36, la posa di fronte senza l'ombra a terra (figura
+  intera, come le carte dell'utente). Il limite delle icone UI nel validatore è 40.
+- **Carte** `ui/upgrade_join_<id>.png`: 16×16, cornice del tema dell'elemento con una testina del
+  nuovo disegno, disegnata nel progetto con la palette del progetto.
+- **Scintilla** `sprites/spark.png`: 6×6, VFX del fulmine a catena di Tuonny. Nucleo bianco `w`,
+  bordo giallo `y` e azzurro `W`, senza contorno come le gocce dell'onda.
+
+Scala: alla scala del foglio dell'utente i compagni sono alti ~30 px visibili, quanto il player
+(~30) e più dei nemici comuni. È voluto (stessa risoluzione del suo foglio); se in gioco
+coprono troppo, la scelta è del codice (distanza dei posti in `player.ron`), non del disegno.
+
 ## Tileset `meadow_tileset.png` (indici in `src/world/tiles.rs`)
 
 Procedurale con seed fisso in `scripts/build-assets.py`, timbri che si avvolgono sui bordi del
@@ -222,7 +267,7 @@ sotto la barra XP e la fila delle icone delle abilità; timer con orologio centr
 livello e uccisioni con teschio in alto a destra. Carte del draft: pannello blu notte `1` con
 riga di luce `2`, contorno `k` e bordo del colore dell'elemento (fuoco `o`, acqua `c`, natura
 `e`, neutro `3`; selezionata oro `g` con alone `y`), icona in alto, titolo, "Lv.", descrizione.
-Scelta del compagno: ritratto 32×32, nome, barre ATT/VEL/AREA (fuoco/teal/lime), slot
+Scelta del compagno: ritratto 40×36 (figura intera), nome, barre ATT/VEL/AREA (fuoco/teal/lime), slot
 bloccato col lucchetto. Barra del boss: teschio, barra rossa `r` con luce `X` e ombra `R`.
 
 Telaio delle icone 16×16: contorno `k` con angoli trasparenti, bordo chiaro in alto a sinistra
@@ -289,7 +334,6 @@ griglia `.px`, che resta l'unica sorgente.
 
 ## Da fare
 
-Animazioni idle/movimento 2–4 frame per compagni e nemici (il player le ha, D-050); nomi
-definitivi dei compagni con verifica dei marchi; VFX di colpo piccoli; cespugli come ostacolo
+Nomi definitivi dei compagni con verifica dei marchi; VFX di colpo piccoli; cespugli come ostacolo
 (richiede un tipo nuovo in `src/world/obstacles.rs`). Player: verifica nel gioco vero
 (screenshot e `check-pixel-grid.py`) delle pose a terra con il letterbox.

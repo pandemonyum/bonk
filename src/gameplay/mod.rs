@@ -1,6 +1,7 @@
 //! Simulazione di gioco: gira in `FixedUpdate` a 60 Hz e non dipende dal rendering.
 
 pub mod attacks;
+pub mod chain;
 pub mod collision;
 pub mod combat;
 pub mod companions;

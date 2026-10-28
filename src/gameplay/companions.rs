@@ -84,6 +84,7 @@ pub fn spawn_companion(
         AttackPattern::Projectile(p) => entity.insert(modifiers.projectile(attack, p)),
         AttackPattern::Pulse(p) => entity.insert(modifiers.pulse(attack, p)),
         AttackPattern::Orbit(o) => entity.insert(modifiers.orbit(attack, o)),
+        AttackPattern::Chain(c) => entity.insert(modifiers.chain(attack, c)),
     };
 }
 

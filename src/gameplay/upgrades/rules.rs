@@ -15,7 +15,7 @@ pub struct PartyView {
     pub free_slots: usize,
     /// Qualcuno in squadra spara proiettili (perforazione e velocità servono solo a loro).
     pub has_projectiles: bool,
-    /// Qualcuno ha proiettili o foglie ("+1 proiettile" vale per entrambi).
+    /// Qualcuno ha proiettili, foglie o fulmini ("+1 proiettile" vale anche come foglia o salto).
     pub has_counted: bool,
 }
 
@@ -42,9 +42,12 @@ impl PartyView {
         let has_projectiles = patterns
             .iter()
             .any(|p| matches!(p, AttackPattern::Projectile(_)));
-        let has_counted = patterns
-            .iter()
-            .any(|p| matches!(p, AttackPattern::Projectile(_) | AttackPattern::Orbit(_)));
+        let has_counted = patterns.iter().any(|p| {
+            matches!(
+                p,
+                AttackPattern::Projectile(_) | AttackPattern::Orbit(_) | AttackPattern::Chain(_)
+            )
+        });
         Self {
             members,
             free_slots,

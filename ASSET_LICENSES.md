@@ -14,6 +14,7 @@ manifest `assets/manifest.json`.
 | `assets/sprites/xp_gem.png` | `assets-src/sprites/xp_gem.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/leaf.png` | `assets-src/sprites/leaf.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/droplet.png` | `assets-src/sprites/droplet.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
+| `assets/sprites/spark.png` (scintilla del fulmine di Tuonny, 6×6) | `assets-src/sprites/spark.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/telegraph.png` | `assets-src/sprites/telegraph.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/blob_sheet.png` (Gelatina, foglio 4×2 da 28×24) | `assets-src/sprites/blob_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |
 | `assets/sprites/swarm_sheet.png` (Sciame, 4×2 da 24×22) | `assets-src/sprites/swarm_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |

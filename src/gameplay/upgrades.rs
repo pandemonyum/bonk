@@ -7,6 +7,7 @@ use bevy::prelude::*;
 
 use super::SimSet;
 use super::attacks::AutoAttack;
+use super::chain::ChainAttack;
 use super::combat::Health;
 use super::companions::join_companions;
 use super::orbit::OrbitAttack;
@@ -258,6 +259,7 @@ fn refresh_modifiers(
     mut projectiles: Query<&mut AutoAttack>,
     mut pulses: Query<&mut PulseAttack>,
     mut orbits: Query<&mut OrbitAttack>,
+    mut chains: Query<&mut ChainAttack>,
     mut player: Query<(&mut Player, &mut Health, &mut PickupRadius)>,
 ) {
     let m = Modifiers::from_stacks(&config.upgrades, &stacks);
@@ -301,6 +303,19 @@ fn refresh_modifiers(
             angle,
             recent,
             ..m.orbit(data, o)
+        };
+    }
+    for mut attack in &mut chains {
+        let Some((data, c)) = config
+            .attack(&attack.id)
+            .and_then(|a| Some((a, a.chain()?)))
+        else {
+            continue;
+        };
+        let charge = attack.charge;
+        *attack = ChainAttack {
+            charge,
+            ..m.chain(data, c)
         };
     }
     let base = &config.player;

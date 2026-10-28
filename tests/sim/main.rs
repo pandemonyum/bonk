@@ -5,6 +5,7 @@
 
 mod balance;
 mod bot;
+mod chain;
 mod combat;
 mod common;
 mod damage;

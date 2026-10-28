@@ -11,6 +11,7 @@ use crate::app::AppState;
 use crate::data::schema::Element;
 use crate::data::{DataId, GameConfig};
 use crate::gameplay::attacks::AutoAttack;
+use crate::gameplay::chain::ChainAttack;
 use crate::gameplay::companions::Companion;
 use crate::gameplay::pulse::PulseAttack;
 
@@ -59,6 +60,7 @@ fn bar_color(element: Element) -> Color {
         Element::Fire => Color::srgb_u8(0xff, 0xaa, 0x45),
         Element::Water => Color::srgb_u8(0x6c, 0xc7, 0xc2),
         Element::Nature => Color::srgb_u8(0xb8, 0xe0, 0x5a),
+        Element::Electric => Color::srgb_u8(0xff, 0xd6, 0x5c),
     }
 }
 
@@ -166,18 +168,24 @@ fn build_row(
 
 fn show_cooldowns(
     fixed: Res<Time<Fixed>>,
-    companions: Query<(&Companion, Option<&AutoAttack>, Option<&PulseAttack>)>,
+    companions: Query<(
+        &Companion,
+        Option<&AutoAttack>,
+        Option<&PulseAttack>,
+        Option<&ChainAttack>,
+    )>,
     mut fills: Query<(&CooldownFill, &mut Node)>,
 ) {
     let step = fixed.timestep().as_secs_f32();
     for (fill, mut node) in &mut fills {
         let ready = companions.iter().find(|(c, ..)| c.slot == fill.0).map_or(
             1.0,
-            |(_, shots, wave)| match (shots, wave) {
-                (Some(a), _) => readiness(a.charge, a.interval, step),
-                (None, Some(w)) => readiness(w.charge, w.interval, step),
+            |(_, shots, wave, bolt)| match (shots, wave, bolt) {
+                (Some(a), _, _) => readiness(a.charge, a.interval, step),
+                (None, Some(w), _) => readiness(w.charge, w.interval, step),
+                (None, None, Some(c)) => readiness(c.charge, c.interval, step),
                 // foglie: sempre in azione
-                (None, None) => 1.0,
+                (None, None, None) => 1.0,
             },
         );
         // a texel interi, come le barre disegnate negli sprite

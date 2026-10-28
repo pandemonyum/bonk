@@ -425,6 +425,21 @@ corpi più grandi. La lucertola tiene la fiamma sulla punta della coda come nel 
 dell'utente: tratto che insieme al colore richiama ancora un personaggio noto, coperto dalla
 sua decisione. Tuonny è disegnato ma entra in gioco con il suo attacco elettrico (tranche dopo).
 
+## D-053 Tuonny e il fulmine a catena
+Quarto compagno (elemento nuovo `Electric`, gatto con la coda a stella del foglio dell'utente,
+D-052) con un pattern nuovo `Chain`: colpisce il nemico vivo più vicino entro `range`, poi salta
+al più vicino non ancora colpito entro `jump_range` dall'ultimo, fino a `jumps` volte, con il
+danno × `falloff` a ogni salto; istantaneo (nessun proiettile in volo), lascia per 0,15 s un
+`ChainBolt` che la presentazione disegna come scintille a zigzag; ogni colpito prende una scossa
+(`slow`, `slow_s`, la stessa regola di combinazione dell'onda). Gli upgrade di danno, cadenza e
+portata valgono anche qui (la portata allunga anche i salti) e "+1 proiettile" dà un salto in
+più. Con quattro compagni e tre posti la squadra non li ha più tutti: la sonda ha mostrato che
+quella senza Ondino (Foglin + Fiammetto + Tuonny) perdeva 8 run su 9 verso il minuto 4 con la
+prima taratura (10 danni ogni 1,6 s, 3 salti da 60 px, nessuna scossa); con 12 ogni 1,3 s, 5
+salti da 70 px e la scossa (60% per 0,8 s) vince 6 run su 10 e perde più tardi (minuti 6–9),
+mentre ogni squadra con Ondino vince. Menu a quattro carte (tasti 1–4), carta "Nuovo compagno:
+Tuonny".
+
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale
 come seconda build separata dopo la P1.

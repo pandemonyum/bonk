@@ -62,5 +62,29 @@
                 sprite: "sprites/leaf.png",
             )),
         ),
+        (
+            id: "spark_chain",
+            // primo colpo un po' sotto la palla di fuoco (9 al secondo contro 11), ma i salti
+            // colpiscono la calca. Prima taratura 10 ogni 1,6 s con 3 salti da 60 px: la squadra
+            // senza Ondino (Foglin + Fiammetto + Tuonny) perdeva 8 run su 9 verso il minuto 4
+            damage: 12.0,
+            interval_s: 1.3,
+            // distanza massima del primo bersaglio da Tuonny
+            range: 130.0,
+            pattern: Chain((
+                // fino a 5 nemici in più, ognuno entro 70 px dal precedente, -20% a salto:
+                // 12 + 9,6 + 7,7 + 6,1 + 4,9 + 3,9 su un gruppo, 12 su un nemico isolato
+                jumps: 5,
+                jump_range: 70.0,
+                falloff: 0.8,
+                // scossa: i colpiti vanno al 60% della velocità per 0,8 s (l'onda di Ondino: 55%
+                // per 1,5 s). Senza, la squadra senza Ondino perdeva ancora 6 run su 10
+                slow: 0.6,
+                slow_s: 0.8,
+                // dalla stella sulla coda del gatto del foglio 40×36
+                muzzle_height: 16.0,
+                sprite: "sprites/spark.png",
+            )),
+        ),
     ],
 )

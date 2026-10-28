@@ -56,6 +56,7 @@ pub fn pattern_label(pattern: &AttackPattern) -> &'static str {
         AttackPattern::Projectile(_) => "Proiettile sul nemico vicino",
         AttackPattern::Pulse(_) => "Onda attorno a te: colpisce e rallenta",
         AttackPattern::Orbit(_) => "Foglie che ti girano attorno",
+        AttackPattern::Chain(_) => "Fulmine che salta tra i nemici",
     }
 }
 
@@ -64,6 +65,7 @@ pub fn element_label(element: Element) -> (&'static str, Color) {
         Element::Fire => ("Fuoco", Color::srgb_u8(0xf0, 0x8a, 0x3c)),
         Element::Water => ("Acqua", Color::srgb_u8(0x6c, 0xc7, 0xc2)),
         Element::Nature => ("Natura", Color::srgb_u8(0xb8, 0xe0, 0x5a)),
+        Element::Electric => ("Elettro", Color::srgb_u8(0xff, 0xd6, 0x5c)),
     }
 }
 
@@ -187,7 +189,7 @@ fn spawn_menu(
         .id();
     let hint = commands
         .spawn((
-            Text::new("1–3 o clic per scegliere · WASD o frecce per muoverti, Esc per la pausa"),
+            Text::new("1–4 o clic per scegliere · WASD o frecce per muoverti, Esc per la pausa"),
             fonts::hud(16.0),
             TextColor(Color::srgba(1.0, 1.0, 1.0, 0.6)),
         ))
@@ -341,10 +343,11 @@ fn choose_with_keys(
     mut choice: ResMut<MenuChoice>,
     mut start: StartRun,
 ) {
-    const KEYS: [[KeyCode; 2]; 3] = [
+    const KEYS: [[KeyCode; 2]; 4] = [
         [KeyCode::Digit1, KeyCode::Numpad1],
         [KeyCode::Digit2, KeyCode::Numpad2],
         [KeyCode::Digit3, KeyCode::Numpad3],
+        [KeyCode::Digit4, KeyCode::Numpad4],
     ];
     let ids: Vec<&str> = config.companions.iter().map(|c| c.id.as_str()).collect();
     let mut index = ids.iter().position(|id| *id == choice.0).unwrap_or(0);

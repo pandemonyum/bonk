@@ -13,6 +13,30 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "compagni dell'utente e Tuonny" (2026-10-28)
+
+```text
+Task: ART-P4 + P-TUONNY - compagni animati dal foglio dell'utente; Tuonny con fulmine a catena
+Owner: orchestrator + pixel-art-director (fogli, ritratti, scintilla) + gameplay-engineer
+       (companion_anim, chain) + game-designer (valori del fulmine, sonde)
+Stato: DONE (commit dei tre compagni 1fb78a9, poi Tuonny)
+File (Tuonny): src/gameplay/chain.rs (nuovo), src/gameplay/{mod,combat,companions,upgrades}.rs,
+  src/gameplay/upgrades/{modifiers,rules}.rs, src/data/schema.rs, src/data/schema/attacks.rs,
+  src/data/validate/{attacks,progression}.rs, src/presentation/{attacks,abilities,
+  companion_anim,icons,menu}.rs, game-data/{attacks,companions,upgrades}.ron,
+  tests/sim/{chain,formulas,balance,main}.rs, assets/sprites/spark.png (+ .px),
+  docs/{GDD,DECISIONS,BACKLOG,PROGRESS,QA_REPORT,ART_BIBLE}.md, docs/evidence/tuonny-*.png
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1   OK (fmt, clippy, 174 unit + 86 integrazione, 48 PNG e 2 font)
+  sonda giocatore medio con la composizione della squadra: vedi GDD, Misure (D-053)
+  gioco vero: menu a quattro carte con il tasto 4, run con Tuonny e fulmini a zigzag
+Problemi trovati e risolti: la squadra senza Ondino crollava al minuto 4 (fulmine rafforzato e
+  scossa); formula della cadenza: il fulmine istantaneo colpisce anche all'istante 0
+Rischi noti: squadra senza Ondino ancora più dura delle altre (voluto, da sentire con una
+  persona); compagni grandi quanto il player (D-052)
+Prossimo task: prova umana, P1
+```
+
 ## Report tranche "mappa" (2026-10-28)
 
 ```text

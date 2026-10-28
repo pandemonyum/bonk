@@ -14,6 +14,7 @@ use super::enemy_anim::{COLUMNS, cycle_frame, once_frame};
 use super::sprites::data_sprite;
 use crate::data::{DataId, GameConfig};
 use crate::gameplay::attacks::AutoAttack;
+use crate::gameplay::chain::ChainAttack;
 use crate::gameplay::companions::Companion;
 use crate::gameplay::kinematics::{Position, PreviousPosition};
 use crate::gameplay::pulse::PulseAttack;
@@ -160,14 +161,18 @@ fn animate_companions(
             &PreviousPosition,
             Option<&AutoAttack>,
             Option<&PulseAttack>,
+            Option<&ChainAttack>,
             &mut CompanionAnimation,
             &mut Sprite,
         ),
         With<Companion>,
     >,
 ) {
-    for (position, previous, shots, wave, mut anim, mut sprite) in &mut companions {
-        let charge = shots.map(|a| a.charge).or(wave.map(|w| w.charge));
+    for (position, previous, shots, wave, bolt, mut anim, mut sprite) in &mut companions {
+        let charge = shots
+            .map(|a| a.charge)
+            .or(wave.map(|w| w.charge))
+            .or(bolt.map(|c| c.charge));
         advance(
             &mut anim,
             position.0 - previous.0,

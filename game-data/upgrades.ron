@@ -26,7 +26,7 @@
         (
             id: "ember_multishot",
             name: "Scintille gemelle",
-            description: "+1 proiettile per raffica, o +1 foglia in orbita",
+            description: "+1 proiettile per raffica, +1 foglia in orbita o +1 salto del fulmine",
             rarity: Rare,
             max_stack: 3,
             // prima un po' di potenza, poi la quantità
@@ -126,6 +126,15 @@
             max_stack: 1,
             requires: [],
             effect: JoinCompanion("sprout"),
+        ),
+        (
+            id: "join_spark",
+            name: "Nuovo compagno: Tuonny",
+            description: "Tuonny si unisce: un fulmine che salta da un nemico all'altro",
+            rarity: Common,
+            max_stack: 1,
+            requires: [],
+            effect: JoinCompanion("spark"),
         ),
         (
             id: "snack",

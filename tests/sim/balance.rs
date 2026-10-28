@@ -303,7 +303,14 @@ fn print_survival_medium_player() {
         let level = app.world().resource::<Progression>().level;
         let stats = app.world().resource::<RunStats>().clone();
         let world = app.world_mut();
-        let party = world.query::<&Companion>().iter(world).count();
+        let mut members: Vec<(usize, String)> = world
+            .query::<(&Companion, &pixel_monster_survivor::data::DataId)>()
+            .iter(world)
+            .map(|(c, id)| (c.slot, id.0.clone()))
+            .collect();
+        members.sort();
+        let party: Vec<String> = members.into_iter().map(|(_, id)| id).collect();
+        let party = party.join("+");
         let fight = boss_at.map_or("  -  ".to_string(), |b| format!("{:5.0} s", end - b));
         let lv = |l: Option<u32>| l.map_or(" -".to_string(), |l| format!("{l:2}"));
         if phase == RunPhase::Victory {

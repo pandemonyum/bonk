@@ -96,6 +96,26 @@ pub(super) fn check(r: &mut Report, config: &GameConfig) {
                     ));
                 }
             }
+            AttackPattern::Chain(c) => {
+                r.positive(&at("pattern.jump_range"), c.jump_range);
+                if !(c.falloff > 0.0 && c.falloff <= 1.0) {
+                    r.0.push(format!(
+                        "{} = {}: è il danno di un salto rispetto al precedente, serve tra 0 \
+                         (escluso) e 1",
+                        at("pattern.falloff"),
+                        c.falloff
+                    ));
+                }
+                r.non_negative(&at("pattern.muzzle_height"), c.muzzle_height);
+                if !(c.slow > 0.0 && c.slow <= 1.0) {
+                    r.0.push(format!(
+                        "{} = {}: è la frazione di velocità che resta, serve tra 0 (escluso) e 1",
+                        at("pattern.slow"),
+                        c.slow
+                    ));
+                }
+                r.non_negative(&at("pattern.slow_s"), c.slow_s);
+            }
         }
     }
 }

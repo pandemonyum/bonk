@@ -1,4 +1,4 @@
-//! P0.7, formule misurate nella simulazione: danno per colpo e cadenza dei tre pattern di
+//! P0.7, formule misurate nella simulazione: danno per colpo e cadenza dei quattro pattern di
 //! attacco con gli stack di danno e di cadenza, livelli dall'XP raccolta. I valori attesi si
 //! calcolano dai dati (`GameConfig`) con le formule del GDD (percentuali sommate sul valore base,
 //! XP per livello `base + per_level × (livello − 1)`), non dai componenti che il codice ha già
@@ -28,6 +28,7 @@ enum Pattern {
     Projectile,
     Pulse,
     Orbit,
+    Chain,
 }
 
 /// Indice dell'upgrade con l'effetto cercato e valore per stack.
@@ -64,6 +65,7 @@ fn uses(pattern: Pattern) -> impl Fn(&AttackData) -> bool {
         Pattern::Projectile => a.projectile().is_some(),
         Pattern::Pulse => a.pulse().is_some(),
         Pattern::Orbit => a.orbit().is_some(),
+        Pattern::Chain => a.chain().is_some(),
     }
 }
 
@@ -92,7 +94,7 @@ fn against_dummy(pattern: Pattern, damage_stacks: u32, rate_stacks: u32) -> (Mea
 
     let feet = player_position(&mut app);
     let (center, distance) = match pattern {
-        Pattern::Projectile => (feet, attack.range * 0.5),
+        Pattern::Projectile | Pattern::Chain => (feet, attack.range * 0.5),
         Pattern::Pulse => {
             let p = attack.pulse().unwrap();
             (feet + Vec2::Y * p.center_height, attack.range * 0.5)
@@ -134,7 +136,12 @@ fn damage_per_hit_and_cadence_follow_the_stacks_for_every_pattern() {
     let config = GameConfig::embedded();
     let (_, damage_pct) = damage_upgrade(&config);
     let (_, rate_pct) = rate_upgrade(&config);
-    for pattern in [Pattern::Projectile, Pattern::Pulse, Pattern::Orbit] {
+    for pattern in [
+        Pattern::Projectile,
+        Pattern::Pulse,
+        Pattern::Orbit,
+        Pattern::Chain,
+    ] {
         for (damage_stacks, rate_stacks) in [(0, 0), (2, 0), (0, 2), (3, 3)] {
             let (m, attack) = against_dummy(pattern, damage_stacks, rate_stacks);
             let case = format!("{pattern:?} danno×{damage_stacks} cadenza×{rate_stacks}");
@@ -150,8 +157,12 @@ fn damage_per_hit_and_cadence_follow_the_stacks_for_every_pattern() {
             );
             let hits = m.hits as f32;
             match pattern {
-                Pattern::Projectile | Pattern::Pulse => {
-                    let wanted = WINDOW_S / interval;
+                Pattern::Projectile | Pattern::Pulse | Pattern::Chain => {
+                    // il fulmine è istantaneo: colpisce subito e poi a ogni intervallo; gli
+                    // altri devono arrivare (volo, fronte), quindi il primo e l'ultimo cadono ai
+                    // bordi della misura
+                    let instant = if pattern == Pattern::Chain { 1.0 } else { 0.0 };
+                    let wanted = instant + WINDOW_S / interval;
                     assert!(
                         (hits - wanted).abs() <= 1.0,
                         "{case}: {hits} colpi in {WINDOW_S} s, attesi {wanted:.1} (intervallo {interval} s)"

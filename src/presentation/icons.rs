@@ -37,6 +37,7 @@ pub fn element_icon_path(element: Element) -> &'static str {
         Element::Fire => "ui/icon_fire.png",
         Element::Water => "ui/icon_water.png",
         Element::Nature => "ui/icon_nature.png",
+        Element::Electric => "ui/icon_electric.png",
     }
 }
 

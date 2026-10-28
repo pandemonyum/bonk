@@ -163,6 +163,17 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/spark.png",
+      "kind": "sprite",
+      "size": [
+        6,
+        6
+      ],
+      "frames": 1,
+      "source": "assets-src/sprites/spark.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "sprites/spark_sheet.png",
       "kind": "sprite",
       "size": [

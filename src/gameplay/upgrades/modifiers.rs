@@ -4,8 +4,11 @@
 use bevy::prelude::*;
 
 use super::UpgradeStacks;
-use crate::data::schema::{AttackData, Effect, OrbitData, ProjectileData, PulseData, UpgradeData};
+use crate::data::schema::{
+    AttackData, ChainData, Effect, OrbitData, ProjectileData, PulseData, UpgradeData,
+};
 use crate::gameplay::attacks::AutoAttack;
+use crate::gameplay::chain::ChainAttack;
 use crate::gameplay::orbit::OrbitAttack;
 use crate::gameplay::pulse::PulseAttack;
 
@@ -114,6 +117,18 @@ impl Modifiers {
         attack.rehit_interval *= self.interval;
         attack.radius *= self.range;
         attack.leaves = attack.leaves.saturating_add(self.extra_projectiles);
+        attack
+    }
+
+    /// Fulmine: danno, cadenza, portata del primo bersaglio e dei salti, salti in più (come i
+    /// proiettili in più di una raffica).
+    pub fn chain(&self, data: &AttackData, c: &ChainData) -> ChainAttack {
+        let mut attack = ChainAttack::from_data(data, c);
+        attack.damage *= self.damage;
+        attack.interval *= self.interval;
+        attack.range *= self.range;
+        attack.jump_range *= self.range;
+        attack.jumps = attack.jumps.saturating_add(self.extra_projectiles);
         attack
     }
 }

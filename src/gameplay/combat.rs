@@ -8,6 +8,7 @@ use bevy::prelude::*;
 
 use super::SimSet;
 use super::attacks::fire_auto_attacks;
+use super::chain::{fade_bolts, fire_chains};
 use super::enemies::Enemy;
 use super::kinematics::Position;
 use super::orbit::{leaf_hits, move_leaves, sync_leaves};
@@ -107,6 +108,7 @@ impl Plugin for CombatPlugin {
                 (
                     fire_auto_attacks,
                     fire_pulses,
+                    fire_chains,
                     projectile_hits,
                     pulse_hits,
                     leaf_hits,
@@ -115,6 +117,7 @@ impl Plugin for CombatPlugin {
                     expire_projectiles,
                     fade_hit_flash,
                     wear_off_slow,
+                    fade_bolts,
                 )
                     .chain()
                     .in_set(CombatSteps)

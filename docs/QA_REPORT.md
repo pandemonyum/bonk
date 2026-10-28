@@ -1,5 +1,16 @@
 # QA REPORT
 
+## 2026-10-28 — Compagni dell'utente e Tuonny
+
+| Controllo | Esito | Prova |
+|---|---|---|
+| Fulmine a catena | colpisce il gruppo una volta ciascuno, −20% a salto, si ferma ai salti e alla portata, scossa sui colpiti, aspetta un bersaglio, "+1 proiettile" = +1 salto | `tests/sim/chain.rs`, test di `gameplay::chain` |
+| Formula | danno per colpo e cadenza del fulmine con gli stack (istantaneo: +1 colpo all'istante 0) | `tests/sim/formulas.rs` |
+| Validazione | salto, calo e scossa nei limiti | `validate/attacks.rs` |
+| Menu e run | quattro carte (tasti 1–4), Tuonny scelto col 4, fulmini a zigzag tra i nemici | `docs/evidence/tuonny-menu.png`, `tuonny-fulmini.png` |
+| Bilanciamento | Tuonny 6/8, Foglin 6/8 dopo la taratura (prima 4/8 e 3/8) | GDD, Misure |
+| Gate | 174 unit + 86 integrazione, 48 PNG | `./scripts/check.ps1` |
+
 ## 2026-10-28 — Mappa nello stile nuovo
 
 | Controllo | Esito | Prova |

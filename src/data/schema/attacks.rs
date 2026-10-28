@@ -1,5 +1,5 @@
 //! Schema di `attacks.ron`: campi comuni e parametri di ogni pattern (proiettile, onda,
-//! orbita).
+//! orbita, fulmine a catena).
 
 use serde::Deserialize;
 
@@ -10,10 +10,11 @@ use serde::Deserialize;
 pub struct AttackData {
     pub id: String,
     pub damage: f32,
-    /// Proiettile e onda: secondi tra due attacchi. Orbita: secondi prima che le foglie possano
-    /// colpire di nuovo lo stesso nemico.
+    /// Proiettile, onda e fulmine: secondi tra due attacchi. Orbita: secondi prima che le foglie
+    /// possano colpire di nuovo lo stesso nemico.
     pub interval_s: f32,
-    /// Proiettile: distanza massima del bersaglio. Onda: raggio finale. Orbita: raggio dell'orbita.
+    /// Proiettile e fulmine: distanza massima del primo bersaglio. Onda: raggio finale. Orbita:
+    /// raggio dell'orbita.
     pub range: f32,
     pub pattern: AttackPattern,
 }
@@ -40,12 +41,20 @@ impl AttackData {
         }
     }
 
-    /// Sprite dei colpi (proiettile, goccia dell'onda, foglia).
+    pub fn chain(&self) -> Option<&ChainData> {
+        match &self.pattern {
+            AttackPattern::Chain(c) => Some(c),
+            _ => None,
+        }
+    }
+
+    /// Sprite dei colpi (proiettile, goccia dell'onda, foglia, scintilla del fulmine).
     pub fn sprite(&self) -> &str {
         match &self.pattern {
             AttackPattern::Projectile(p) => &p.sprite,
             AttackPattern::Pulse(p) => &p.sprite,
             AttackPattern::Orbit(o) => &o.sprite,
+            AttackPattern::Chain(c) => &c.sprite,
         }
     }
 }
@@ -58,6 +67,8 @@ pub enum AttackPattern {
     Pulse(PulseData),
     /// Foglie che girano attorno al player a distanza `range`.
     Orbit(OrbitData),
+    /// Fulmine sul nemico più vicino entro `range` che salta ai vicini, più debole a ogni salto.
+    Chain(ChainData),
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -103,6 +114,24 @@ pub struct OrbitData {
     pub radius: f32,
     /// Altezza del centro dell'orbita sopra i piedi del player.
     pub center_height: f32,
+    pub sprite: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ChainData {
+    /// Salti dopo il primo bersaglio, ognuno su un nemico non ancora colpito.
+    pub jumps: u32,
+    /// Distanza massima di un salto dal bersaglio precedente.
+    pub jump_range: f32,
+    /// Danno di ogni salto rispetto al precedente (0,8 = −20% a salto).
+    pub falloff: f32,
+    /// Scossa: frazione della velocità che resta ai nemici colpiti e per quanti secondi.
+    pub slow: f32,
+    pub slow_s: f32,
+    /// Altezza da cui parte il fulmine sopra i piedi di chi attacca.
+    pub muzzle_height: f32,
+    /// Sprite delle scintille che disegnano il fulmine.
     pub sprite: String,
 }
 

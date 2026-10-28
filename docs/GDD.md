@@ -41,9 +41,11 @@ Testi in Tiny5 (numeri, etichette) e Pixelify Sans (titoli, frasi), D-044.
 | Evocatore | 75 px/s, 100 HP, 0,75 s di invulnerabilità dopo un colpo | attraversa lo schermo in ~6 s; il tempo di uscire dalla calca (P0.6: da 0,6) |
 | Arena | 4096×4096 px, bordo di siepe | ~55 s per attraversarla: spazio per fuggire senza perdersi |
 | Simulazione | 60 Hz fissi | riproducibile con seed |
-| Brasa (fuoco, iniziale) | proiettile: 12 danni, 1 colpo ogni 1,1 s, gittata 150 px, 220 px/s per 0,85 s | valori dell'handoff §7: il bersaglio singolo più lontano |
-| Gocci (acqua) | onda: 8 danni a tutti entro 56 px ogni 2 s, fronte a 160 px/s, nemici al 55% di velocità per 1,5 s | difesa della calca: meno danno, tanti bersagli, rallenta chi ti stringe |
-| Frond (natura) | 3 foglie a 34 px, mezzo giro al secondo, 6 danni, stesso nemico al massimo ogni 0,6 s | danno continuo appena fuori dal contatto: tiene lontani i più vicini |
+| Fiammetto (fuoco) | proiettile: 12 danni, 1 colpo ogni 1,1 s, gittata 150 px, 220 px/s per 0,85 s | valori dell'handoff §7: il bersaglio singolo più lontano |
+| Ondino (acqua) | onda: 8 danni a tutti entro 56 px ogni 2 s, fronte a 160 px/s, nemici al 55% di velocità per 1,5 s | difesa della calca: meno danno, tanti bersagli, rallenta chi ti stringe |
+| Foglin (natura) | 3 foglie a 34 px, mezzo giro al secondo, 6 danni, stesso nemico al massimo ogni 0,6 s | danno continuo appena fuori dal contatto: tiene lontani i più vicini |
+| Tuonny (elettro) | fulmine ogni 1,3 s sul nemico più vicino entro 130 px: 12 danni, poi fino a 5 salti entro 70 px, −20% a salto; scossa: colpiti al 60% della velocità per 0,8 s | spazza la calca come l'onda ma da lontano; regge la squadra senza Ondino (D-053) |
+| Nomi | Fiammetto, Ondino, Foglin e Tuonny dal foglio dell'utente (D-052); le misure più vecchie qui sotto li chiamano Brasa, Gocci e Frond | — |
 | Squadra | 3 posti (`player.ron`): dietro, dietro-sinistra e dietro-destra a ±55°; scia 18–22 px, max 120 px/s | tre compagni visibili senza sovrapporsi né coprire il player |
 | Ostacoli | densità 1,2%, zona libera 128 px, 60% alberi sull'erba | ~650 per arena, mai un vicolo cieco |
 
@@ -86,8 +88,7 @@ tutto si ricalcola dai dati base più gli stack a ogni scelta.
 | Germoglio | rigenera 0,3 HP/s (P0.7, da 0,5) | non comune | 3 | — |
 | Passo leggero | movimento +10% | non comune | 3 | — |
 | Richiamo | raggio di raccolta +25% | comune | 3 | — |
-| Nuovo compagno: Gocci | Gocci entra nel primo posto libero, con gli upgrade già presi | non comune | 1 | un posto libero |
-| Nuovo compagno: Frond | Frond entra nel primo posto libero, con gli upgrade già presi | non comune | 1 | un posto libero |
+| Nuovo compagno: Fiammetto, Ondino, Foglin, Tuonny | il compagno entra nel primo posto libero, con gli upgrade già presi; mai quello che hai già | comune | 1 | un posto libero |
 | Merenda | cura 30 HP, nessuno stack permanente | comune | 99 | — (il draft non resta vuoto) |
 
 Danno e cadenza valgono per tutti i pattern (per le foglie la "cadenza" è l'intervallo tra due
@@ -120,6 +121,13 @@ quando di solito la squadra ha un secondo compagno.
 | Carte compagno | comuni (P0.6, prima non comuni) | la squadra arriva nei primi livelli |
 
 ## Misure
+
+- **Tuonny (`print_survival_medium_player`, 8 seed per partenza, D-053):** con la prima
+  taratura del fulmine Tuonny 4/8 e Foglin 3/8: ogni sconfitta era della squadra senza Ondino
+  (Foglin + Fiammetto + Tuonny, 8 su 9 perse verso il minuto 4). Con 12 danni ogni 1,3 s, 5
+  salti da 70 px e la scossa: Tuonny 6/8, Foglin 6/8; la squadra senza Ondino vince 6 su 10 e
+  perde fra 5:52 e 9:17; con Ondino sempre vittoria. Fiammetto 7/8 e Ondino 8/8 misurati con
+  la prima taratura.
 
 - **ART-P2, nemici in proporzione al player (`print_survival_medium_player`, 24 run):** con
   hurtbox, separazione e contatto alzati per tutti 16/24 vittorie (morti fra 4:17 e 7:24); con
@@ -185,13 +193,14 @@ quando di solito la squadra ha un secondo compagno.
 
 ## Contenuti MVP (bozza, da bilanciare in P0)
 
-**Compagni iniziali** (nomi di lavorazione, l'art director propone quelli definitivi):
+**Compagni** (nomi dell'utente, D-052; si sceglie quello iniziale nel menu):
 
 | Compagno | Elemento | Attacco base | Parametri chiave |
 |---|---|---|---|
-| Brasa | fuoco | proiettile mirato al nemico più vicino | danno, cadenza, n. proiettili, perforazione |
-| Gocci | acqua | onda in area attorno al player | danno, cadenza, raggio, rallentamento |
-| Frond | natura | foglie orbitanti | danno, n. foglie, raggio orbita, velocità |
+| Fiammetto | fuoco | proiettile mirato al nemico più vicino | danno, cadenza, n. proiettili, perforazione |
+| Ondino | acqua | onda in area attorno al player | danno, cadenza, raggio, rallentamento |
+| Foglin | natura | foglie orbitanti | danno, n. foglie, raggio orbita, velocità |
+| Tuonny | elettro | fulmine che salta tra i nemici | danno, cadenza, n. salti, portata del salto |
 
 Élite e boss della P0.6 sono in `enemies.ron` (sprite segnaposto in attesa dell'art pass).
 

@@ -154,6 +154,7 @@ pub enum Element {
     Fire,
     Water,
     Nature,
+    Electric,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
