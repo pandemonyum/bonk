@@ -5,9 +5,11 @@ leggibile in massa. Riferimento di stile: l'immagine portata dall'utente il 2026
 **stile**: densità di dettaglio, rampe di colore, contorni, prato, layout dell'HUD e delle
 carte). **Mai** riprodurne i contenuti: niente creature, allenatore col cappellino, edifici,
 sfere, nomi o UI di Pokémon o di altri giochi. La moodboard non è nel repository e non va
-ritagliata.
+ritagliata. Eccezione: il player è il personaggio fornito dall'utente, che ne dichiara i
+diritti e accetta il rischio di somiglianza (sezione "Player", D-050).
 
-Anteprime di questa versione (composte da `scripts/preview-scene.py`, x3):
+Anteprime di questa versione (composte da `scripts/preview-scene.py`, x3; il foglio del player
+x4 in `art-preview-player-sheet.png`):
 `docs/evidence/art-preview-scene.png` (gioco + HUD), `-draft.png` (carte), `-select.png`
 (scelta del compagno), `-boss.png` (boss, élite, segni di pericolo, barra del boss),
 `-tiles.png` (mappa di prova e tileset). Prova nel gioco: `docs/evidence/art-v1-gioco.png`
@@ -39,7 +41,7 @@ sono ancora quelli del codice attuale, le icone nuove non sono collegate).
 |---|---|---|---|
 | Risoluzione virtuale | 480×270 | = | upscaling intero nearest, letterbox |
 | Tile | 16×16 | = | tileset a colonna (array texture), 42 tile |
-| Evocatore (player) | 16×21 | **16×24** | 3 righe in più: viso con occhi e gote, cintura, stivali e ombra; stessa larghezza (ingombro invariato) |
+| Evocatore (player) | 16×21 | **foglio 144×304, fotogrammi 36×38** | 4×8 fotogrammi animati, personaggio dell'utente (D-050); in piedi 22–23×30 visibili più l'ombra, centrato tra le colonne 17 e 18; ingombro e limiti dell'arena sono del codice |
 | Brasa | 16×17 | **16×20** | punta di fiamma più alta e pancia; resta la più alta e stretta dei tre |
 | Gocci | 16×14 | **18×18** | la bolla è la più larga dei tre; spazio per il ricciolo della cresta |
 | Frond | 16×17 | **16×20** | foglie più grandi con nervatura |
@@ -56,7 +58,8 @@ sono ancora quelli del codice attuale, le icone nuove non sono collegate).
 | Roccia | 16×10 | **16×12** | quattro toni e ombra; larghezza = impronta (r=7) |
 | Albero | 24×26 | **32×32** | chioma a ciuffi; impronta solo sul tronco |
 
-Massimi: comuni ≤ 20 px, compagni e player ≤ 24, alberi ≤ 32, boss ≤ 64 (validato). A
+Massimi: comuni ≤ 20 px, compagni ≤ 24, fotogramma del player 36×38, alberi ≤ 32, boss ≤ 64
+(validato; i fogli animati fotogramma per fotogramma). A
 480×270 una creatura comune resta sotto il 6% dell'altezza dello schermo: le orde restano
 leggibili. Verificato sull'anteprima con 75 nemici; lo screenshot del gioco (seed 20, 1:45 di
 gioco) ha un'orda piccola: la prova con 200 nemici nel gioco vero resta da fare.
@@ -88,6 +91,71 @@ rampe. Ogni rampa va dal riflesso allo scuro.
 
 Feedback di colpo: lo sprite viene moltiplicato per (1, 0.45, 0.45) per 0,12 s (codice di
 presentazione); con l'ombra cotta anche l'ombra si arrossa per quel tempo, effetto accettato.
+
+## Player: foglio animato `sprites/summoner_sheet.png` (D-050)
+
+Il personaggio è quello del foglio di animazioni generato e fornito dall'utente, che ne
+dichiara i diritti e ne ha chiesto la riproduzione identica. Il rischio di somiglianza con
+personaggi Nintendo è accettato dall'utente (D-050). Il personaggio ha cappello rosso con
+stemma bianco, capelli neri a ciuffi, occhi grandi, maniche corte rosse, salopette blu con
+bretelle, guanti e pugni grandi, scarpe marroni.
+
+Sorgente: `assets-src/sprites/summoner_sheet.px`, con la **palette propria**
+`summoner_sheet.palette.txt`:
+- 24 colori dal foglio dell'utente, dove ogni gruppo di sfumature quasi identiche del
+  generatore è unito nel suo colore più usato;
+- l'ombra a terra `9` del progetto.
+
+Il problema del foglio originale era la misura: ogni fotogramma era disegnato a una scala un
+po' diversa (le schiene e i profili fino al 17% più grandi del fronte) e le gambe del cammino
+non si alternavano in modo chiaro. Regole del ridisegno:
+
+- **Un modello per direzione.** Il fermo 0 di fronte, di schiena e di profilo è il master; ogni
+  altro fotogramma della stessa direzione ne deriva, e testa, busto e braccia non cambiano
+  mai misura né forma. I tre master hanno la stessa altezza (cappello dalla riga 7, suole
+  sulla riga 36). Schiena e profilo sono stati ridotti togliendo righe uniformi (cupola del
+  cappello, capelli), senza ricampionare i dettagli, e ripuliti: contorno unico `k`, pixel
+  isolati del generatore tolti, viso e occhi intatti.
+- **Ombra fissa.** L'ombra a terra è quella del master in tutti i fotogrammi in piedi, più
+  l'impronta della scarpa alzata; non si sposta con i piedi.
+- **Pose dell'utente.**
+  - Colpito 1–2 e sconfitto 0–3 sono i suoi fotogrammi, ripuliti. Erano già alla scala del
+    master, tranne il colpito 1, ridotto all'altezza del master.
+  - Colpito 0 e 3 derivano dal master.
+
+**Contratto con il codice** (`presentation::player_anim`):
+
+| Riga | Animazione | Fotogrammi |
+|---|---|---|
+| 0 | fermo giù (di fronte) | 0 master, 1–2 respiro (testa e spalle giù di 1 px, braccia e gambe ferme), 3 battito di ciglia |
+| 1 | fermo su (di schiena) | come la riga 0; il 3 è uguale allo 0 |
+| 2 | fermo a destra | come la riga 0, battito di ciglia sul 3; la sinistra è questa riga specchiata dal gioco |
+| 3 | cammino giù | 0 contatto: piede sinistro a terra spostato di 1 px verso il centro, destro alzato di 3 px, pugno destro alzato di 2 px, braccio sinistro indietro di 1 px; 1 passaggio: piedi sotto il corpo, corpo su di 1 px (gambe una riga più lunghe); 2 contatto opposto; 3 passaggio |
+| 4 | cammino su | come la riga 3 di schiena |
+| 5 | cammino a destra | 0 contatto (passo lungo, gamba vicina avanti, braccio vicino indietro), 1 passaggio (gambe incrociate, gamba lontana piegata dietro, corpo su di 1 px), 2 contatto opposto (braccio vicino avanti), 3 passaggio (gamba vicina piegata dietro) |
+| 6 | colpito | 0 spavento (pugni su, bocca aperta), 1 contraccolpo di tre quarti, 2 si raggomitola, 3 di nuovo in piedi |
+| 7 | sconfitto | 0 stordito, 1 si accascia, 2 carponi, 3 a terra a pancia in giù (resta a schermo) |
+
+Regole del foglio:
+- **Misure:** fotogrammi 36×38, 4 colonne, 8 righe (144×304).
+- **Base:** riga 37 = linea di terra con l'ombra, suole e corpo a terra sulla riga 36; ogni
+  fotogramma tocca la riga di base (controllato da `validate-assets.py`).
+- **Centro:** ancora in basso al centro, corpo centrato tra le colonne 17 e 18 (piedi del
+  fronte e della schiena sulle colonne 11–24/25; il master del fronte è largo 23, quindi
+  mezzo pixel di scarto è del disegno). Il cappello parte dalla riga 7, dalla 6 nei passaggi.
+- **Colori e alpha:** solo i colori della palette propria (controllati da
+  `validate-assets.py`, che legge `palette` dal manifest), alpha 0 o 255.
+- **Tempi del codice:** fermo 3 fotogrammi/s, cammino 8/s, colpito 0,32 s, caduta 0,7 s. Il
+  colpito finisce in piedi perché subito dopo il gioco riprende fermo o cammino.
+
+Formato del sorgente (sezione "Pipeline"):
+- intestazione con `frame: 36x38`, `columns: 4`, `rows: <nomi>`, `anchor: bottom_center`,
+  `palette: summoner_sheet.palette.txt` e `license:`;
+- poi un blocco `@ <riga> <colonna>` di 38 righe per fotogramma;
+- `|` a metà riga (dopo la colonna 17) è la guida del centro, `#` è un commento.
+
+Anteprime di controllo (non nel repository): `screenshots/anteprima-v2-animazioni.gif`,
+`-foglio.png`, `-confronto.png`. Nel repository c'è `docs/evidence/art-preview-player-sheet.png`.
 
 ## Tileset `meadow_tileset.png` (indici in `src/world/tiles.rs`)
 
@@ -143,12 +211,15 @@ dello script `preview-scene.py`.
 
 1. Sprite e icone: file `.px` in `assets-src/sprites/` e `assets-src/ui/` (intestazione `out:`
    e `mirror:`, poi la griglia; con `mirror: true` si scrive solo la metà sinistra). Commento
-   in testa: cosa rappresenta, dimensioni, scelte di forma e colore.
+   in testa: cosa rappresenta, dimensioni, scelte di forma e colore. Fogli animati: `frame:`,
+   `columns:`, `rows:` (e `anchor:`) nell'intestazione e un blocco `@ <riga> <colonna>` per
+   fotogramma; il build li affianca in un solo PNG.
 2. `python scripts/build-assets.py` → PNG in `assets/` + `assets/manifest.json` (tipo `sprite`,
-   `ui` o `tileset`).
-3. `python scripts/validate-assets.py`: manifest, dimensioni (sprite ≤ 64, UI ≤ 32), naming,
-   solo colori della palette, alpha 0/255, licenza; avvisi se un upgrade o un compagno dei dati
-   non ha icona o ritratto.
+   `ui` o `tileset`; per i fogli anche `frame`, `frames`, `columns`, `rows`, `anchor`).
+3. `python scripts/validate-assets.py`: manifest, dimensioni (sprite ≤ 64, UI ≤ 32; i fogli
+   fotogramma per fotogramma, misura multipla intera del fotogramma, nessun fotogramma vuoto,
+   riga di base toccata con l'ancora in basso), naming, solo colori della palette, alpha
+   0/255, licenza; avvisi se un upgrade o un compagno dei dati non ha icona o ritratto.
 4. Anteprima senza compilare: `python scripts/preview-scene.py` → `docs/evidence/art-preview-*`.
 5. Verifica a schermo nel gioco: screenshot + `python scripts/check-pixel-grid.py`.
 
@@ -168,9 +239,17 @@ griglia `.px`, che resta l'unica sorgente.
 - v1: alberi con ciuffi separati da linee scure regolari sembravano un guscio di tartaruga;
   meglio separare i ciuffi con un bordo di luce in alto e ombra tonale sotto.
 - v1: fiori in ogni tile fanno rumore; meglio ciuffi di tre fiori raccolti a macchie.
+- Player (D-050): un foglio generato con le pose giuste ma la scala che cambia da un
+  fotogramma all'altro fa "pompare" il personaggio e nasconde il passo. Regola: un master per
+  direzione, ogni fotogramma ne deriva, e le tre direzioni hanno la stessa altezza.
+- Player: a 1x il cammino di fronte si legge solo se i piedi sono chiaramente diversi nel
+  contatto (uno a terra, l'altro su di 3 px) e il pugno opposto sale; 1–2 px non bastano.
+- Player: l'ombra a terra va rimessa dal master dopo ogni spostamento dei piedi, altrimenti
+  restano pixel d'ombra isolati o l'ombra segue il piede.
 
 ## Da fare
 
-Animazioni idle/movimento 2–4 frame (servono più frame nei `.px` e nel manifest); nomi
+Animazioni idle/movimento 2–4 frame per compagni e nemici (il player le ha, D-050); nomi
 definitivi dei compagni con verifica dei marchi; VFX di colpo piccoli; cespugli come ostacolo
-(richiede un tipo nuovo in `src/world/obstacles.rs`).
+(richiede un tipo nuovo in `src/world/obstacles.rs`). Player: verifica nel gioco vero
+(screenshot e `check-pixel-grid.py`) delle pose a terra con il letterbox.

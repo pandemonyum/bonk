@@ -17,7 +17,7 @@ stanno 1–2 px sopra la base.
 
 | Sprite | v0 | v1 |
 |---|---|---|
-| `sprites/summoner.png` | 16×21 | 16×24 |
+| `sprites/summoner.png` → `sprites/summoner_sheet.png` | 16×21 | 16×24, poi foglio animato del personaggio dell'utente (D-050): 144×304 con fotogrammi 36×38; `summoner.png` è stato rimosso |
 | `sprites/ember_companion.png` | 16×17 | 16×20 |
 | `sprites/tide_companion.png` | 16×14 | 18×18 |
 | `sprites/sprout_companion.png` | 16×17 | 16×20 |
@@ -55,7 +55,7 @@ game-designer, il codice del gameplay-engineer e di world-generation):
 | `game-data/player.ron` | `footprint_radius` | 5 | 5 | larghezza invariata |
 | `src/world/obstacles.rs` | `ObstacleKind::Rock.footprint()` | (7.0, 3.0) | (7.0, 4.0) | roccia più alta di 2 px, base con ombra |
 | `src/world/obstacles.rs` | `ObstacleKind::Tree.footprint()` | (4.0, 2.0) | (4.0, 4.0) | la base del tronco è 2 px sopra il fondo (ombra) |
-| `src/world/mod.rs` | `BODY_HEIGHT` | 21.0 | 24.0 | altezza del nuovo evocatore: la testa resta a filo della siepe nord; il test `whole_sprite_stays_inside_the_hedge` passa a `arena.max.y = 1992` |
+| `src/world/mod.rs` | `BODY_HEIGHT` | 21.0 | 24.0 | altezza del nuovo evocatore: la testa resta a filo della siepe nord; il test `whole_sprite_stays_inside_the_hedge` passa a `arena.max.y = 1992`. Con il foglio del player (D-050) il personaggio è alto 30 px più l'ombra (fotogramma 36×38): valore e sporgenza davanti alla siepe sono scelte del codice |
 
 `MAX_FOOTPRINT_RADIUS` (7) e `MIN_FOOTPRINT_RADIUS` (4) non cambiano, quindi il varco minimo
 di 18 px resta valido.

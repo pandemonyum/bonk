@@ -2,8 +2,11 @@
 """Valida gli asset in assets/ contro manifest e ART_BIBLE.
 
 Controlli: ogni PNG è nel manifest (e viceversa), dimensioni dichiarate = reali, nomi
-snake_case, tileset multipli di 16 px, sprite e icone UI entro i limiti di dimensione, solo
-colori della palette per gli asset generati, licenza presente; ogni font ha accanto il suo
+snake_case, tileset multipli di 16 px, sprite e icone UI entro i limiti di dimensione (i fogli
+animati fotogramma per fotogramma: misura multipla del fotogramma, nessun fotogramma vuoto, base
+toccata se l'ancora è in basso al centro), solo
+colori della palette per gli asset generati (quella propria dell'asset se il manifest ha
+"palette"), licenza presente; ogni font ha accanto il suo
 OFL.txt e una riga in ASSET_LICENSES.md. Avvisi (non errori) se un
 upgrade di game-data/upgrades.ron non ha l'icona ui/upgrade_<id>.png o un compagno di
 game-data/companions.ron non ha il ritratto ui/portrait_<id>.png.
@@ -32,14 +35,45 @@ MAX_UI = 32  # icone e ritratti dell'interfaccia
 DATA_ID_RE = re.compile(r'^\s*id\s*:\s*"([a-z0-9_]+)"')
 
 
-def palette_colors() -> set[tuple[int, int, int]]:
+def palette_colors(path: Path = PALETTE) -> set[tuple[int, int, int]]:
     colors = set()
-    for raw in PALETTE.read_text(encoding="utf-8").splitlines():
+    for raw in path.read_text(encoding="utf-8").splitlines():
         line = raw.strip()
         if line and not line.startswith("#"):
             rgb = int(line.split()[1], 16)
             colors.add(((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF))
     return colors
+
+
+def check_sheet(path: str, entry: dict, img: Image.Image) -> list[str]:
+    """Foglio animato: misura multipla intera del fotogramma, griglia coerente con il manifest,
+    ogni fotogramma entro il limite degli sprite e non vuoto; con ancora in basso al centro
+    ogni fotogramma tocca la riga di base (piedi o ombra a terra)."""
+    errors: list[str] = []
+    fw, fh = entry["frame"]
+    if fw <= 0 or fh <= 0 or img.width % fw or img.height % fh:
+        return [f"{path}: {img.width}x{img.height} non è multiplo del fotogramma {fw}x{fh}"]
+    if max(fw, fh) > MAX_SPRITE:
+        errors.append(f"{path}: fotogramma {fw}x{fh} oltre {MAX_SPRITE}px")
+    columns, rows = img.width // fw, img.height // fh
+    if entry.get("columns", columns) != columns:
+        errors.append(f"{path}: 'columns' {entry['columns']} ma la griglia ne ha {columns}")
+    if "rows" in entry and len(entry["rows"]) != rows:
+        errors.append(f"{path}: {len(entry['rows'])} nomi di riga ma la griglia ne ha {rows}")
+    if entry.get("frames", columns * rows) != columns * rows:
+        errors.append(f"{path}: 'frames' {entry['frames']} invece di {columns * rows}")
+    names = entry.get("rows", [str(r) for r in range(rows)])
+    alpha = img.getchannel("A")
+    for r in range(rows):
+        for c in range(columns):
+            label = f"{names[r] if r < len(names) else r} {c}"
+            box = alpha.crop((c * fw, r * fh, (c + 1) * fw, (r + 1) * fh))
+            if box.getbbox() is None:
+                errors.append(f"{path}: fotogramma {label} vuoto")
+            elif entry.get("anchor") == "bottom_center":
+                if box.crop((0, fh - 1, fw, fh)).getbbox() is None:
+                    errors.append(f"{path}: fotogramma {label} non tocca la riga di base")
+    return errors
 
 
 def main() -> int:
@@ -67,17 +101,30 @@ def main() -> int:
             t = entry["tile_size"]
             if img.width != t or img.height != t * len(entry["tiles"]):
                 errors.append(f"{path}: tileset atteso {t}x{t * len(entry['tiles'])}")
+        elif entry["kind"] == "sprite" and "frame" in entry:
+            errors += check_sheet(path, entry, img)
         elif entry["kind"] == "sprite" and max(img.size) > MAX_SPRITE:
             errors.append(f"{path}: sprite oltre {MAX_SPRITE}px")
         elif entry["kind"] == "ui" and max(img.size) > MAX_UI:
             errors.append(f"{path}: icona UI oltre {MAX_UI}px")
-        if entry["license"].startswith("original"):
+        # Asset generati da assets-src (anche quelli con licenza propria, per esempio forniti
+        # dall'utente e ridisegnati qui): solo colori della loro palette, alpha 0 o 255.
+        generated = entry["license"].startswith("original") or entry.get("source", "").startswith(
+            "assets-src/"
+        )
+        if generated:
+            own = entry.get("palette")
+            if own and not (ROOT / own).is_file():
+                errors.append(f"{path}: palette {own} assente")
+                continue
+            allowed = palette_colors(ROOT / own) if own else colors
             # get_flattened_data da Pillow 12; getdata e' deprecato (rimosso in Pillow 14)
             flat = getattr(img, "get_flattened_data", img.getdata)
             pixels = list(flat())
-            stray = {px[:3] for px in pixels if px[3] != 0 and px[:3] not in colors}
+            stray = {px[:3] for px in pixels if px[3] != 0 and px[:3] not in allowed}
             if stray:
-                errors.append(f"{path}: {len(stray)} colori fuori palette")
+                where = own or "assets-src/palette.txt"
+                errors.append(f"{path}: {len(stray)} colori fuori palette ({where})")
             if any(0 < px[3] < 255 for px in pixels):
                 errors.append(f"{path}: alpha semitrasparente (pixel art: solo 0 o 255)")
 

@@ -348,6 +348,47 @@ serve almeno una carta compagno), rigenerazione 0,5 → 0,3 HP/s per stack, dann
 bot reagisce meglio di una persona: la taratura successiva si fa dopo una prova umana, non
 spingendo oltre sul bot.
 
+## D-049 Player nuovo con cappello, animato da un foglio di 32 fotogrammi *(utente; disegno superato da D-050)*
+L'utente ha mandato un foglio di animazioni come riferimento e chiesto un personaggio "uguale".
+Il personaggio del riferimento (cappello rosso con stemma bianco, capelli neri, maglia rossa,
+salopette blu) ha i tratti distintivi di personaggi Nintendo e la provenienza del foglio è
+ignota: niente copia né ricalco dei pixel. Prima proposta (giacca e borsa dei semi) giudicata
+dall'utente troppo diversa; scelta finale dell'utente: disegnato da zero con proporzioni
+(~17×26, testa col cappello circa metà altezza e più larga del corpo), taglio dell'abito
+(cappellino a cupola con visiera, maglietta a maniche corte, salopette con bretelle e due
+bottoni), dettaglio e pose del riferimento, ma colori e stemma propri: cappello teal con un
+germoglio d'oro, capelli castani, maglietta arancione, salopette verde oliva, bottoni di legno,
+scarpe marroni. Il taglio "cappellino + salopette" resta l'archetipo che si associa a Mario
+anche con colori, stemma e capelli diversi e senza baffi: rischio di somiglianza segnalato
+all'utente, da rivalutare prima di una pubblicazione. Animazioni scelte dall'utente: fermo e
+cammino nelle quattro direzioni, colpito e
+sconfitto (niente salto o accovacciato: il gioco è top-down). Foglio `sprites/summoner_sheet.png`
+4×8 fotogrammi da 20×28 (la sinistra è la destra specchiata), contratto in
+`presentation::player_anim` e in `docs/ART_BIBLE.md`, verificato da un test sul PNG. Direzione
+dall'asse dominante dello spostamento, passo più svelto con gli upgrade di movimento, colpito
+quando l'invulnerabilità riparte, caduta a tempo reale (a run persa il tempo di gioco è fermo)
+e pannello della sconfitta dopo la caduta (1,2 s; l'ultimo fotogramma è a faccia in giù, come
+nel riferimento; a terra niente tinta di colpo, perché a run persa il lampo non scadrebbe più).
+I limiti dell'arena restano quelli del
+corpo 16×24: contro la siepe nord il cappello sporge di 2–3 texel, davanti alla siepe.
+
+## D-050 Il player è lo sprite fornito dall'utente, riprodotto identico *(utente)*
+Le due versioni originali della D-049 (giacca, poi stesso taglio con colori propri) non
+bastavano all'utente, che vuole il personaggio identico alla sua immagine. L'utente ha generato
+un foglio 4×8 nel formato richiesto, dichiara di averne i diritti e ha chiesto la riproduzione
+identica; il rischio di somiglianza con personaggi Nintendo (cappello rosso con stemma bianco,
+capelli neri, maglia rossa, salopette blu) gli è stato spiegato e lo accetta: questa decisione
+supera, per il player, la regola "stile sì, copie no" della P0 ed è da rivalutare prima di
+qualunque pubblicazione. Il foglio arrivato in chat (webp ingrandito circa ×5 e compresso, con
+"pixel" di misure diverse tra un fotogramma e l'altro) è stato tagliato a risoluzione nativa
+seguendo la griglia vera di ogni fotogramma, poi ridisegnato pulito per un cammino leggibile:
+un modello per direzione (testa e corpo uguali in tutti i fotogrammi, anche tra fronte, retro
+e profilo), passo in 4 tempi con il piede alzato di 3 px e la braccia opposte, colpito e caduta
+con le pose dell'utente alla stessa scala. Fotogrammi 36×38 (personaggio largo ~23 e alto ~30,
+più grande dei compagni), palette propria del foglio (`summoner_sheet.palette.txt`, 24 colori
+più l'ombra del gioco), validata a parte. I limiti dell'arena restano quelli del corpo 16×24:
+contro la siepe il player sporge di ~6 texel a nord e 3–4 ai lati, disegnato davanti.
+
 ## D-018 WebGL2 come unico backend web in P1 *(utente)*
 In Bevy 0.20 la feature `webgpu` sostituisce `webgl2` nella stessa build: WebGPU eventuale
 come seconda build separata dopo la P1.

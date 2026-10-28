@@ -2,6 +2,11 @@
 """Genera gli asset pixel art di gioco da sorgenti testuali in assets-src/.
 
 - Sprite: file assets-src/sprites/*.px (griglia di caratteri della palette).
+- Fogli animati: un .px con `frame:`, `columns:` e `rows:` nell'intestazione e un blocco
+  '@ <riga> <colonna>' per fotogramma (vedi assemble_sheet); diventano un solo PNG a griglia.
+- Intestazione facoltativa `palette: <file>` (accanto al .px, stesso formato di palette.txt):
+  l'asset usa la sua palette invece di quella del progetto; `license:` sostituisce la licenza
+  di default nel manifest (per esempio un asset fornito dall'utente e ridisegnato qui).
 - Icone e ritratti dell'interfaccia: file assets-src/ui/*.px, stesso formato.
 - Tileset dell'arena: generato proceduralmente con seed fisso (riproducibile).
 - Scrive assets/manifest.json con dimensioni, sorgente e licenza di ogni PNG.
@@ -59,15 +64,17 @@ TILE_NAMES = [
 ]
 
 
-def load_palette() -> dict[str, tuple[int, int, int, int]]:
+def load_palette(path: Path | None = None) -> dict[str, tuple[int, int, int, int]]:
+    """Palette del progetto, o quella propria di un asset (`palette:` nell'intestazione .px)."""
+    path = path or SRC / "palette.txt"
     palette: dict[str, tuple[int, int, int, int]] = {".": (0, 0, 0, 0)}
-    for raw in (SRC / "palette.txt").read_text(encoding="utf-8").splitlines():
+    for raw in path.read_text(encoding="utf-8").splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
         char, hexcode = line.split()[:2]
         if len(char) != 1 or char in palette:
-            sys.exit(f"palette.txt: carattere non valido o duplicato: {char!r}")
+            sys.exit(f"{path.name}: carattere non valido o duplicato: {char!r}")
         rgb = int(hexcode, 16)
         palette[char] = ((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF, 255)
     return palette
@@ -87,14 +94,73 @@ def parse_px(path: Path) -> tuple[dict[str, str], list[str]]:
                 header[key.strip()] = value.strip()
         elif raw.strip():
             rows.append(raw.rstrip())
-    if header.get("mirror") == "true":
+    if "out" not in header:
+        sys.exit(f"{path.name}: manca 'out:' nell'intestazione")
+    if "frame" in header:
+        rows = assemble_sheet(path, header, rows)
+    elif header.get("mirror") == "true":
         rows = [row + row[::-1] for row in rows]
     widths = {len(row) for row in rows}
     if len(widths) != 1:
         sys.exit(f"{path.name}: righe di lunghezza diversa {sorted(widths)}")
-    if "out" not in header:
-        sys.exit(f"{path.name}: manca 'out:' nell'intestazione")
     return header, rows
+
+
+def sheet_layout(header: dict[str, str]) -> tuple[int, int, int, list[str]]:
+    """(larghezza, altezza del fotogramma, colonne, nomi delle righe) di un foglio animato."""
+    fw, _, fh = header["frame"].partition("x")
+    return int(fw), int(fh), int(header["columns"]), header["rows"].split()
+
+
+def assemble_sheet(path: Path, header: dict[str, str], lines: list[str]) -> list[str]:
+    """Foglio animato: un blocco per fotogramma, aperto da '@ <riga> <colonna>'.
+
+    Le righe del foglio sono quelle di `rows:` nell'ordine scritto, le colonne vanno da 0 a
+    `columns:` - 1. Nella griglia le righe che iniziano con '#' sono commenti e un '|' nel mezzo
+    della riga (tra le colonne fw/2 - 1 e fw/2) è solo la guida del centro e viene tolto.
+    Restituisce la griglia dell'intero foglio, fotogrammi affiancati.
+    """
+    fw, fh, columns, names = sheet_layout(header)
+    frames: dict[tuple[str, int], list[str]] = {}
+    current: tuple[str, int] | None = None
+    for line in lines:
+        if line.lstrip().startswith("#"):
+            continue
+        if line.startswith("@"):
+            parts = line[1:].split()
+            if (
+                len(parts) != 2
+                or parts[0] not in names
+                or not parts[1].isdigit()
+                or int(parts[1]) >= columns
+            ):
+                sys.exit(f"{path.name}: fotogramma non valido {line!r} (righe {names})")
+            current = (parts[0], int(parts[1]))
+            if current in frames:
+                sys.exit(f"{path.name}: fotogramma ripetuto {line!r}")
+            frames[current] = []
+            continue
+        if current is None:
+            sys.exit(f"{path.name}: griglia prima del primo '@ <riga> <colonna>'")
+        if "|" in line and (line.count("|") > 1 or line.index("|") != fw // 2):
+            sys.exit(f"{path.name}: {current}: la guida '|' va solo dopo la colonna {fw // 2 - 1}")
+        frames[current].append(line.replace("|", ""))
+    grid: list[str] = []
+    for name in names:
+        band = [""] * fh
+        for col in range(columns):
+            rows = frames.get((name, col))
+            if rows is None:
+                sys.exit(f"{path.name}: manca il fotogramma {name} {col}")
+            if len(rows) != fh or any(len(r) != fw for r in rows):
+                found = f"{sorted({len(r) for r in rows})}x{len(rows)}"
+                sys.exit(f"{path.name}: {name} {col} deve essere {fw}x{fh}, trovato {found}")
+            band = [b + r for b, r in zip(band, rows)]
+        grid += band
+    extra = sorted(set(frames) - {(n, c) for n in names for c in range(columns)})
+    if extra:
+        sys.exit(f"{path.name}: fotogrammi fuori griglia {extra}")
+    return grid
 
 
 def render_grid(rows: list[str], palette, name: str) -> Image.Image:
@@ -335,20 +401,32 @@ def main() -> None:
     for folder, kind in PX_KINDS:
         for src in sorted((SRC / folder).glob("*.px")):
             header, rows = parse_px(src)
-            img = render_grid(rows, palette, src.name)
+            own_palette = src.parent / header["palette"] if "palette" in header else None
+            if own_palette and not own_palette.is_file():
+                sys.exit(f"{src.name}: palette {header['palette']} non trovata")
+            img = render_grid(rows, load_palette(own_palette) if own_palette else palette, src.name)
             dest = OUT / header["out"]
             dest.parent.mkdir(parents=True, exist_ok=True)
             img.save(dest)
-            manifest.append(
-                {
-                    "path": header["out"],
-                    "kind": kind,
-                    "size": [img.width, img.height],
-                    "frames": 1,
-                    "source": src.relative_to(ROOT).as_posix(),
-                    "license": LICENSE,
-                }
-            )
+            entry = {
+                "path": header["out"],
+                "kind": kind,
+                "size": [img.width, img.height],
+                "frames": 1,
+            }
+            if "frame" in header:
+                fw, fh, columns, names = sheet_layout(header)
+                entry["frame"] = [fw, fh]
+                entry["frames"] = columns * len(names)
+                entry["columns"] = columns
+                entry["rows"] = names
+                if "anchor" in header:
+                    entry["anchor"] = header["anchor"]
+            if own_palette:
+                entry["palette"] = own_palette.relative_to(ROOT).as_posix()
+            entry["source"] = src.relative_to(ROOT).as_posix()
+            entry["license"] = header.get("license", LICENSE)
+            manifest.append(entry)
 
     tileset = build_tileset(palette)
     tileset_path = "tiles/meadow_tileset.png"
@@ -370,7 +448,10 @@ def main() -> None:
         json.dumps({"version": 1, "assets": manifest}, indent=2) + "\n", encoding="utf-8"
     )
     for entry in manifest:
-        print(f"  {entry['path']:32} {entry['size'][0]}x{entry['size'][1]}")
+        size = f"{entry['size'][0]}x{entry['size'][1]}"
+        if "frame" in entry:
+            size += f" ({entry['frames']} fotogrammi {entry['frame'][0]}x{entry['frame'][1]})"
+        print(f"  {entry['path']:32} {size}")
     print(f"OK: {len(manifest)} asset generati in {OUT.relative_to(ROOT)}/")
 
 

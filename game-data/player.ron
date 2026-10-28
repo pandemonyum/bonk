@@ -1,7 +1,8 @@
 // Evocatore controllato dal giocatore. Unità: pixel di mondo (1 px = 1 texel a 480x270), secondi.
 (
     version: 5,
-    sprite: "sprites/summoner.png",
+    // foglio animato 4×8 fotogrammi da 36×38 (contratto in docs/ART_BIBLE.md e presentation::player_anim)
+    sprite: "sprites/summoner_sheet.png",
     // 75 px/s: attraversa lo schermo (480 px) in ~6 s, orde leggibili.
     speed: 75.0,
     // Cerchio ai piedi per le collisioni con gli ostacoli. Max 9 (varco minimo 18 px).

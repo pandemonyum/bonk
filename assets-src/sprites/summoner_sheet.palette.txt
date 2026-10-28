@@ -1,0 +1,30 @@
+# Palette propria di summoner_sheet.px (player, D-050). Formato come assets-src/palette.txt:
+# <carattere> <hex RGB> <ruolo>. '.' e' sempre trasparente. Colori presi dal foglio fornito
+# dall'utente: le sfumature quasi identiche del generatore (differenza RGB < 16) sono unite
+# nel colore piu' usato del gruppo, indicato tra parentesi. L'ombra a terra 9 e' quella della
+# palette del progetto, come per gli altri attori.
+k 060102 contorno-nero (unisce 07010a, 11000d, 100006, 0b0506)
+K 130e17 nero-capelli (unisce 120014, 0b0715)
+j 1d0213 nero-violaceo
+r e6343a rosso-cappello-e-maglia (unisce eb3a44, e6343c, e9353d, e8363e, dd2f41, e92f3d, e9333e, e4343d)
+R d5204a rosso-ombra
+p e46557 rosso-luce
+P f99979 rosso-riflesso
+m aa2155 rosso-scuro (unisce a61556)
+M 6e204b rosso-molto-scuro
+q 913a41 bruno-rossiccio
+Q 4e0b2d prugna-scuro
+z 3d2541 viola-scuro
+b 1b3862 blu-salopette
+B 1e2848 blu-scuro (unisce 132747)
+u 376da9 blu-luce
+U 384d73 blu-grigio
+n 0f1931 blu-notte
+N 2e3a5e blu-ardesia
+s ffdbb7 pelle
+S fcc3a1 pelle-ombra
+w ffedd7 pelle-luce
+W f6e3c7 crema-stemma
+t a2a2ab grigio
+d 9a604b marrone-scarpe
+9 3d5235 ombra-a-terra-(palette-del-progetto)

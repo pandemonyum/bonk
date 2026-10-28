@@ -1,5 +1,16 @@
 # QA REPORT
 
+## 2026-10-28 — Player animato (sprite dell'utente)
+
+| Controllo | Esito | Prova |
+|---|---|---|
+| Contratto del foglio | PNG 144×304 = 4×8 fotogrammi 36×38, palette propria, alpha 0/255, ogni fotogramma sul fondo | `the_player_sheet_matches_the_frame_grid`, `validate-assets.py` |
+| Logica delle animazioni | direzione, specchio a sinistra, colpito, caduta a tempo reale tenuta a terra | test di `presentation::player_anim` |
+| Cammino nel gioco vero | WASD reali: fronte, retro, profilo destro, sinistro specchiato | `docs/evidence/player-camminata-gioco.png` |
+| Caduta e risultati | caduta in 4 tempi, a terra senza tinta, pannello dopo ~1,2 s | `docs/evidence/player-caduta-gioco.png` |
+| Gate | fmt, clippy, 159 unit + 82 integrazione, asset | `./scripts/check.ps1` |
+| Non verificato | prova umana; web | — |
+
 ## 2026-10-23 — P0.7 (HUD, formule, bilanciamento base)
 
 | Controllo | Esito | Prova |

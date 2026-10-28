@@ -8,7 +8,6 @@ manifest `assets/manifest.json`.
 
 | Asset | Origine | Licenza |
 |---|---|---|
-| `assets/sprites/summoner.png` | `assets-src/sprites/summoner.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/blob_enemy.png` | `assets-src/sprites/blob_enemy.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/ember_companion.png` | `assets-src/sprites/ember_companion.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/fireball.png` | `assets-src/sprites/fireball.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
@@ -77,6 +76,23 @@ Stile v1 (2026-10-23): tutti gli sprite e le icone sopra sono disegnati a mano c
 asset scaricati. L'immagine di riferimento dell'utente ha guidato solo lo stile: nessun pixel,
 forma, personaggio o nome ne è stato copiato. Le anteprime `docs/evidence/art-preview-*.png`
 sono composte da `scripts/preview-scene.py` con questi stessi asset (non vanno nel gioco).
+
+## Asset forniti dall'utente
+
+| Asset | Origine | Diritti e licenza |
+|---|---|---|
+| `assets/sprites/summoner_sheet.png` (player, foglio 4×8 da 36×38) | foglio di animazioni generato e fornito dall'utente, tagliato a risoluzione nativa, poi ridisegnato e pulito nel progetto: `assets-src/sprites/summoner_sheet.px` con la palette propria `assets-src/sprites/summoner_sheet.palette.txt` → `scripts/build-assets.py` | l'utente dichiara di avere i diritti sul foglio e ne ha chiesto la riproduzione identica; il progetto l'ha ridisegnato e ripulito. Rischio di somiglianza con personaggi Nintendo accettato dall'utente (D-050). Nel manifest: `user-provided (rights declared by the user, D-050), redrawn and cleaned in assets-src` |
+
+Cosa è stato fatto sul foglio dell'utente (2026-10-28, D-050):
+- **Personaggio:** design, colori, proporzioni e dettagli restano quelli dell'utente.
+- **Colori:** le sfumature quasi identiche del generatore sono unite in 24 colori tutti presi
+  dal suo foglio, più l'ombra a terra del progetto.
+- **Master:** il fermo 0 di fronte, di schiena e di profilo è il master. Schiena e profilo sono
+  portati all'altezza del fronte togliendo righe uniformi, senza ricampionare i dettagli.
+- **Fotogrammi:** fermo, cammino e colpito 0 e 3 derivano dai master. Colpito 1–2 e sconfitto
+  0–3 sono le pose dell'utente ripulite (il colpito 1 ridotto all'altezza del master).
+
+Il foglio originale e il ritaglio restano fuori dal repository.
 
 ## Asset vietati
 

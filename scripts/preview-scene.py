@@ -8,6 +8,8 @@ nearest-neighbor in docs/evidence/art-preview-*.png.
 
 Non è il gioco: la mappa è disegnata qui (stesse regole dei bordi di src/world/generation.rs)
 e i testi usano un carattere 3x5 provvisorio solo per l'anteprima, non una proposta di font.
+Il player è un fotogramma del foglio animato (`art("foglio.png#riga:colonna")`); il foglio
+intero è in docs/evidence/art-preview-player-sheet.png (x4).
 
 Uso: python scripts/build-assets.py && python scripts/preview-scene.py
 Richiede: Python 3.10+ e Pillow.
@@ -46,9 +48,29 @@ _cache: dict[str, Image.Image] = {}
 
 
 def art(path: str) -> Image.Image:
+    """PNG di assets/; con "foglio.png#riga:colonna" un fotogramma di un foglio animato."""
     if path not in _cache:
-        _cache[path] = Image.open(ASSETS / path).convert("RGBA")
+        if "#" in path:
+            sheet, _, cell = path.partition("#")
+            row, _, col = cell.partition(":")
+            _cache[path] = sheet_frame(sheet, row, int(col))
+        else:
+            _cache[path] = Image.open(ASSETS / path).convert("RGBA")
     return _cache[path]
+
+
+def sheet_frame(path: str, row: str, col: int) -> Image.Image:
+    entry = next(e for e in manifest_assets() if e["path"] == path)
+    fw, fh = entry["frame"]
+    r = entry["rows"].index(row)
+    return art(path).crop((col * fw, r * fh, (col + 1) * fw, (r + 1) * fh))
+
+
+def manifest_assets() -> list[dict]:
+    return json.loads((ASSETS / "manifest.json").read_text(encoding="utf-8"))["assets"]
+
+
+PLAYER = "sprites/summoner_sheet.png"
 
 
 # --- Carattere 3x5 provvisorio (solo anteprima) ------------------------------------------
@@ -103,8 +125,7 @@ EDGE_BITS = ((1, (0, -1)), (2, (1, 0)), (4, (0, 1)), (8, (-1, 0)))
 
 
 def tile_names() -> dict[str, int]:
-    manifest = json.loads((ASSETS / "manifest.json").read_text(encoding="utf-8"))
-    sheet = next(e for e in manifest["assets"] if e["kind"] == "tileset")
+    sheet = next(e for e in manifest_assets() if e["kind"] == "tileset")
     return {name: i for i, name in enumerate(sheet["tiles"])}
 
 
@@ -264,7 +285,7 @@ def scene_gameplay() -> Image.Image:
     for x, y in ((180, 70), (330, 200), (100, 150)):
         layer.actor("sprites/rock.png", x, y)
     px, py = 240, 150
-    layer.actor("sprites/summoner.png", px, py)
+    layer.actor(f"{PLAYER}#walk_down:0", px, py)
     layer.actor("sprites/ember_companion.png", px - 18, py - 12)
     layer.actor("sprites/tide_companion.png", px + 19, py - 12)
     layer.actor("sprites/sprout_companion.png", px, py - 22)
@@ -420,7 +441,7 @@ def scene_boss() -> Image.Image:
         layer.actor("sprites/tree.png", x, y)
     layer.actor("sprites/boss_enemy.png", 240, 120)
     px, py = 240, 214
-    layer.actor("sprites/summoner.png", px, py)
+    layer.actor(f"{PLAYER}#idle_up:0", px, py)
     layer.actor("sprites/ember_companion.png", px - 18, py + 2)
     layer.actor("sprites/tide_companion.png", px + 19, py + 2)
     layer.actor("sprites/sprout_companion.png", px, py + 12)
@@ -473,11 +494,47 @@ def scene_tiles() -> Image.Image:
     return canvas
 
 
-def save(img: Image.Image, name: str) -> None:
+def scene_player_sheet() -> Image.Image:
+    """Il foglio del player fotogramma per fotogramma su fondo scuro (riquadro = fotogramma,
+    tacca = centro tra le colonne 9 e 10), poi una striscia sul prato a 1x come nel gioco:
+    cammino a destra, lo stesso specchiato (sinistra), fermo giù e su, colpito, a terra."""
+    entry = next(e for e in manifest_assets() if e["path"] == PLAYER)
+    fw, fh = entry["frame"]
+    columns, names = entry["columns"], entry["rows"]
+    label_w, gap, top = 44, 4, 12
+    grid_h = top + len(names) * (fh + gap)
+    width = label_w + columns * (fw + gap) + gap
+    strip = [(f"{PLAYER}#walk_right:{c}", False) for c in range(columns)]
+    strip += [(f"{PLAYER}#walk_right:{c}", True) for c in range(columns)]
+    strip += [(f"{PLAYER}#idle_down:0", False), (f"{PLAYER}#idle_up:0", False),
+              (f"{PLAYER}#hurt:0", False), (f"{PLAYER}#death:3", False)]
+    strip_step = 22
+    width = max(width, len(strip) * strip_step + 8)
+    canvas = Image.new("RGBA", (width, grid_h + 44), PAL["0"])
+    text(canvas, 4, 3, f"SUMMONER SHEET {columns}X{len(names)} DA {fw}X{fh}", "4")
+    for r, name in enumerate(names):
+        y = top + r * (fh + gap)
+        text(canvas, 4, y + fh // 2 - 3, name.replace("_", " "), "4")
+        for c in range(columns):
+            x = label_w + c * (fw + gap)
+            rect(canvas, x, y, x + fw, y + fh, "1")
+            rect(canvas, x + fw // 2 - 1, y + fh, x + fw // 2 + 1, y + fh + 1, "3")
+            canvas.alpha_composite(art(f"{PLAYER}#{name}:{c}"), (x, y))
+    meadow = meadow_map().crop((0, 0, width, 40))
+    canvas.alpha_composite(meadow, (0, grid_h + 4))
+    for i, (path, mirror) in enumerate(strip):
+        img = art(path)
+        if mirror:
+            img = img.transpose(Image.FLIP_LEFT_RIGHT)
+        canvas.alpha_composite(img, (6 + i * strip_step, grid_h + 4 + 36 - fh))
+    return canvas
+
+
+def save(img: Image.Image, name: str, scale: int = SCALE) -> None:
     EVIDENCE.mkdir(parents=True, exist_ok=True)
-    big = img.resize((img.width * SCALE, img.height * SCALE), Image.NEAREST)
+    big = img.resize((img.width * scale, img.height * scale), Image.NEAREST)
     big.convert("RGB").save(EVIDENCE / name)
-    print(f"  docs/evidence/{name}  {img.width}x{img.height} x{SCALE}")
+    print(f"  docs/evidence/{name}  {img.width}x{img.height} x{scale}")
 
 
 def main() -> None:
@@ -486,6 +543,7 @@ def main() -> None:
     save(scene_select(), "art-preview-select.png")
     save(scene_boss(), "art-preview-boss.png")
     save(scene_tiles(), "art-preview-tiles.png")
+    save(scene_player_sheet(), "art-preview-player-sheet.png", 4)
 
 
 if __name__ == "__main__":

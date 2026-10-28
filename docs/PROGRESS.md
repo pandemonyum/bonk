@@ -13,6 +13,39 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "player animato" (2026-10-28)
+
+```text
+Task: ART-P1 - player con animazioni (fermo, cammino in 4 direzioni, colpito, caduta), uguale
+      allo sprite dell'utente
+Owner: orchestrator (integrazione, decisioni con l'utente) + pixel-art-director (foglio,
+       pipeline) + gameplay-engineer (src/presentation/player_anim.rs, risultati)
+Stato: DONE
+Assunzioni: l'utente dichiara i diritti sul foglio che ha fornito e accetta il rischio di
+  somiglianza (D-050); i limiti dell'arena restano quelli del corpo 16×24.
+Passi: due disegni originali (D-049) respinti dall'utente come troppo diversi; foglio fornito
+  dall'utente tagliato a risoluzione nativa (griglia trovata fotogramma per fotogramma), poi,
+  su sua richiesta, ridisegnato pulito perché il cammino non si leggeva (scale diverse tra i
+  fotogrammi); anteprime approvate prima dell'integrazione.
+File: src/presentation/player_anim.rs (nuovo), src/presentation/{mod,sprites,results}.rs,
+  src/world/mod.rs (commento), game-data/player.ron, assets-src/sprites/summoner_sheet.px e
+  .palette.txt (nuovi), assets/sprites/summoner_sheet.png (nuovo), assets/manifest.json,
+  scripts/{build-assets,validate-assets,preview-scene}.py, ASSET_LICENSES.md,
+  docs/{ART_BIBLE,DECISIONS,BACKLOG,ARCHITECTURE,PROGRESS,QA_REPORT}.md,
+  docs/art/STYLE_HANDOFF.md, docs/evidence/{art-preview-*,player-*}.png; tolti
+  assets-src/sprites/summoner.px e assets/sprites/summoner.png
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1   OK (fmt, clippy, 159 unit + 82 integrazione, 43 PNG e 2 font)
+  build-assets.py / validate-assets.py   OK (foglio 144×304, 32 fotogrammi 36×38)
+  gioco vero: cammino con WASD reali nelle 4 direzioni (sinistra specchiata), caduta con
+    autoplay ×10 e pannello della sconfitta dopo la caduta
+Comportamento verificato: direzione dall'asse dominante, passo alternato leggibile, colpito
+  quando riparte l'invulnerabilità, caduta a tempo reale e corpo senza tinta rossa a terra
+Rischi noti: somiglianza Nintendo (da rivalutare prima di pubblicare); player più grande dei
+  compagni; sporge sulla siepe nord
+Prossimo task: prova umana (gate P0), poi P1
+```
+
 ## Report tranche P0.7 (2026-10-23)
 
 ```text

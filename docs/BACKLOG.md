@@ -45,7 +45,18 @@ Gate P0: 10 minuti giocabili end-to-end senza crash, con prova umana o autoplay 
 Come da handoff §6 (art pass, animazioni, audio; profiling 50/200/500 nemici, bilanciamento,
 opzioni, browser, release candidate).
 
+## Grafica del player (2026-10-28, su richiesta dell'utente)
+
+| ID | Task | Owner | Criteri di done |
+|---|---|---|---|
+| ~~ART-P1~~ **DONE** | Player animato: fermo e cammino in 4 direzioni, colpito, caduta; sprite identico a quello fornito dall'utente (D-050) | pixel-art-director (foglio, pipeline) + gameplay-engineer (`player_anim`, risultati dopo la caduta) | foglio 4×8 validato; test del contratto sul PNG; anteprime approvate dall'utente prima dell'integrazione; cammino nelle 4 direzioni e caduta nel gioco vero; gate verde |
+
 ## Debito tecnico e idee registrate
+
+- Player (D-050): somiglianza con personaggi Nintendo accettata dall'utente, **da rivalutare
+  prima di pubblicare**; personaggio più grande dei compagni (~30 contro ~20 di altezza) e
+  copre in parte quello dietro; sporge sulla siepe a nord (~6 texel). Se serve più piccolo:
+  ridisegno a ~24 di altezza, non un ridimensionamento (pixel irregolari).
 
 - Radure di terra con bordi a gradini: servono tile di transizione erba/terra (P2, pixel-art-director).
 - ~~Testo HUD con FiraMono~~: Tiny5 e Pixelify Sans (D-044); ~~testi a dimensione fissa a

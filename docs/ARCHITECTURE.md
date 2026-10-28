@@ -41,7 +41,8 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `gameplay::collision` | `Footprint`, `push_outside`, respinta dei corpi dagli ostacoli | no |
 | `world::render` | `TilemapChunk` per chunk | sì |
 | `presentation::camera` | canvas 480×270, camera mondo/schermo, scala intera, offset mezzo pixel, follow; `UiScale` dalla scala del canvas (D-045) | sì |
-| `presentation::sprites` | observer `On<Add<Player/Enemy>>` → `Sprite`; interpolazione + snap al pixel + y-sort; tinte di colpo e rallentamento | sì |
+| `presentation::sprites` | observer `On<Add<Enemy/Companion/...>>` → `Sprite`; interpolazione + snap al pixel + y-sort; tinte di colpo e rallentamento | sì |
+| `presentation::player_anim` | sprite del player dal foglio 4×8 (`TextureAtlas`): fermo e cammino in 4 direzioni (sinistra specchiata), colpito, caduta; stato in `PlayerAnimation`, logica pura testata | sì |
 | `presentation::attacks` | foglie come sprite; anello di gocce figlie dell'onda, al raggio interpolato e arrotondato al pixel | sì |
 | `presentation::hud` | promemoria "Esc: pausa e comandi", schermata di pausa con comandi e potenziamenti presi, errori dei dati | sì |
 | `presentation::fonts` | `UiFonts` (Tiny5, Pixelify Sans), `Typeface` con hook che assegna font e antialiasing, `hud(size)` / `ui(size)` al posto di `TextFont::from_font_size` | sì |
@@ -51,7 +52,7 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `presentation::boss_pointer` | teschio al bordo della vista nella direzione del boss fuori schermo | sì |
 | `presentation::status` | in alto a sinistra cuori (20 HP l'uno) con HP, barra XP e il contenitore della fila delle abilità; in alto a destra livello e teschio con le uccisioni | sì |
 | `presentation::menu` | menu iniziale: carte dei compagni (sprite, elemento, attacco, barre relative), 1/2/3, frecce, clic, Invio | sì |
-| `presentation::results` | risultati di sconfitta e vittoria: tempo, livello, nemici, danni, squadra, potenziamenti | sì |
+| `presentation::results` | risultati di sconfitta (dopo la caduta del player) e vittoria: tempo, livello, nemici, danni, squadra, potenziamenti | sì |
 | `presentation::boss_bar` | conto alla rovescia al centro in alto, poi nome e barra HP del boss | sì |
 | `presentation::telegraphs` | punti rossi in fila o in cerchio, figli del `Telegraph`, che lampeggiano verso lo scadere | sì |
 | `presentation::draft` | schermata del draft: carte con rarità, testo e stack, evidenziate al passaggio, clic → `ChooseUpgrade` | sì |

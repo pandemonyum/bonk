@@ -11,7 +11,6 @@ use crate::gameplay::combat::{HitFlash, Projectile};
 use crate::gameplay::companions::Companion;
 use crate::gameplay::enemies::Enemy;
 use crate::gameplay::kinematics::{Position, PreviousPosition};
-use crate::gameplay::player::Player;
 use crate::gameplay::progression::XpGem;
 use crate::gameplay::pulse::Slowed;
 use crate::world::obstacles::{Obstacle, ObstacleKind};
@@ -19,7 +18,7 @@ use crate::world::obstacles::{Obstacle, ObstacleKind};
 /// Profondità per pixel di y: chi sta più in basso è disegnato davanti.
 const Y_SORT: f32 = 1.0e-4;
 /// Tinta di un nemico appena colpito (lo sprite viene moltiplicato per questo colore).
-const HIT_TINT: Color = Color::srgb(1.0, 0.45, 0.45);
+pub(super) const HIT_TINT: Color = Color::srgb(1.0, 0.45, 0.45);
 /// Tinta di un nemico rallentato dall'onda: azzurrata, il colpo ha la precedenza.
 const SLOW_TINT: Color = Color::srgb(0.6, 0.85, 1.0);
 
@@ -47,7 +46,6 @@ impl Plugin for SpritesPlugin {
             tree: assets.load("sprites/tree.png"),
         };
         app.insert_resource(sprites)
-            .add_observer(attach_player_sprite)
             .add_observer(attach_companion_sprite)
             .add_observer(attach_enemy_sprite)
             .add_observer(attach_projectile_sprite)
@@ -89,16 +87,6 @@ pub(super) fn data_sprite(
         warn!("{kind} \"{}\" assente dai dati: nessuno sprite", id.0);
     }
     path
-}
-
-fn attach_player_sprite(
-    add: On<Add<Player>>,
-    mut commands: Commands,
-    assets: Res<AssetServer>,
-    config: Res<GameConfig>,
-) {
-    let image = assets.load(config.player.sprite.clone());
-    commands.entity(add.entity).insert(actor_sprite(image));
 }
 
 fn attach_companion_sprite(
@@ -186,11 +174,9 @@ fn attach_obstacle_sprite(
         .insert(actor_sprite(image.clone()));
 }
 
-/// Tinta di colpo su nemici e player (stesso segnale: "questo ha appena preso danno"), tinta
-/// fredda sui nemici rallentati.
-fn tint_hit_enemies(
-    mut enemies: Query<(&mut Sprite, Has<HitFlash>, Has<Slowed>), Or<(With<Enemy>, With<Player>)>>,
-) {
+/// Tinta di colpo sui nemici (stesso segnale del player, che la riceve in `player_anim`),
+/// tinta fredda sui nemici rallentati.
+fn tint_hit_enemies(mut enemies: Query<(&mut Sprite, Has<HitFlash>, Has<Slowed>), With<Enemy>>) {
     for (mut sprite, flashing, slowed) in &mut enemies {
         let wanted = if flashing {
             HIT_TINT

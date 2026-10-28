@@ -28,8 +28,11 @@ pub const ARENA_HALF_EXTENT: f32 = (ARENA_TILES * TILE_SIZE) as f32 / 2.0;
 const HEDGE_INNER: f32 = ARENA_HALF_EXTENT - (BORDER_TILES * TILE_SIZE) as f32;
 
 /// Ingombro dei corpi rispetto alla `Position`, che è il punto dei piedi (gli sprite hanno
-/// l'ancora in basso al centro). Valori presi dallo sprite più grande, l'evocatore (16×24
-/// dall'art pass v1); dalla P0.1 l'ingombro arriva dai dati di ogni entità.
+/// l'ancora in basso al centro). Valori dell'evocatore 16×24 dell'art pass v1; dalla P0.1
+/// l'ingombro arriva dai dati di ogni entità. Il player animato (D-050: fotogrammi 36×38,
+/// personaggio largo ~23 e alto ~30) contro la siepe sporge di ~6 texel a nord e di 3–4 ai
+/// lati, disegnato davanti alla siepe: accettato, perché allargare i limiti sposterebbe la
+/// griglia degli ostacoli (le loro zone di esclusione devono restare dentro questi limiti).
 const BODY_HALF_WIDTH: f32 = 8.0;
 const BODY_HEIGHT: f32 = 24.0;
 const FEET_MARGIN: f32 = 2.0;

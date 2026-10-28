@@ -6,6 +6,7 @@
 use bevy::prelude::*;
 
 use super::fonts;
+use super::player_anim::DEFEAT_HOLD_S;
 use crate::app::RunPhase;
 use crate::data::schema::Effect;
 use crate::data::{DataId, GameConfig};
@@ -19,11 +20,23 @@ const PANEL: Color = Color::srgba(0.05, 0.05, 0.12, 0.96);
 const GOLD: Color = Color::srgb(0.95, 0.78, 0.3);
 const LOSS: Color = Color::srgb(0.89, 0.34, 0.3);
 
+/// Secondi reali che mancano al pannello della sconfitta: prima si vede il player cadere
+/// (`player_anim`); a zero o sotto il pannello c'è già.
+#[derive(Resource, Debug, Default)]
+struct DefeatWait(f32);
+
 pub struct ResultsPlugin;
 
 impl Plugin for ResultsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(RunPhase::Defeated), spawn_defeat)
+        app.init_resource::<DefeatWait>()
+            .add_systems(
+                OnEnter(RunPhase::Defeated),
+                |mut wait: ResMut<DefeatWait>| {
+                    wait.0 = DEFEAT_HOLD_S;
+                },
+            )
+            .add_systems(Update, spawn_defeat.run_if(in_state(RunPhase::Defeated)))
             .add_systems(OnEnter(RunPhase::Victory), spawn_victory);
     }
 }
@@ -42,7 +55,10 @@ pub fn build_summary(config: &GameConfig, stacks: &UpgradeStacks) -> Vec<String>
         .collect()
 }
 
+/// Il pannello nasce una volta, quando l'attesa della caduta scade.
 fn spawn_defeat(
+    time: Res<Time<Real>>,
+    mut wait: ResMut<DefeatWait>,
     commands: Commands,
     config: Res<GameConfig>,
     stats: Res<RunStats>,
@@ -51,6 +67,13 @@ fn spawn_defeat(
     stacks: Res<UpgradeStacks>,
     party: Query<(&DataId, &Companion)>,
 ) {
+    if wait.0 <= 0.0 {
+        return;
+    }
+    wait.0 -= time.delta_secs();
+    if wait.0 > 0.0 {
+        return;
+    }
     let party = party_names(&config, party.iter().map(|(id, c)| (c.slot, id)));
     let summary = Summary {
         victory: false,

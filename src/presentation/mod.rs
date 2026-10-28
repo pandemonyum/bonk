@@ -12,6 +12,7 @@ pub mod health_bar;
 pub mod hud;
 pub mod icons;
 pub mod menu;
+pub mod player_anim;
 pub mod results;
 pub mod sprites;
 pub mod status;
@@ -45,6 +46,8 @@ impl Plugin for PresentationPlugin {
             telegraphs::TelegraphArtPlugin,
             menu::MenuPlugin,
             results::ResultsPlugin,
-        ));
+        ))
+        // `add_plugins` accetta al massimo 15 plugin per tupla
+        .add_plugins(player_anim::PlayerAnimPlugin);
     }
 }

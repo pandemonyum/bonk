@@ -112,15 +112,32 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
-      "path": "sprites/summoner.png",
+      "path": "sprites/summoner_sheet.png",
       "kind": "sprite",
       "size": [
-        16,
-        24
+        144,
+        304
       ],
-      "frames": 1,
-      "source": "assets-src/sprites/summoner.px",
-      "license": "original, project-owned (generated from assets-src)"
+      "frames": 32,
+      "frame": [
+        36,
+        38
+      ],
+      "columns": 4,
+      "rows": [
+        "idle_down",
+        "idle_up",
+        "idle_right",
+        "walk_down",
+        "walk_up",
+        "walk_right",
+        "hurt",
+        "death"
+      ],
+      "anchor": "bottom_center",
+      "palette": "assets-src/sprites/summoner_sheet.palette.txt",
+      "source": "assets-src/sprites/summoner_sheet.px",
+      "license": "user-provided (rights declared by the user, D-050), redrawn and cleaned in assets-src"
     },
     {
       "path": "sprites/swarm_enemy.png",
