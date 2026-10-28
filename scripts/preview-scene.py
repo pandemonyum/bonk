@@ -48,12 +48,14 @@ _cache: dict[str, Image.Image] = {}
 
 
 def art(path: str) -> Image.Image:
-    """PNG di assets/; con "foglio.png#riga:colonna" un fotogramma di un foglio animato."""
+    """PNG di assets/; con "foglio.png#riga:colonna" un fotogramma di un foglio animato e con
+    "#riga:colonna:m" lo stesso fotogramma specchiato (rivolto a sinistra)."""
     if path not in _cache:
         if "#" in path:
             sheet, _, cell = path.partition("#")
-            row, _, col = cell.partition(":")
-            _cache[path] = sheet_frame(sheet, row, int(col))
+            row, col, *flags = cell.split(":")
+            img = sheet_frame(sheet, row, int(col))
+            _cache[path] = img.transpose(Image.FLIP_LEFT_RIGHT) if "m" in flags else img
         else:
             _cache[path] = Image.open(ASSETS / path).convert("RGBA")
     return _cache[path]
@@ -64,6 +66,11 @@ def sheet_frame(path: str, row: str, col: int) -> Image.Image:
     fw, fh = entry["frame"]
     r = entry["rows"].index(row)
     return art(path).crop((col * fw, r * fh, (col + 1) * fw, (r + 1) * fh))
+
+
+def enemy(kind: str, x: int, px: int, rng: random.Random, row: str = "move") -> str:
+    """Fotogramma del foglio di un nemico, rivolto verso il player (i fogli guardano a destra)."""
+    return f"sprites/{kind}_sheet.png#{row}:{rng.randrange(4)}" + (":m" if x > px else "")
 
 
 def manifest_assets() -> list[dict]:
@@ -290,20 +297,20 @@ def scene_gameplay() -> Image.Image:
     layer.actor("sprites/tide_companion.png", px + 19, py - 12)
     layer.actor("sprites/sprout_companion.png", px, py - 22)
     rng = random.Random(7)
-    kinds = ["blob_enemy"] * 11 + ["swarm_enemy"] * 6 + ["armored_enemy"] * 3
+    kinds = ["blob"] * 11 + ["swarm"] * 6 + ["armored"] * 3
     placed: list[tuple[int, int]] = [(px, py)]
-    while len(placed) < 75:
+    while len(placed) < 45:
         angle = rng.uniform(0, math.tau)
         dist = rng.uniform(64, 250)
         x = int(px + math.cos(angle) * dist * 1.25)
         y = int(py + math.sin(angle) * dist * 0.75)
         if not (12 < x < W - 12 and 40 < y < H - 2):
             continue
-        if any((x - ox) ** 2 + (y - oy) ** 2 < 150 for ox, oy in placed):
+        if any((x - ox) ** 2 + (y - oy) ** 2 < 420 for ox, oy in placed):
             continue
         placed.append((x, y))
-        layer.actor(f"sprites/{rng.choice(kinds)}.png", x, y)
-    layer.actor("sprites/elite_enemy.png", 352, 168)
+        layer.actor(enemy(rng.choice(kinds), x, px, rng), x, y)
+    layer.actor(enemy("elite", 352, px, rng), 352, 168)
     for _ in range(16):
         layer.ground("sprites/xp_gem.png", rng.randrange(80, 400), rng.randrange(70, 250))
     cx, cy = px, py - 8
@@ -439,21 +446,21 @@ def scene_boss() -> Image.Image:
     layer = Layer()
     for x, y in ((60, 90), (420, 70), (90, 250)):
         layer.actor("sprites/tree.png", x, y)
-    layer.actor("sprites/boss_enemy.png", 240, 120)
+    layer.actor("sprites/boss_sheet.png#move:0", 240, 120)
     px, py = 240, 214
     layer.actor(f"{PLAYER}#idle_up:0", px, py)
     layer.actor("sprites/ember_companion.png", px - 18, py + 2)
     layer.actor("sprites/tide_companion.png", px + 19, py + 2)
     layer.actor("sprites/sprout_companion.png", px, py + 12)
     for x, y in ((170, 120), (318, 128)):
-        layer.actor("sprites/elite_enemy.png", x, y)
+        layer.actor(enemy("elite", x, 240, random.Random(x)), x, y)
     rng = random.Random(3)
     for _ in range(26):
         x, y = rng.randrange(20, W - 20), rng.randrange(60, 200)
         if abs(x - 240) < 50 and y < 140:
             continue
-        kind = rng.choice(["blob_enemy", "swarm_enemy", "blob_enemy"])
-        layer.actor(f"sprites/{kind}.png", x, y)
+        kind = rng.choice(["blob", "swarm", "blob"])
+        layer.actor(enemy(kind, x, px, rng), x, y)
     for i in range(14):
         a = math.tau * i / 14
         layer.centered("sprites/telegraph.png", int(px + math.cos(a) * 30),

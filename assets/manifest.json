@@ -2,17 +2,6 @@
   "version": 1,
   "assets": [
     {
-      "path": "sprites/armored_enemy.png",
-      "kind": "sprite",
-      "size": [
-        20,
-        15
-      ],
-      "frames": 1,
-      "source": "assets-src/sprites/armored_enemy.px",
-      "license": "original, project-owned (generated from assets-src)"
-    },
-    {
       "path": "sprites/armored_sheet.png",
       "kind": "sprite",
       "size": [
@@ -35,17 +24,6 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
-      "path": "sprites/blob_enemy.png",
-      "kind": "sprite",
-      "size": [
-        16,
-        14
-      ],
-      "frames": 1,
-      "source": "assets-src/sprites/blob_enemy.px",
-      "license": "original, project-owned (generated from assets-src)"
-    },
-    {
       "path": "sprites/blob_sheet.png",
       "kind": "sprite",
       "size": [
@@ -65,17 +43,6 @@
       "anchor": "bottom_center",
       "palette": "assets-src/sprites/enemies.palette.txt",
       "source": "assets-src/sprites/blob_sheet.px",
-      "license": "original, project-owned (generated from assets-src)"
-    },
-    {
-      "path": "sprites/boss_enemy.png",
-      "kind": "sprite",
-      "size": [
-        56,
-        47
-      ],
-      "frames": 1,
-      "source": "assets-src/sprites/boss_enemy.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -111,17 +78,6 @@
       ],
       "frames": 1,
       "source": "assets-src/sprites/droplet.px",
-      "license": "original, project-owned (generated from assets-src)"
-    },
-    {
-      "path": "sprites/elite_enemy.png",
-      "kind": "sprite",
-      "size": [
-        26,
-        22
-      ],
-      "frames": 1,
-      "source": "assets-src/sprites/elite_enemy.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -185,8 +141,8 @@
       "path": "sprites/rock.png",
       "kind": "sprite",
       "size": [
-        16,
-        12
+        20,
+        16
       ],
       "frames": 1,
       "source": "assets-src/sprites/rock.px",
@@ -230,17 +186,6 @@
       "palette": "assets-src/sprites/summoner_sheet.palette.txt",
       "source": "assets-src/sprites/summoner_sheet.px",
       "license": "user-provided (rights declared by the user, D-050), redrawn and cleaned in assets-src"
-    },
-    {
-      "path": "sprites/swarm_enemy.png",
-      "kind": "sprite",
-      "size": [
-        14,
-        11
-      ],
-      "frames": 1,
-      "source": "assets-src/sprites/swarm_enemy.px",
-      "license": "original, project-owned (generated from assets-src)"
     },
     {
       "path": "sprites/swarm_sheet.png",
@@ -290,8 +235,8 @@
       "path": "sprites/tree.png",
       "kind": "sprite",
       "size": [
-        32,
-        32
+        40,
+        48
       ],
       "frames": 1,
       "source": "assets-src/sprites/tree.px",

@@ -13,6 +13,24 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "mappa" (2026-10-28)
+
+```text
+Task: ART-P3 - mappa nello stile del player e dei nemici
+Owner: pixel-art-director (tileset, roccia, albero, pulizia) + orchestrator (verifica, commit)
+Stato: DONE
+File: scripts/build-assets.py (disegno dei tile; nomi, seed e maschere invariati),
+  assets/tiles/meadow_tileset.png, assets-src/sprites/{rock,tree}.px, assets/sprites/
+  {rock,tree}.png, assets/manifest.json, scripts/preview-scene.py, ASSET_LICENSES.md,
+  docs/{ART_BIBLE,BACKLOG,PROGRESS,QA_REPORT}.md, docs/art/STYLE_HANDOFF.md,
+  docs/evidence/{art-preview-*,mappa-gioco}.png; tolti {blob,swarm,armored,elite,boss}_enemy
+  (.px e .png)
+Comandi eseguiti (risultato): build-assets.py / validate-assets.py OK (43 PNG);
+  ./scripts/check.ps1 OK (166 unit + 82 integrazione); gioco vero con seed 3 e 11
+Rischi noti: alberi più grandi coprono di più chi passa dietro; compagni ancora nello stile v1
+Prossimo task: ART-P4 (compagni) da proporre, prova umana, P1
+```
+
 ## Report tranche "nemici e boss animati" (2026-10-28)
 
 ```text

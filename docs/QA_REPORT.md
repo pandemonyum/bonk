@@ -1,5 +1,13 @@
 # QA REPORT
 
+## 2026-10-28 — Mappa nello stile nuovo
+
+| Controllo | Esito | Prova |
+|---|---|---|
+| Tileset | stessi 42 indici e ruoli, test della generazione invariati e verdi | `./scripts/check.ps1` |
+| Roccia e albero | impronte (7,4) e (4,4) misurate sui PNG nuovi: cadono su base e tronco | report del pixel-art-director |
+| Gioco vero | seed 3 e 11: prato, terra, siepe, rocce, alberi con player e nemici | `docs/evidence/mappa-gioco.png` |
+
 ## 2026-10-28 — Nemici e boss animati
 
 | Controllo | Esito | Prova |

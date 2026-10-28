@@ -21,6 +21,7 @@ stanno 1–2 px sopra la base.
 | `sprites/ember_companion.png` | 16×17 | 16×20 |
 | `sprites/tide_companion.png` | 16×14 | 18×18 |
 | `sprites/sprout_companion.png` | 16×17 | 16×20 |
+| `sprites/blob_enemy.png` … `boss_enemy.png` (righe sotto) | — | sostituiti dai fogli animati `*_sheet.png` e rimossi (2026-10-28, vedi `docs/ART_BIBLE.md`) |
 | `sprites/blob_enemy.png` | 16×13 | 16×14 |
 | `sprites/swarm_enemy.png` | 12×8 | 14×11 |
 | `sprites/armored_enemy.png` | 20×15 | 20×15 |
@@ -31,8 +32,8 @@ stanno 1–2 px sopra la base.
 | `sprites/leaf.png` | 6×6 | 8×8 |
 | `sprites/droplet.png` | 4×4 | 4×4 |
 | `sprites/xp_gem.png` | 6×8 | 8×10 |
-| `sprites/rock.png` | 16×10 | 16×12 |
-| `sprites/tree.png` | 24×26 | 32×32 |
+| `sprites/rock.png` | 16×10 | 16×12, poi 20×16 nello stile del player (impronta invariata) |
+| `sprites/tree.png` | 24×26 | 32×32, poi 40×48 nello stile del player (impronta invariata) |
 
 Valori proposti (sono proposte del pixel-art-director: i numeri di bilanciamento restano del
 game-designer, il codice del gameplay-engineer e di world-generation):

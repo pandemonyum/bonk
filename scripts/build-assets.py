@@ -194,109 +194,118 @@ def stamp(grid, x: int, y: int, art: list[str]) -> None:
                 put(grid, x + dx, y + dy, char)
 
 
-# Timbri d'erba: ciuffetto a "v" (punte chiare, base scura), filo, macchia d'ombra.
-TUFT_V = ["b.b", ".A."]
-TUFT_W = ["b.b.b", "A.A.A", ".A.A."]
+# Timbri d'erba, stile del player (forme tozze, tre toni, luce da nord-ovest): ciuffi a tre e a
+# due fili con la punta chiara e la base in ombra, macchie di sole tonde, zolle in ombra.
+TUFT_3 = ["b.b.b", "AbAbA", ".AAA."]
+TUFT_2 = ["b.b", "AbA", ".A."]
 BLADE = ["b", "A"]
-DASH = ["AA"]
-SUN = [".bb", "bbb", "bb."]
+CLUMP = [".bb.", "bAAb", ".AA."]
+SUN = [".bbb.", "bbbbb", ".bbb."]
 
 
 def grass_base(rng: random.Random, tufts: int, blades: int, dashes: int) -> list[list[str]]:
     grid = blank("a")
     for _ in range(dashes):
-        stamp(grid, rng.randrange(TILE), rng.randrange(TILE), DASH)
+        stamp(grid, rng.randrange(TILE), rng.randrange(TILE), CLUMP)
     for _ in range(dashes // 2):
         put(grid, rng.randrange(TILE), rng.randrange(TILE), "B")
     for _ in range(blades):
         stamp(grid, rng.randrange(TILE), rng.randrange(TILE), BLADE)
-    for _ in range(tufts):
-        stamp(grid, rng.randrange(TILE), rng.randrange(TILE), TUFT_V)
+    for i in range(tufts):
+        art = TUFT_3 if i % 2 == 0 else TUFT_2
+        stamp(grid, rng.randrange(TILE), rng.randrange(TILE), art)
     return grid
 
 
 def flower(grid, x: int, y: int, petal: str, shade: str, center: str) -> None:
-    """Fiore a quattro petali con il petalo in basso in ombra e un'ombra a terra."""
-    stamp(grid, x - 1, y - 1, [f".{petal}.", f"{petal}{center}{petal}", f".{shade}.", "..A"])
+    """Fiore tozzo a quattro petali: petalo in basso in ombra, bordo scuro e ombra a terra."""
+    stamp(grid, x - 2, y - 2, [
+        ".BpB.".replace("p", petal),
+        "B" + petal + center + petal + "B",
+        "." + petal + shade + "BA",
+        "..BA.",
+    ])
 
 
 def pebble(grid, x: int, y: int) -> None:
-    stamp(grid, x, y, ["6t", "TT", "AA"])
+    stamp(grid, x, y, [".AA.", "A6tA", "AtTA", ".AA."])
 
 
 def make_grass(name: str, rng: random.Random) -> list[list[str]]:
     if name == "grass_a":
-        return grass_base(rng, tufts=4, blades=5, dashes=4)
+        return grass_base(rng, tufts=3, blades=3, dashes=3)
     if name == "grass_b":
-        return grass_base(rng, tufts=6, blades=6, dashes=6)
+        return grass_base(rng, tufts=5, blades=4, dashes=4)
     if name == "grass_c":
         grid = grass_base(rng, tufts=2, blades=2, dashes=1)
         stamp(grid, rng.randrange(TILE), rng.randrange(TILE), SUN)
         stamp(grid, rng.randrange(TILE), rng.randrange(TILE), SUN)
         return grid
     if name == "grass_tuft":
-        grid = grass_base(rng, tufts=2, blades=2, dashes=2)
-        stamp(grid, 4, 5, ["..b.b..", ".bAbAb.", "bAAbAAb", "AABABAA", ".BBBBB."])
+        grid = grass_base(rng, tufts=1, blades=2, dashes=2)
+        stamp(grid, 3, 4, ["..b.b.b..", ".bAbAbAb.", "bAAbAbAAb", "AABAAABAA", ".BBBBBBB."])
         return grid
     if name == "grass_tall":
-        grid = grass_base(rng, tufts=1, blades=2, dashes=2)
-        stamp(grid, 1, 3, ["b..b", "Ab.A", "AAbA", "BAAB", ".BB."])
-        stamp(grid, 8, 8, ["..b.b..", "b.A.Ab.", "AbAbAAb", "AAAAAAA", ".BBBBB."])
+        grid = grass_base(rng, tufts=1, blades=1, dashes=2)
+        stamp(grid, 1, 2, ["b...b", "Ab.bA", "AAbAA", "BAAAB", ".BBB."])
+        stamp(grid, 7, 7, ["..b.b.b..", "b.A.b.Ab.", "AbAbAbAAb", "AAAAAAAAA", ".BBBBBBB."])
         return grid
     if name == "grass_clover":
-        grid = grass_base(rng, tufts=2, blades=2, dashes=1)
-        for x, y in ((3, 4), (10, 9), (5, 12)):
-            stamp(grid, x, y, [".b.", "bAb", ".A."])
+        grid = grass_base(rng, tufts=1, blades=2, dashes=1)
+        for x, y in ((3, 3), (10, 8), (4, 11)):
+            stamp(grid, x, y, [".bb.", "bAbb", "bbAb", ".bA."])
         return grid
     if name == "grass_pebbles":
-        grid = grass_base(rng, tufts=2, blades=3, dashes=2)
-        pebble(grid, 3, 4)
-        pebble(grid, 10, 9)
-        put(grid, 6, 12, "t")
-        put(grid, 6, 13, "A")
+        grid = grass_base(rng, tufts=2, blades=2, dashes=1)
+        pebble(grid, 2, 3)
+        pebble(grid, 9, 9)
+        stamp(grid, 6, 12, ["6t", "AA"])
         return grid
     if name in ("flowers_white", "flowers_pink", "flowers_yellow"):
-        grid = grass_base(rng, tufts=2, blades=2, dashes=2)
+        grid = grass_base(rng, tufts=1, blades=2, dashes=2)
         petal, shade, center = {
             "flowers_white": ("w", "t", "y"),
             "flowers_pink": ("m", "M", "y"),
             "flowers_yellow": ("y", "G", "f"),
         }[name]
         # un ciuffo di tre fiori, non sparsi su tutto il tile
-        for x, y in ((5, 5), (9, 7), (6, 10)):
+        for x, y in ((5, 5), (11, 7), (6, 11)):
             flower(grid, x, y, petal, shade, center)
         return grid
     sys.exit(f"tile sconosciuto: {name}")
 
 
 def make_dirt(rng: random.Random) -> list[list[str]]:
+    """Terra battuta: crepe, granelli chiari, sassolini tozzi con contorno e ombra."""
     grid = blank("d")
-    for _ in range(9):
-        stamp(grid, rng.randrange(TILE), rng.randrange(TILE), ["DD"])
-    for _ in range(4):
-        stamp(grid, rng.randrange(TILE), rng.randrange(TILE), ["D", "D"])
-    for _ in range(3):
+    for _ in range(6):
+        stamp(grid, rng.randrange(TILE), rng.randrange(TILE), ["DD", ".D"])
+    for _ in range(5):
         stamp(grid, rng.randrange(TILE), rng.randrange(TILE), ["7", "D"])
-    for _ in range(2):
+    for _ in range(3):
         put(grid, rng.randrange(TILE), rng.randrange(TILE), "8")
+    for _ in range(2):
+        stamp(grid, rng.randrange(TILE), rng.randrange(TILE), [".7.", "7dD", ".D8"])
     return grid
 
 
-# Cespugli della siepe: cerchi a ciuffi con luce in alto a sinistra, su fondo scuro.
+# Cespugli della siepe: ciuffi tondi e tozzi con luce in alto a sinistra e bordo verde scuro,
+# sfalsati su due file e avvolti sui bordi del tile.
 HEDGE_CLUMP = [
-    ".aaA.",
-    "abaAA",
-    "aAAAB",
-    "AAABN",
-    ".BBN.",
+    "..NNN..",
+    ".NbaaN.",
+    "NbaaaAN",
+    "NaaaAAN",
+    "NAAABBN",
+    ".NBBBN.",
 ]
 
 
 def make_hedge(rng: random.Random) -> list[list[str]]:
     grid = blank("B")
     for x, y in ((0, 0), (8, 0), (4, 5), (12, 5), (0, 10), (8, 10), (4, 15), (12, 15)):
-        stamp(grid, x + rng.randrange(2), y, HEDGE_CLUMP)
-    for _ in range(4):
+        stamp(grid, x + rng.randrange(2) - 1, y - 1, HEDGE_CLUMP)
+    for _ in range(3):
         put(grid, rng.randrange(TILE), rng.randrange(TILE), "N")
     return grid
 
@@ -359,11 +368,14 @@ def make_edge(material: list[list[str]], grass: list[list[str]], mask: int, hedg
                         char = "b"
                 grid[y][x] = char
             elif hedge:
-                # contorno scuro del cespuglio dove confina con l'erba; faccia frontale a sud
+                # contorno quasi nero del cespuglio dove confina con l'erba (come gli attori),
+                # bordo di luce dentro il contorno a nord e a ovest, faccia in ombra a sud
                 if any(grass_at(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
-                    grid[y][x] = "N"
+                    grid[y][x] = "k"
+                elif grass_at(x, y - 2) or grass_at(x - 2, y):
+                    grid[y][x] = "a"
                 elif grass_at(x, y + 2):
-                    grid[y][x] = "B"
+                    grid[y][x] = "N"
             else:
                 # gradino della terra: sotto l'erba a nord e a ovest c'è la parete in ombra
                 if grass_at(x, y - 1):

@@ -45,23 +45,18 @@ sono ancora quelli del codice attuale, le icone nuove non sono collegate).
 | Brasa | 16×17 | **16×20** | punta di fiamma più alta e pancia; resta la più alta e stretta dei tre |
 | Gocci | 16×14 | **18×18** | la bolla è la più larga dei tre; spazio per il ricciolo della cresta |
 | Frond | 16×17 | **16×20** | foglie più grandi con nervatura |
-| Gelatina | 16×13 | **16×14** | una riga per la bocca con le zanne |
 | Gelatina, foglio | — | **28×24** (~22×18 visibili), 4×2 | stile del player; salto e sconfitta |
-| Sciame | 12×8 | **14×11** | ali con membrana e corpo tondo leggibili; resta il più piccolo |
 | Sciame, foglio | — | **24×22** (~18×16), 4×2 | vola: ombra piccola sulla riga in basso |
-| Corazzato | 20×15 | = | ridisegnato a carapace viola |
 | Corazzato, foglio | — | **32×28** (~26×22), 4×2 | passo e guscio che si spacca |
-| Élite | (24–32) | **26×22** | gelatina grande e scura, spine rosse |
 | Gelatina Gigante, foglio | — | **44×38** (~36×30), 4×4 | passo, sconfitta, carica, scatto |
-| Boss | (48–64) | **56×47** | colosso a cupola, ~1/6 dell'altezza dello schermo |
 | Gran Corazzato, foglio | — | **96×80** (~80×66), 4×4 | passo, sconfitta, salto, schianto; ~1/4 dell'altezza dello schermo |
 | Proiettile di fuoco | 6×6 | **8×8** | sfera con nucleo bianco, visibile sopra l'orda |
 | Foglia orbitante | 6×6 | **8×8** | nervatura e contorno |
 | Goccia dell'onda | 4×4 | = | più chiara (`L`/`w`), senza contorno |
 | Gemma XP | 6×8 | **8×10** | cristallo sfaccettato con riflesso |
 | Segno di pericolo | — | **6×6** | anello rosso a terra |
-| Roccia | 16×10 | **16×12** | quattro toni e ombra; larghezza = impronta (r=7) |
-| Albero | 24×26 | **32×32** | chioma a ciuffi; impronta solo sul tronco |
+| Roccia | 16×12 | **20×16** | masso tozzo nello stile del player; impronta r=7 a 4 px sopra la base, sulla parte bassa del masso |
+| Albero | 32×32 | **40×48** | chioma a ciuffi separati per tono, contorno solo sulla sagoma; impronta r=4 a 4 px sopra la base, sul piede del tronco |
 
 Massimi: comuni ≤ 20 px, compagni ≤ 24, fotogramma del player 36×38, alberi ≤ 32, boss ≤ 64
 (validato; i fogli animati fotogramma per fotogramma, fino a 96 px per fotogramma). A
@@ -184,13 +179,24 @@ guscio rotto) che il gioco fa sparire in dissolvenza.
 | `boss_sheet.png` | 96×80 | move (passo pesante), death, windup (salto: il 3 resta fino all'impatto), slam (schianto, polvere nel fotogramma, ripresa) |
 
 Disegnati con forme ombreggiate in uno script usa e getta fuori dal repository e rifiniti
-nella griglia, come gli sprite grandi della v1. I vecchi sprite singoli (`blob_enemy.png` e
-gli altri) restano finché `game-data/enemies.ron` non passa ai fogli.
+nella griglia, come gli sprite grandi della v1. I vecchi sprite singoli dei nemici
+(`blob_enemy.png` e gli altri) sono stati rimossi quando `game-data/enemies.ron` è passato ai fogli.
 
 ## Tileset `meadow_tileset.png` (indici in `src/world/tiles.rs`)
 
 Procedurale con seed fisso in `scripts/build-assets.py`, timbri che si avvolgono sui bordi del
-tile (nessuna cucitura).
+tile (nessuna cucitura). Ridisegnato nello stile del player con gli **stessi 42 indici e ruoli**
+(`TILE_NAMES` e `src/world/` invariati):
+- **Erba:** ciuffi tozzi a tre e due fili (punte `b`, base `A`), zolle in ombra e macchie di
+  sole tonde.
+- **Fiori:** più grandi, con un bordo verde scuro e l'ombra a terra.
+- **Terra:** crepe, granelli chiari e sassolini.
+- **Siepe:** cespugli tondi a due file con bordo `N`. Dove la siepe confina con l'erba il
+  contorno è il quasi nero `k` degli attori, con un bordo di luce dentro a nord e a ovest:
+  la siepe è il muro dell'arena e si legge come un ostacolo.
+
+L'ambiente resta più spento degli attori (regola 3): il contorno `k` sta solo sulla siepe, mai
+sui dettagli del prato.
 
 | Indici | Tile |
 |---|---|
@@ -269,6 +275,10 @@ griglia `.px`, che resta l'unica sorgente.
 - v1: alberi con ciuffi separati da linee scure regolari sembravano un guscio di tartaruga;
   meglio separare i ciuffi con un bordo di luce in alto e ombra tonale sotto.
 - v1: fiori in ogni tile fanno rumore; meglio ciuffi di tre fiori raccolti a macchie.
+- Mappa nello stile del player: sassolini con il contorno quasi nero sembravano buchi o macchie
+  nere e facevano concorrenza agli attori; i dettagli del prato usano i toni dell'ambiente
+  (`A`, `8`) come bordo. La regola delle chiome (niente linee scure fra i ciuffi) vale anche
+  per l'albero da 40×48.
 - Player (D-050): un foglio generato con le pose giuste ma la scala che cambia da un
   fotogramma all'altro fa "pompare" il personaggio e nasconde il passo. Regola: un master per
   direzione, ogni fotogramma ne deriva, e le tre direzioni hanno la stessa altezza.

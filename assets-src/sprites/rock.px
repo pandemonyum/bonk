@@ -1,17 +1,23 @@
-# Roccia (ostacolo), 16x12, stile v1: quattro toni di pietra (6/t/T/5), luce in alto a sinistra,
-# crepa e ombra a terra. Impronta di collisione proposta: cerchio r=7 a 4 px sopra la base
-# (vedi docs/art/STYLE_HANDOFF.md; il valore vive in src/world/obstacles.rs).
+# Roccia (ostacolo), 20x16, stile del player: masso tozzo a quattro toni di pietra (6/t/T/5)
+# con contorno k, luce in alto a sinistra, crepa, ciuffo di muschio e ombra a terra.
+# Impronta di collisione in src/world/obstacles.rs: cerchio r=7 a 4 px sopra la base, cioe'
+# sulla parte bassa del masso (righe 10-14, colonne 3-17). Disegnato con forme ombreggiate
+# (script usa e getta) e rifinito a mano.
 out: sprites/rock.png
 ---
-.....kkkkk......
-...kk66t66kk....
-..k666tttttTk...
-.k66ttttt6tTTk..
-.k6tttttttTTTTk.
-k6ttttt5ttTTTT5k
-kttttt5tTTTTT55k
-kTtttt5TTTTT555k
-kTTTTTTTTT55555k
-.k5TTTTT555555k.
-.9kk55555555kk9.
-..999kkkkkk999..
+....................
+......kkkkkkkk......
+....kk66ttttttkk....
+...k6ab6tttttttTk...
+..k6b66attt5ttttTk..
+.kt66ttttttt5ttTT5k.
+.ktttttttttt5ttTT5k.
+kttt6tttttttt5TTT55k
+kt66tttttTttt5TT555k
+ktttttttTTtTTTT5555k
+kttttttTT55TT555555k
+.kttTTT55555555555k.
+..k5555555555555kk..
+...kkkkk5555kkkk....
+.9999999kkkk9999999.
+..9999999999999999..

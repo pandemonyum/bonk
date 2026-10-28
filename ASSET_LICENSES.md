@@ -8,20 +8,15 @@ manifest `assets/manifest.json`.
 
 | Asset | Origine | Licenza |
 |---|---|---|
-| `assets/sprites/blob_enemy.png` | `assets-src/sprites/blob_enemy.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/ember_companion.png` | `assets-src/sprites/ember_companion.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/fireball.png` | `assets-src/sprites/fireball.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
-| `assets/sprites/rock.png` | `assets-src/sprites/rock.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
-| `assets/sprites/swarm_enemy.png` | `assets-src/sprites/swarm_enemy.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
-| `assets/sprites/armored_enemy.png` | `assets-src/sprites/armored_enemy.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
-| `assets/sprites/tree.png` | `assets-src/sprites/tree.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
+| `assets/sprites/rock.png` (20×16) | `assets-src/sprites/rock.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano (forme ombreggiate rifinite nella griglia) |
+| `assets/sprites/tree.png` (40×48) | `assets-src/sprites/tree.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano (forme ombreggiate rifinite nella griglia) |
 | `assets/sprites/xp_gem.png` | `assets-src/sprites/xp_gem.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/tide_companion.png` | `assets-src/sprites/tide_companion.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/sprout_companion.png` | `assets-src/sprites/sprout_companion.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/leaf.png` | `assets-src/sprites/leaf.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/droplet.png` | `assets-src/sprites/droplet.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
-| `assets/sprites/elite_enemy.png` | `assets-src/sprites/elite_enemy.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
-| `assets/sprites/boss_enemy.png` | `assets-src/sprites/boss_enemy.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/telegraph.png` | `assets-src/sprites/telegraph.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/blob_sheet.png` (Gelatina, foglio 4×2 da 28×24) | `assets-src/sprites/blob_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |
 | `assets/sprites/swarm_sheet.png` (Sciame, 4×2 da 24×22) | `assets-src/sprites/swarm_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |
@@ -54,7 +49,7 @@ manifest `assets/manifest.json`.
 | `assets/ui/upgrade_join_tide.png` | `assets-src/ui/upgrade_join_tide.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/ui/upgrade_join_ember.png` | `assets-src/ui/upgrade_join_ember.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/ui/upgrade_join_sprout.png` | `assets-src/ui/upgrade_join_sprout.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
-| `assets/tiles/meadow_tileset.png` | generato da `scripts/build-assets.py` (seed 20261022, 42 tile dalla v1) | originale, proprietà del progetto |
+| `assets/tiles/meadow_tileset.png` | generato da `scripts/build-assets.py` (seed 20261022, 42 tile dalla v1, ridisegnati nello stile del player il 2026-10-28) | originale, proprietà del progetto |
 | Palette "Germoglio" v1 (`assets-src/palette.txt`, 56 colori) | definita per il progetto | originale, proprietà del progetto |
 | Palette dei nemici (`assets-src/sprites/enemies.palette.txt`, 18 colori) | definita per il progetto: viola e rossi della palette "Germoglio", contorno come il player | originale, proprietà del progetto |
 
