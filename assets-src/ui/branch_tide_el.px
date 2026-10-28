@@ -1,0 +1,20 @@
+# Intestazione del ramo el di tide (talenti v2): onda arricciata. 16x16, distintivo tondo,
+# tema water.
+out: ui/branch_tide_el.png
+---
+.......kk.......
+....kkllllkk....
+...kllCCCCllk...
+..klCCCCkkkklk..
+.klCCCkkLLLLkCk.
+.klCCkLLwkkLlkk.
+.lCCkLlwkCCkLkC.
+klCCkLlkCCCCkCCk
+klnkLllknnnnnnCk
+.lnkLllcknnnnnC.
+.kkLlllccknnkkk.
+.kkllllccckkLkk.
+..kcccccccccck..
+...kkkkkkkkkk...
+....kkCCCCkk....
+.......kk.......

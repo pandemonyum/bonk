@@ -125,14 +125,14 @@ quando di solito la squadra ha un secondo compagno.
 | Preavvisi | almeno 0,5 s (validato), lampeggio sempre più rapido | "telegraph chiaro" dell'handoff |
 | Carte compagno | comuni (P0.6, prima non comuni) | la squadra arriva nei primi livelli |
 
-## Talenti (D-058)
+## Talenti (D-058, D-059)
 
 Persistenti, per compagno: esperienza a fine run (⌊s in squadra ÷ 15⌋ + ⌊sconfitti ÷ 40⌋ + 20 se
-vittoria), livello n → n + 1 con 100 + 50 × (n − 1), un punto per livello dal 2 al 7. Due rami
-da tre nodi (`companions.ron: talents`), nel menu con T; azzeramento gratis. Alberi e conti in
-`docs/design/TALENTS_AND_CHESTS.md`; i nodi 3 sono un terzo sotto la proposta (Brace che cova
-20%/s, Soffio ardente 87%, Marea alta +10%, Sorgente viva 0,23 HP fino a 0,85, Rovo largo +10%,
-Radici spinose 28 px 167%, Lampo grande 27 px 133%).
+vittoria), livello n → n + 1 con 20 + 3 × (n − 1), un punto per livello fino al 49. Tre rami
+(elemento, Supporto, Evoluzione) da 8 nodi: due percorsi da tre, unione, finale; 48 gradi per
+compagno. Nel menu con T; azzeramento gratis. Alberi, valori e conti in
+`docs/design/TALENT_TREES_V2.md` (la prima versione, due rami da tre nodi, è in
+`TALENTS_AND_CHESTS.md`). Sonda con tutti gli alberi completi: 32/32 vittorie con il 53% dei danni subiti (56% prima del primo taglio del § 4, le Evoluzioni a 0,5% di danno per grado): sopra la guardia del 97%, perché con gli alberi completi il bot non arriva più alla stretta delle 3:30; da rivedere con la prova umana.
 
 ## Misure
 

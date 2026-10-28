@@ -9,7 +9,7 @@ use super::chain::ChainAttack;
 use super::orbit::OrbitAttack;
 use super::pulse::PulseAttack;
 use super::upgrades::Modifiers;
-use crate::data::schema::{TalentBranch, TalentEffect};
+use crate::data::schema::{TalentBranch, TalentEffect, TalentNode};
 
 /// Nodi imparati per compagno (id del compagno, id dei nodi), dal profilo
 /// (`profile::Profile::learned`) quando il compagno entra in squadra.
@@ -88,25 +88,61 @@ pub struct TalentKit {
     pub echo: Option<Echo>,
     pub strike: Option<Strike>,
     pub burn: Option<Burn>,
+    pub player: PlayerSupport,
 }
 
-/// I nodi davvero attivi: in ogni ramo quelli imparati di fila dal primo (un nodo senza il
-/// precedente non vale), nell'ordine dei dati.
+/// Grado di un nodo nei nodi imparati (`learned` ripete l'id una volta per grado), al
+/// massimo quello del nodo.
+pub fn node_rank(learned: &[String], node: &TalentNode) -> u32 {
+    (learned.iter().filter(|id| **id == node.id).count() as u32).min(node.max_rank())
+}
+
+/// I nodi attivi con il loro grado: imparati e con i requisiti soddisfatti (ognuno almeno al
+/// grado 1), nell'ordine dei dati.
 pub fn active_nodes<'a>(
     branches: &'a [TalentBranch],
     learned: &[String],
-) -> Vec<&'a crate::data::schema::TalentNode> {
+) -> Vec<(&'a TalentNode, u32)> {
     branches
         .iter()
-        .flat_map(|b| b.nodes.iter().take_while(|n| learned.contains(&n.id)))
+        .flat_map(|b| b.nodes.iter())
+        .filter_map(|node| {
+            let rank = node_rank(learned, node);
+            let open = node.requires.iter().all(|r| learned.contains(r));
+            (rank > 0 && open).then_some((node, rank))
+        })
         .collect()
+}
+
+/// Aiuto al player dei talenti di un compagno in squadra.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct PlayerSupport {
+    pub max_hp: f32,
+    pub regen: f32,
+    pub speed_pct: f32,
+    pub pickup_pct: f32,
+    pub coin_pct: f32,
+    pub damage_taken_pct: f32,
+    pub invuln_secs: f32,
+}
+
+impl PlayerSupport {
+    pub fn add(&mut self, other: &PlayerSupport) {
+        self.max_hp += other.max_hp;
+        self.regen += other.regen;
+        self.speed_pct += other.speed_pct;
+        self.pickup_pct += other.pickup_pct;
+        self.coin_pct += other.coin_pct;
+        self.damage_taken_pct += other.damage_taken_pct;
+        self.invuln_secs += other.invuln_secs;
+    }
 }
 
 impl TalentKit {
     pub fn resolve(branches: &[TalentBranch], learned: &[String]) -> Self {
         let mut kit = Self::default();
-        for node in active_nodes(branches, learned) {
-            for effect in &node.effects {
+        for (node, rank) in active_nodes(branches, learned) {
+            for effect in node.ranks.iter().take(rank as usize).flatten() {
                 kit.apply(effect);
             }
         }
@@ -172,6 +208,13 @@ impl TalentKit {
                     duration: duration_s,
                 });
             }
+            TalentEffect::PlayerMaxHp(v) => self.player.max_hp += v,
+            TalentEffect::PlayerRegen(v) => self.player.regen += v,
+            TalentEffect::PlayerSpeedPct(v) => self.player.speed_pct += v,
+            TalentEffect::PlayerPickupPct(v) => self.player.pickup_pct += v,
+            TalentEffect::PlayerCoinPct(v) => self.player.coin_pct += v,
+            TalentEffect::PlayerDamageTakenPct(v) => self.player.damage_taken_pct += v,
+            TalentEffect::PlayerInvulnSecs(v) => self.player.invuln_secs += v,
         }
     }
 
@@ -220,7 +263,7 @@ mod tests {
     use super::*;
     use crate::data::GameConfig;
 
-    fn tree(id: &str) -> Vec<TalentBranch> {
+    fn tree_of(id: &str) -> Vec<TalentBranch> {
         GameConfig::embedded()
             .companion(id)
             .expect("compagno dei dati")
@@ -234,7 +277,7 @@ mod tests {
 
     #[test]
     fn a_node_counts_only_with_the_one_before_it() {
-        let ember = tree("ember");
+        let ember = tree_of("ember");
         let first = &ember[0].nodes[0].id;
         let second = &ember[0].nodes[1].id;
         assert_eq!(active_nodes(&ember, &ids(&[second])).len(), 0);
@@ -246,23 +289,51 @@ mod tests {
     }
 
     #[test]
-    fn later_nodes_of_a_branch_replace_the_mechanic_and_stats_add_up() {
-        let ember = tree("ember");
-        let a: Vec<String> = ember[0].nodes.iter().map(|n| n.id.clone()).collect();
-        let one = TalentKit::resolve(&ember, &a[..1]);
-        let two = TalentKit::resolve(&ember, &a[..2]);
-        let (e1, e2) = (one.explode.unwrap(), two.explode.unwrap());
-        assert!(e2.radius > e1.radius && e2.damage_pct > e1.damage_pct);
-        assert!(TalentKit::resolve(&ember, &a).burn.is_some());
-        let sprout = tree("sprout");
-        let all: Vec<String> = sprout
+    fn ranks_add_stats_and_later_ranks_replace_the_mechanic() {
+        use crate::data::schema::{BranchTheme, TalentNode};
+        let node = |id: &str, requires: &[&str], ranks: Vec<Vec<TalentEffect>>| TalentNode {
+            id: id.into(),
+            name: String::new(),
+            description: String::new(),
+            col: 0,
+            row: 0,
+            requires: requires.iter().map(|r| r.to_string()).collect(),
+            ranks,
+        };
+        let blast = |radius, damage_pct| TalentEffect::Explode { radius, damage_pct };
+        let branch = TalentBranch {
+            name: String::new(),
+            theme: BranchTheme::Element,
+            nodes: vec![
+                node(
+                    "a",
+                    &[],
+                    vec![vec![blast(16.0, 4.0)], vec![blast(20.0, 6.0)]],
+                ),
+                node("b", &["a"], vec![vec![TalentEffect::DamagePct(2.0)]; 3]),
+            ],
+        };
+        let tree = std::slice::from_ref(&branch);
+        let one = TalentKit::resolve(tree, &ids(&["a"]));
+        let two = TalentKit::resolve(tree, &ids(&["a", "a"]));
+        assert_eq!(one.explode.unwrap().radius, 16.0);
+        assert_eq!(two.explode.unwrap().radius, 20.0, "il grado 2 sostituisce");
+        let stats = TalentKit::resolve(tree, &ids(&["a", "b", "b"]));
+        assert_eq!(
+            stats.stats.damage_pct, 4.0,
+            "i gradi delle statistiche si sommano"
+        );
+        assert_eq!(TalentKit::resolve(tree, &ids(&["b"])), TalentKit::default());
+        // gli alberi veri: tutto imparato dà ogni meccanica e l'aiuto al player
+        let ember = tree_of("ember");
+        let all: Vec<String> = ember
             .iter()
-            .flat_map(|b| b.nodes.iter().map(|n| n.id.clone()))
+            .flat_map(|b| b.nodes.iter())
+            .flat_map(|n| std::iter::repeat_n(n.id.clone(), n.max_rank() as usize))
             .collect();
-        let kit = TalentKit::resolve(&sprout, &all);
-        assert_eq!(kit.stats.extra_count, 1);
-        assert!(kit.stats.range_pct > 0.0 && kit.stats.angular_pct > 0.0);
-        assert!(kit.strike.is_some() && kit.burn.is_some());
+        let kit = TalentKit::resolve(&ember, &all);
+        assert!(kit.explode.is_some() && kit.cone.is_some() && kit.burn.is_some());
+        assert!(kit.player.max_hp > 0.0 && kit.player.coin_pct > 0.0);
     }
 
     #[test]

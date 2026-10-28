@@ -22,7 +22,10 @@ pub mod results;
 pub mod sprites;
 pub mod status;
 pub mod talent_art;
+pub mod talent_text;
 pub mod talents_menu;
+pub mod talents_tree;
+pub mod talents_view;
 pub mod telegraphs;
 pub mod treasure_art;
 

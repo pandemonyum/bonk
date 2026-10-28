@@ -32,6 +32,10 @@ pub struct Modifiers {
     pub regen_per_s: f32,
     /// Valore di ogni moneta raccolta.
     pub coin_gain: f32,
+    /// Fattore dei danni subiti dal player (talenti).
+    pub damage_taken: f32,
+    /// Secondi di invulnerabilità in più dopo un colpo (talenti).
+    pub invuln_bonus: f32,
 }
 
 impl Default for Modifiers {
@@ -57,6 +61,8 @@ impl Modifiers {
             max_hp_bonus: 0.0,
             regen_per_s: 0.0,
             coin_gain: 1.0,
+            damage_taken: 1.0,
+            invuln_bonus: 0.0,
         };
         for (i, upgrade) in upgrades.iter().enumerate() {
             let n = stacks.of(i);
@@ -89,6 +95,20 @@ impl Modifiers {
         m.pickup_radius = pct_factor(pickup);
         m.coin_gain = pct_factor(coins);
         m
+    }
+
+    /// Gli stessi modificatori con l'aiuto al player dei talenti della squadra.
+    pub fn with_support(&self, s: &crate::gameplay::talents::PlayerSupport) -> Self {
+        Self {
+            max_hp_bonus: self.max_hp_bonus + s.max_hp,
+            regen_per_s: self.regen_per_s + s.regen,
+            move_speed: self.move_speed + s.speed_pct / 100.0,
+            pickup_radius: self.pickup_radius + s.pickup_pct / 100.0,
+            coin_gain: self.coin_gain + s.coin_pct / 100.0,
+            damage_taken: (self.damage_taken + s.damage_taken_pct / 100.0).max(0.0),
+            invuln_bonus: self.invuln_bonus + s.invuln_secs,
+            ..*self
+        }
     }
 
     /// Proiettili dai dati base con gli upgrade. La durata del proiettile segue gittata e

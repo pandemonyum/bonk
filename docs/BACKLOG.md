@@ -65,6 +65,7 @@ opzioni, browser, release candidate).
 | ~~U-HORDE~~ **DONE** | Run da 15 minuti, orde a 5:00 e 10:00 con annuncio (D-056) | orchestrator + game-designer | test dell'orda; sonda 84% |
 | ~~U-CHEST~~ **DONE** | Monete, forzieri lontani con freccia, reliquie (D-057) | orchestrator + game-designer + pixel-art-director | test di monete, forzieri e reliquie; gioco vero |
 | ~~U-TALENT~~ **DONE** | Talenti persistenti: profilo, esperienza, alberi, sei meccaniche, schermata nel menu (D-058) | orchestrator + game-designer + pixel-art-director | test di profilo, punti e meccaniche; sonda al massimo |
+| ~~U-TREE~~ **DONE** | Alberi grandi (3 rami, gradi, unione, finale) e schermata come il riferimento dell'utente (D-059) | game-designer + orchestrator + pixel-art-director | test di gradi, requisiti, effetti di Supporto, schermata; gioco vero |
 | U-SMALL | Compagni più piccoli (28×24, ~2/3 del player): ridisegnati in `assets-src/preview/`, **in attesa del via dell'utente** | pixel-art-director + orchestrator | anteprima inviata |
 | P1-SAVE | Profilo nel `localStorage` sul web (oggi solo in memoria) | web-release | con la P1 |
 | U-PLAY | Prova umana: forzieri e orde si sentono? Squadra senza Ondino, talenti al massimo | utente | — |

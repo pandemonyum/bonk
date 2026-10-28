@@ -57,7 +57,7 @@ fn index_of(id: &str) -> usize {
 
 #[test]
 fn fireballs_explode_on_the_neighbours_of_the_hit_enemy() {
-    let mut app = app_with_talents("ember", &["ember_a1"]);
+    let mut app = app_with_talents("ember", &["ember_el_a1", "ember_el_a1", "ember_el_a1"]);
     let blast = kit(&mut app).explode.expect("il nodo dà l'esplosione");
     let me = player_position(&mut app);
     let target = enemy_at(&mut app, me + Vec2::X * 60.0, HP, 1);
@@ -76,7 +76,10 @@ fn fireballs_explode_on_the_neighbours_of_the_hit_enemy() {
 
 #[test]
 fn the_fire_breath_comes_every_few_volleys_and_burns_come_from_direct_hits() {
-    let mut app = app_with_talents("ember", &["ember_a1", "ember_a2", "ember_a3", "ember_b1"]);
+    let mut app = app_with_talents(
+        "ember",
+        &["ember_el_a1", "ember_el_a2", "ember_el_a3", "ember_el_b1"],
+    );
     let k = kit(&mut app);
     let (cone, burn) = (k.cone.unwrap(), k.burn.unwrap());
     let me = player_position(&mut app);
@@ -97,7 +100,7 @@ fn the_fire_breath_comes_every_few_volleys_and_burns_come_from_direct_hits() {
 
 #[test]
 fn the_wave_heals_the_player_up_to_its_cap_and_echoes() {
-    let mut app = app_with_talents("tide", &["tide_a1", "tide_b1"]);
+    let mut app = app_with_talents("tide", &["tide_ev_a1", "tide_ev_a2", "tide_su_a1"]);
     let k = kit(&mut app);
     let (heal, echo) = (k.heal.unwrap(), k.echo.unwrap());
     let me = player_position(&mut app);
@@ -133,7 +136,7 @@ fn the_wave_heals_the_player_up_to_its_cap_and_echoes() {
 
 #[test]
 fn roots_strike_the_nearest_enemy_on_their_own_rhythm() {
-    let mut app = app_with_talents("sprout", &["sprout_b1"]);
+    let mut app = app_with_talents("sprout", &["sprout_el_b1"]);
     let strike = kit(&mut app).strike.unwrap();
     // fuori dalla portata delle foglie, dentro quella delle radici
     let me = player_position(&mut app);
@@ -158,7 +161,19 @@ fn roots_strike_the_nearest_enemy_on_their_own_rhythm() {
 fn branch_stats_add_to_the_attack() {
     let config = GameConfig::embedded();
     let mut base = app_with_talents("sprout", &[]);
-    let mut grown = app_with_talents("sprout", &["sprout_a1", "sprout_a2", "sprout_a3"]);
+    let mut grown = app_with_talents(
+        "sprout",
+        &[
+            "sprout_ev_a1",
+            "sprout_ev_a2",
+            "sprout_ev_a3",
+            "sprout_ev_b1",
+            "sprout_ev_b2",
+            "sprout_ev_b3",
+            "sprout_ev_c1",
+            "sprout_ev_c2",
+        ],
+    );
     let leaves = |app: &mut App| {
         let world = app.world_mut();
         world.query::<&OrbitAttack>().single(world).unwrap().clone()
@@ -166,7 +181,7 @@ fn branch_stats_add_to_the_attack() {
     let (a, b) = (leaves(&mut base), leaves(&mut grown));
     assert_eq!(b.leaves, a.leaves + 1);
     assert!(b.radius > a.radius && b.angular_speed.abs() > a.angular_speed.abs());
-    let mut tide = app_with_talents("tide", &["tide_a1", "tide_a2"]);
+    let mut tide = app_with_talents("tide", &["tide_ev_b1"]);
     let world = tide.world_mut();
     let pulse = world.query::<&PulseAttack>().single(world).unwrap().clone();
     let base_slow = config
@@ -176,4 +191,41 @@ fn branch_stats_add_to_the_attack() {
         .unwrap()
         .slow;
     assert!(pulse.slow < base_slow, "Marea lenta rallenta di più");
+}
+
+#[test]
+fn support_talents_help_the_player_while_the_companion_is_in_the_squad() {
+    use pixel_monster_survivor::gameplay::damage::{Invulnerability, Toughness};
+    let config = GameConfig::embedded();
+    let full_branch = |companion: &str, theme: &str| -> Vec<String> {
+        let c = config.companion(companion).unwrap();
+        let branch = c.talents.iter().find(|b| b.name == theme).unwrap();
+        branch
+            .nodes
+            .iter()
+            .flat_map(|n| std::iter::repeat_n(n.id.clone(), n.max_rank() as usize))
+            .collect()
+    };
+    // Foglin: meno danni subiti; Fiammetto: invulnerabilità più lunga
+    let bark = full_branch("sprout", "Supporto");
+    let bark: Vec<&str> = bark.iter().map(String::as_str).collect();
+    let mut app = app_with_talents("sprout", &bark);
+    run_steps(&mut app, 2);
+    let k = kit(&mut app);
+    assert!(k.player.damage_taken_pct < 0.0);
+    let taken = player_mut(&mut app).get::<Toughness>().unwrap().0;
+    assert!((taken - (1.0 + k.player.damage_taken_pct / 100.0)).abs() < 1e-5);
+    let hearth = full_branch("ember", "Supporto");
+    let hearth: Vec<&str> = hearth.iter().map(String::as_str).collect();
+    let mut app = app_with_talents("ember", &hearth);
+    run_steps(&mut app, 2);
+    let k = kit(&mut app);
+    let duration = player_mut(&mut app)
+        .get::<Invulnerability>()
+        .unwrap()
+        .duration;
+    let expected = config.player.invulnerability_s + k.player.invuln_secs;
+    assert!(k.player.invuln_secs > 0.0 && (duration - expected).abs() < 1e-5);
+    let max_hp = player_mut(&mut app).get::<Health>().unwrap().max;
+    assert!((max_hp - (config.player.max_hp + k.player.max_hp)).abs() < 1e-3);
 }

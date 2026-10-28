@@ -6,7 +6,7 @@ use bevy::prelude::*;
 
 use super::SimSet;
 use super::combat::{HIT_FLASH_SECS, Health, HitFlash, RunStats};
-use super::damage::{GodMode, Invulnerability, strike_player};
+use super::damage::{GodMode, Invulnerability, Toughness, strike_player};
 use super::kinematics::{Position, body};
 use super::player::Player;
 use crate::app::AppState;
@@ -263,10 +263,20 @@ fn land_telegraphs(
     mut stats: ResMut<RunStats>,
     mut telegraphs: Query<(Entity, &mut Telegraph, &Position, Option<&PendingSlam>)>,
     sources: Query<&Health, Without<Player>>,
-    player: Single<(Entity, &Position, &mut Health, &mut Invulnerability), With<Player>>,
+    player: Single<
+        (
+            Entity,
+            &Position,
+            &mut Health,
+            &mut Invulnerability,
+            Option<&Toughness>,
+        ),
+        With<Player>,
+    >,
 ) {
     let dt = time.delta_secs();
-    let (player_entity, feet, mut health, mut invulnerability) = player.into_inner();
+    let (player_entity, feet, mut health, mut invulnerability, toughness) = player.into_inner();
+    let taken = toughness.map_or(1.0, |t| t.0);
     for (entity, mut telegraph, center, slam) in &mut telegraphs {
         let gone = sources.get(telegraph.source).map_or(true, Health::is_dead);
         if gone {
@@ -287,7 +297,7 @@ fn land_telegraphs(
             &mut invulnerability,
             god.0,
             &mut stats,
-            slam.damage,
+            slam.damage * taken,
         );
         if hit {
             commands

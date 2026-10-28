@@ -23,15 +23,15 @@
     ),
     // esperienza dei compagni a fine run (si salva sul dispositivo): un punto ogni 15 s in
     // squadra, uno ogni 40 nemici finiti, 20 per la vittoria (~85-90 a run); per salire dal
-    // livello n al n+1 servono 100 + 50 × (n − 1): primo talento dopo ~1 run, albero completo
-    // (livello 7, 6 punti) dopo ~15
+    // livello n al n+1 servono 20 + 3 × (n − 1): un punto talento per livello, 48 per compagno
+    // (livello 49); ~3 punti dopo la prima run, metà albero in ~15 run, tutto in ~50
     companion_xp: (
         seconds_per_point: 15.0,
         kills_per_point: 40,
         victory: 20,
-        first_level: 100,
-        per_level: 50,
-        max_level: 7,
+        first_level: 20,
+        per_level: 3,
+        max_level: 49,
     ),
     draft_size: 3,
     // peso relativo di estrazione nel draft

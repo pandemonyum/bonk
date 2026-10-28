@@ -24,6 +24,16 @@ pub struct Invulnerability {
     pub duration: f32,
 }
 
+/// Fattore dei danni subiti dal player (talenti di Supporto; 1 = tutti).
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
+pub struct Toughness(pub f32);
+
+impl Default for Toughness {
+    fn default() -> Self {
+        Self(1.0)
+    }
+}
+
 /// Player che non subisce danni (prove automatiche, screenshot di run lunghe: `--god`).
 #[derive(Resource, Debug, Clone, Copy, PartialEq, Default)]
 pub struct GodMode(pub bool);
@@ -96,9 +106,18 @@ fn hurt_player(
     grid: Res<EnemyGrid>,
     mut stats: ResMut<RunStats>,
     enemies: Query<(&Enemy, &Health), Without<Player>>,
-    player: Single<(Entity, &Position, &mut Health, &mut Invulnerability), With<Player>>,
+    player: Single<
+        (
+            Entity,
+            &Position,
+            &mut Health,
+            &mut Invulnerability,
+            Option<&Toughness>,
+        ),
+        With<Player>,
+    >,
 ) {
-    let (entity, position, mut health, mut invulnerability) = player.into_inner();
+    let (entity, position, mut health, mut invulnerability, toughness) = player.into_inner();
     invulnerability.remaining = (invulnerability.remaining - time.delta_secs()).max(0.0);
     if god.0 || invulnerability.remaining > 0.0 || health.is_dead() {
         return;
@@ -111,7 +130,7 @@ fn hurt_player(
             let (enemy, enemy_health) = enemies.get(entry.entity).ok()?;
             (!enemy_health.is_dead()).then_some((entry.position, *enemy))
         });
-    let damage = contact_damage(position.0, touching);
+    let damage = contact_damage(position.0, touching) * toughness.map_or(1.0, |t| t.0);
     if strike_player(&mut health, &mut invulnerability, god.0, &mut stats, damage) {
         commands.entity(entity).try_insert(HitFlash(HIT_FLASH_SECS));
     }

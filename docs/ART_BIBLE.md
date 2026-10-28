@@ -432,6 +432,56 @@ cuore di quercia, sandalo e cesto ci sono vitalità, passo leggero e merenda.
 Anteprima ×4: `screenshots/anteprima-talenti.png`. Un blocco per albero con il ritratto del
 compagno, ramo A sopra e ramo B sotto.
 
+**Icone dei talenti v2** (`docs/design/TALENT_TREES_V2.md`, sezioni 5 e 6): per compagno 3 rami
+da 8 nodi più l'icona d'intestazione del ramo.
+- **File:** `ui/talent_<compagno>_<el|su|ev>_<a|b|c><n>.png` (96 nodi) e
+  `ui/branch_<compagno>_<el|su|ev>.png` (12 intestazioni), tutti 16×16.
+- **Le 24 icone v1:** `talent_<compagno>_<a|b><n>` restano in `assets/` finché
+  l'orchestratore non decide.
+
+Fondo per ramo:
+
+| Ramo | Luce | Fondo | Bordo scuro | Note |
+|---|---|---|---|---|
+| Elemento | come `icon_<elemento>` | come `icon_<elemento>` | come `icon_<elemento>` | fuoco `f O/x O`, acqua `l C/n C`, natura `e v/N E`, elettro `y G h` |
+| Supporto (ambra) | `g` | `h` sopra `8` | `G` | marrone ambra con il bordo d'oro: l'oro chiaro su fondo ocra è già di Tuonny (elettro) |
+| Evoluzione (blu) | `W` | `U` sopra `V` | `U` | il blu delle gemme XP, distinto dal teal di Ondino |
+
+Tipi di nodo (stesso telaio delle carte):
+- **Percorso** (righe 0–2): bordo chiaro in alto a sinistra e scuro in basso a destra.
+- **Unione** (`c1`): bordo chiaro del ramo su tutti e quattro i lati, si legge più forte.
+- **Finale** (`c2`): bordo d'oro (`y` in alto a sinistra, `g` in basso a destra) e una borchia
+  bianca e oro sull'angolo in alto a destra, che esce di un pixel dal contorno.
+- **Intestazione:** distintivo tondo (cerchio con contorno `k`, anello di luce del tema e
+  fondo a due toni), così non si confonde con un nodo.
+- **Nodi bloccati:** scuriti dal codice, nessuna immagine in più.
+
+Simboli:
+- **Fonte:** l'idea della colonna «Icona» del documento, disegnata nella griglia. Gli
+  elementi comuni sono timbri condivisi: cuore, moneta, gemma XP, goccia, fiamma,
+  fulmine, stella, foglia e le testine dei compagni di `upgrade_join_<id>`.
+- **Riusati dalla v1** dove il documento chiede la stessa idea:
+
+  | Nodo v2 | Simbolo v1 |
+  |---|---|
+  | `tide_ev_a2` | due onde |
+  | `tide_su_c2` | fonte con il cuore |
+  | `sprout_el_a3` | orbita larga |
+  | `sprout_el_b1` | radici |
+  | `sprout_el_c2` | radici spinose |
+  | `sprout_ev_c2` | quattro foglie |
+  | `spark_el_a1` | eco del lampo |
+  | `spark_el_b1` | lampo dal cielo |
+  | `spark_ev_a1` | catena |
+- **Nemici** (bersagli, piedi, sagome avvolte): la gelatina viola, come nelle altre carte.
+- **Compagni «più grandi»** (`*_ev_c1`): la testina del compagno con una freccia bianca in su.
+- **Originalità:** nessun simbolo preso da altri giochi. L'immagine di riferimento
+  dell'utente è servita solo per la disposizione della schermata.
+
+Anteprima ×4: `screenshots/anteprima-talenti-v2.png`, disposta come la schermata:
+- per compagno il ritratto e 3 colonne (elemento, supporto, evoluzione);
+- in ogni colonna l'intestazione, poi i due percorsi su 3 righe, l'unione e il finale.
+
 Icone del bottino:
 - **`ui/coin.png` 16×16:** contatore delle monete nell'HUD ed etichetta del prezzo dei forzieri.
   È la stessa moneta vista di faccia, con il bordo rialzato in luce in alto a sinistra, il

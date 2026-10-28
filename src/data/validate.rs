@@ -271,11 +271,13 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
 
     progression::check(&mut r, config);
     run::check(&mut r, config);
+    talents::check(&mut r, config);
     r.0
 }
 
 mod attacks;
 mod progression;
 mod run;
+mod talents;
 #[cfg(test)]
 mod tests;

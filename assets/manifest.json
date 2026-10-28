@@ -372,6 +372,138 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "ui/branch_ember_el.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_ember_el.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/branch_ember_ev.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_ember_ev.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/branch_ember_su.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_ember_su.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/branch_spark_el.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_spark_el.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/branch_spark_ev.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_spark_ev.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/branch_spark_su.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_spark_su.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/branch_sprout_el.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_sprout_el.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/branch_sprout_ev.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_sprout_ev.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/branch_sprout_su.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_sprout_su.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/branch_tide_el.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_tide_el.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/branch_tide_ev.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_tide_ev.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/branch_tide_su.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/branch_tide_su.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "ui/clock.png",
       "kind": "ui",
       "size": [
@@ -618,6 +750,270 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "ui/talent_ember_el_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_el_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_el_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_el_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_el_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_el_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_el_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_el_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_el_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_el_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_el_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_el_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_el_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_el_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_el_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_el_c2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_ev_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_ev_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_ev_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_ev_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_ev_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_ev_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_ev_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_ev_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_ev_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_ev_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_ev_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_ev_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_ev_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_ev_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_ev_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_ev_c2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_su_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_su_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_su_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_su_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_su_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_su_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_su_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_su_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_su_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_su_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_su_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_su_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_su_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_su_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_su_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_su_c2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "ui/talent_spark_a1.png",
       "kind": "ui",
       "size": [
@@ -681,6 +1077,270 @@
       ],
       "frames": 1,
       "source": "assets-src/ui/talent_spark_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_el_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_el_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_el_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_el_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_el_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_el_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_el_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_el_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_el_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_el_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_el_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_el_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_el_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_el_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_el_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_el_c2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_ev_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_ev_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_ev_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_ev_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_ev_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_ev_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_ev_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_ev_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_ev_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_ev_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_ev_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_ev_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_ev_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_ev_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_ev_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_ev_c2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_su_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_su_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_su_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_su_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_su_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_su_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_su_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_su_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_su_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_su_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_su_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_su_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_su_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_su_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_su_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_su_c2.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -750,6 +1410,270 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "ui/talent_sprout_el_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_el_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_el_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_el_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_el_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_el_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_el_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_el_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_el_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_el_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_el_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_el_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_el_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_el_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_el_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_el_c2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_ev_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_ev_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_ev_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_ev_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_ev_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_ev_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_ev_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_ev_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_ev_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_ev_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_ev_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_ev_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_ev_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_ev_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_ev_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_ev_c2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_su_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_su_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_su_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_su_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_su_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_su_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_su_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_su_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_su_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_su_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_su_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_su_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_su_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_su_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_su_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_su_c2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "ui/talent_tide_a1.png",
       "kind": "ui",
       "size": [
@@ -813,6 +1737,270 @@
       ],
       "frames": 1,
       "source": "assets-src/ui/talent_tide_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_el_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_el_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_el_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_el_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_el_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_el_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_el_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_el_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_el_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_el_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_el_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_el_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_el_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_el_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_el_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_el_c2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_ev_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_ev_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_ev_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_ev_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_ev_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_ev_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_ev_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_ev_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_ev_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_ev_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_ev_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_ev_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_ev_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_ev_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_ev_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_ev_c2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_su_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_su_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_su_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_su_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_su_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_su_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_su_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_su_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_su_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_su_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_su_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_su_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_su_c1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_su_c1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_su_c2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_su_c2.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {

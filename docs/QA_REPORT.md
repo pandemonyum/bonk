@@ -1,5 +1,15 @@
 # QA REPORT
 
+## 2026-10-28 — Alberi grandi e schermata dei talenti (D-059)
+
+| Controllo | Esito | Prova |
+|---|---|---|
+| Gradi e requisiti | un id per grado nel profilo, nodi aperti dai requisiti, statistiche sommate e meccaniche sostituite grado per grado, punti per livello | test di `talents`, `profile`, `talents_menu`, `talent_text` |
+| Supporto | danni subiti, invulnerabilità e HP massimi del player seguono i talenti del compagno in squadra | `tests/sim/talents.rs` |
+| Dati | 96 nodi validati (id unici, requisiti più in alto e nello stesso ramo, griglia, testi, valori, punti contro livelli, limiti del Supporto) | `validate/talents.rs` |
+| Schermata | compagni, albero con tre colonne colorate, collegamenti, gradi, dettaglio con prossimo grado; icone del pixel-art-director | `docs/evidence/talenti-v2.png` |
+| Bilanciamento | alberi completi: 32/32 con il 53% dei danni (guardia 97%/55% superata) | GDD, D-059 |
+
 ## 2026-10-28 — Riepilogo, squadra per livelli, orde, forzieri, talenti
 
 | Controllo | Esito | Prova |

@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use super::SimSet;
 use super::collision::{Footprint, resolve_against_obstacles};
 use super::combat::Health;
-use super::damage::Invulnerability;
+use super::damage::{Invulnerability, Toughness};
 use super::kinematics::{Position, body};
 use super::progression::PickupRadius;
 use crate::app::AppState;
@@ -52,6 +52,7 @@ fn spawn_player(mut commands: Commands, config: Res<GameConfig>) {
             remaining: 0.0,
             duration: data.invulnerability_s,
         },
+        Toughness::default(),
         Footprint(data.footprint_radius),
         PickupRadius(data.pickup_radius),
         body(PLAYER_SPAWN),

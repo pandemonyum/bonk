@@ -474,6 +474,22 @@ tutti i talenti la sonda vinceva 32/32 con il 40% dei danni: i nodi 3 sono stati
 terzo (guardia del game-designer: 97% e 50%). Gli effetti usano lo sprite dell'attacco del
 compagno; le icone dei nodi sono del pixel-art-director.
 
+## D-059 Alberi dei talenti grandi e schermata come il riferimento dell'utente *(utente)*
+L'utente ha mandato un riferimento della schermata dei talenti e ha scelto gli alberi grandi:
+tre rami per compagno (elemento, Supporto, Evoluzione), in ognuno due percorsi da tre nodi, un
+nodo di unione e un finale; i nodi hanno gradi ("r/max", un punto per grado) e si aprono quando
+i nodi che richiedono hanno almeno un grado (`requires`, colonna e riga nei dati). 24 nodi e 48
+punti per compagno, livello massimo 49, curva 20 + 3 × (n − 1): ~3 punti dopo la prima run, metà
+albero in ~15, tutto in ~50 (proposta del game-designer in `docs/design/TALENT_TREES_V2.md`, con
+il tetto di forza ricavato dalla sonda di D-058). Il Supporto aiuta il player finché il compagno
+è in squadra (`Player*`: HP, rigenerazione, velocità, raccolta, monete, danni subiti −%,
+invulnerabilità +s, validati entro −20% e 0,15 s). Il profilo salva un id per grado: i salvataggi
+vecchi restano leggibili, i nodi vecchi non esistono più e i punti tornano da spendere. Schermata:
+compagni a sinistra, albero al centro con le colonne colorate, nodo scelto a destra con gli
+effetti e il prossimo grado; frecce, Invio, Tab, R, clic. Del riferimento si è preso solo
+l'impianto: i compagni sono i nostri, icone originali del pixel-art-director (96 nodi, 12
+intestazioni). Sonda con tutti gli alberi completi: 32/32 vittorie con il 53% dei danni subiti (56% prima del primo taglio del § 4, le Evoluzioni a 0,5% di danno per grado): sopra la guardia del 97%, perché con gli alberi completi il bot non arriva più alla stretta delle 3:30; da rivedere con la prova umana.
+
 ## D-053 Tuonny e il fulmine a catena
 Quarto compagno (elemento nuovo `Electric`, gatto con la coda a stella del foglio dell'utente,
 D-052) con un pattern nuovo `Chain`: colpisce il nemico vivo più vicino entro `range`, poi salta

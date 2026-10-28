@@ -1,0 +1,20 @@
+# Intestazione del ramo ev di tide (talenti v2): spirale d'acqua. 16x16, distintivo tondo,
+# tema evolution.
+out: ui/branch_tide_ev.png
+---
+.......kk.......
+....kkWWWWkk....
+...kWWUUUUWWk...
+..kWUkkkkkkUWk..
+.kWUkLLLLLLkUUk.
+.kWkLkkkkkLLkUk.
+.WUkLkUkkkLLkUU.
+kWUkLkUkLkLLkUUk
+kWVkLkVVkLLkVVUk
+.WVkLLkVVkkVVVU.
+.kWVkLLkkkkkVUk.
+.kWVVkLLLLLkVUk.
+..kWVVkkkkkVUk..
+...kUUVVVVUUk...
+....kkUUUUkk....
+.......kk.......

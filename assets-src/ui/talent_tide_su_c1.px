@@ -1,0 +1,20 @@
+# Talento v2 tide_su_c1: Fonte calma: fonte di pietra con acqua ferma. 16x16, tema support,
+# nodo d'unione (bordo chiaro su tutti i lati).
+out: ui/talent_tide_su_c1.png
+---
+.kkkkkkkkkkkkkk.
+kggggggggggggggk
+kghhhhhhhhhhhhgk
+kghhhhhhhhhhhhgk
+kghhkkkkkkkkhhgk
+kghk66666666khgk
+kgk6LLLLLLLL6kgk
+kgk6lWWlllll6kgk
+kgkt6LLLLLL6tkgk
+kg8ktt6666ttk8gk
+kg88kkTTTTkk88gk
+kg8888kTTk8888gk
+kg888kTTTTk888gk
+kg888kkkkkk888gk
+kggggggggggggggk
+.kkkkkkkkkkkkkk.

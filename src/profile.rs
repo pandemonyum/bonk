@@ -14,11 +14,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::app::RunPhase;
 use crate::data::GameConfig;
+use crate::data::schema::TalentNode;
 use crate::data::schema::XpGain;
 use crate::gameplay::combat::{RunStats, Source};
 use crate::gameplay::companions::Companion;
 use crate::gameplay::run::RunClock;
-use crate::gameplay::talents::{LearnedTalents, active_nodes};
+use crate::gameplay::talents::{LearnedTalents, node_rank};
 
 pub const PROFILE_VERSION: u32 = 1;
 const FILE_NAME: &str = "profile.ron";
@@ -154,34 +155,35 @@ impl Profile {
         let progress = self.progress(id);
         let level = config.progression.companion_xp.level(progress.xp);
         let spent = config.companion(id).map_or(0, |c| {
-            active_nodes(&c.talents, &progress.learned).len() as u32
+            c.talents
+                .iter()
+                .flat_map(|b| b.nodes.iter())
+                .map(|n| node_rank(&progress.learned, n))
+                .sum()
         });
         (level, level - 1, spent)
     }
 
-    /// Si può imparare `node` del compagno `id`: un punto libero e il nodo precedente del suo
-    /// ramo già imparato.
+    /// Grado del nodo `node` del compagno `id` (0 se non imparato).
+    pub fn rank(&self, config: &GameConfig, id: &str, node: &str) -> u32 {
+        let progress = self.progress(id);
+        find_node(config, id, node).map_or(0, |n| node_rank(&progress.learned, n))
+    }
+
+    /// Si può dare un grado in più a `node` del compagno `id`: un punto libero, il nodo non al
+    /// massimo e i nodi che richiede con almeno un grado.
     pub fn can_learn(&self, config: &GameConfig, id: &str, node: &str) -> bool {
         let (_, earned, spent) = self.points(config, id);
         let progress = self.progress(id);
-        let Some(companion) = config.companion(id) else {
+        let Some(n) = find_node(config, id, node) else {
             return false;
         };
         spent < earned
-            && !progress.learned.iter().any(|n| n == node)
-            && companion.talents.iter().any(|branch| {
-                branch
-                    .nodes
-                    .iter()
-                    .position(|n| n.id == node)
-                    .is_some_and(|k| {
-                        branch.nodes[..k]
-                            .iter()
-                            .all(|before| progress.learned.contains(&before.id))
-                    })
-            })
+            && node_rank(&progress.learned, n) < n.max_rank()
+            && n.requires.iter().all(|r| progress.learned.contains(r))
     }
 
+    /// Un grado in più (l'id si ripete una volta per grado).
     pub fn learn(&mut self, config: &GameConfig, id: &str, node: &str) -> bool {
         if !self.can_learn(config, id, node) {
             return false;
@@ -194,6 +196,16 @@ impl Profile {
     pub fn reset(&mut self, id: &str) {
         self.entry(id).learned.clear();
     }
+}
+
+/// Il nodo `node` dell'albero del compagno `id`.
+fn find_node<'a>(config: &'a GameConfig, id: &str, node: &str) -> Option<&'a TalentNode> {
+    config
+        .companion(id)?
+        .talents
+        .iter()
+        .flat_map(|b| b.nodes.iter())
+        .find(|n| n.id == node)
 }
 
 /// Quando è entrato in squadra un compagno (secondi della run).
@@ -312,36 +324,48 @@ mod tests {
     use super::*;
 
     #[test]
-    fn learning_needs_points_and_the_node_before() {
+    fn learning_needs_points_ranks_and_requirements() {
         let config = GameConfig::embedded();
         let ember = config.companion("ember").unwrap();
-        let (a1, a2, b1) = (
-            ember.talents[0].nodes[0].id.clone(),
-            ember.talents[0].nodes[1].id.clone(),
-            ember.talents[1].nodes[0].id.clone(),
-        );
+        let first = &ember.talents[0].nodes[0];
+        let after = ember.talents[0]
+            .nodes
+            .iter()
+            .find(|n| n.requires.contains(&first.id))
+            .expect("un nodo richiede il primo");
         let mut profile = Profile::default();
         assert_eq!(profile.points(&config, "ember"), (1, 0, 0));
         assert!(
-            !profile.learn(&config, "ember", &a1),
+            !profile.learn(&config, "ember", &first.id),
             "nessun punto a livello 1"
         );
-        // due livelli: due punti
+        // tanti punti quanti i gradi del primo nodo più uno
         let curve = config.progression.companion_xp;
-        profile.entry("ember").xp = curve.total_for(3);
+        let points = first.max_rank() + 1;
+        profile.entry("ember").xp = curve.total_for(points + 1);
         assert!(
-            !profile.can_learn(&config, "ember", &a2),
+            !profile.can_learn(&config, "ember", &after.id),
             "serve il nodo prima"
         );
-        assert!(profile.learn(&config, "ember", &a1));
-        assert!(!profile.learn(&config, "ember", &a1), "già imparato");
-        assert!(profile.learn(&config, "ember", &b1));
-        assert!(!profile.can_learn(&config, "ember", &a2), "punti finiti");
-        assert_eq!(profile.points(&config, "ember"), (3, 2, 2));
-        let learned = profile.learned();
-        assert_eq!(learned.of("ember"), [a1.clone(), b1.clone()]);
+        for rank in 1..=first.max_rank() {
+            assert!(profile.learn(&config, "ember", &first.id));
+            assert_eq!(profile.rank(&config, "ember", &first.id), rank);
+        }
+        assert!(!profile.learn(&config, "ember", &first.id), "al massimo");
+        assert!(
+            profile.learn(&config, "ember", &after.id),
+            "aperto dal primo"
+        );
+        assert_eq!(
+            profile.points(&config, "ember"),
+            (points + 1, points, points)
+        );
+        assert!(
+            !profile.can_learn(&config, "ember", &after.id),
+            "punti finiti"
+        );
         profile.reset("ember");
-        assert_eq!(profile.points(&config, "ember"), (3, 2, 0));
+        assert_eq!(profile.points(&config, "ember").2, 0);
     }
 
     #[test]

@@ -10,6 +10,7 @@ use super::attacks::AutoAttack;
 use super::chain::ChainAttack;
 use super::combat::{Health, RunStats, heal};
 use super::companions::join_companions;
+use super::damage::{Invulnerability, Toughness};
 use super::orbit::OrbitAttack;
 use super::player::Player;
 use super::progression::{PickupRadius, Progression};
@@ -102,7 +103,7 @@ impl Plugin for UpgradesPlugin {
                     (refresh_modifiers, join_companions)
                         .chain()
                         .run_if(in_state(AppState::InRun))
-                        .run_if(resource_changed::<UpgradeStacks>),
+                        .run_if(stacks_changed_or_joined),
                 )
                     .chain(),
             );
@@ -328,6 +329,15 @@ fn log_draft(config: &GameConfig, progression: &Progression, kind: DraftKind, ch
     }
 }
 
+/// Nuovi stack, o un compagno appena entrato (il suo aiuto al player, dai talenti, va nei
+/// modificatori).
+fn stacks_changed_or_joined(
+    stacks: Res<UpgradeStacks>,
+    joined: Query<(), Added<super::companions::Companion>>,
+) -> bool {
+    stacks.is_changed() || !joined.is_empty()
+}
+
 /// Ricalcola i valori di compagni e player dai dati base più gli stack. La carica degli
 /// attacchi resta quella di prima; gli HP massimi in più curano della stessa quantità.
 fn refresh_modifiers(
@@ -338,10 +348,22 @@ fn refresh_modifiers(
     mut pulses: Query<(&mut PulseAttack, Option<&TalentKit>)>,
     mut orbits: Query<(&mut OrbitAttack, Option<&TalentKit>)>,
     mut chains: Query<(&mut ChainAttack, Option<&TalentKit>)>,
+    kits: Query<&TalentKit>,
     mut stats: ResMut<RunStats>,
-    mut player: Query<(&mut Player, &mut Health, &mut PickupRadius)>,
+    mut player: Query<(
+        &mut Player,
+        &mut Health,
+        &mut PickupRadius,
+        &mut Invulnerability,
+        &mut Toughness,
+    )>,
 ) {
-    let m = Modifiers::from_stacks(&config.upgrades, &stacks);
+    // l'aiuto al player dei talenti dei compagni in squadra si somma alle carte
+    let mut support = super::talents::PlayerSupport::default();
+    for kit in &kits {
+        support.add(&kit.player);
+    }
+    let m = Modifiers::from_stacks(&config.upgrades, &stacks).with_support(&support);
     *modifiers = m;
     // lo stato in corso (carica, angolo, colpi recenti) resta quello di prima
     // ogni compagno: le carte più i suoi talenti
@@ -406,8 +428,10 @@ fn refresh_modifiers(
         kit.tune_chain(&mut attack);
     }
     let base = &config.player;
-    for (mut player, mut health, mut pickup) in &mut player {
+    for (mut player, mut health, mut pickup, mut invulnerability, mut toughness) in &mut player {
         player.speed = base.speed * m.move_speed;
+        invulnerability.duration = base.invulnerability_s + m.invuln_bonus;
+        toughness.0 = m.damage_taken;
         pickup.0 = base.pickup_radius * m.pickup_radius;
         let max = base.max_hp + m.max_hp_bonus;
         let gained = (max - health.max).max(0.0);

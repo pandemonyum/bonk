@@ -1,14 +1,26 @@
 //! Talenti dei compagni (`companions.ron: talents`) ed esperienza che li sblocca
-//! (`progression.ron: companion_xp`). Ogni compagno ha due rami di nodi; un nodo richiede il
-//! precedente del suo ramo e costa un punto, e si guadagna un punto per livello del compagno. I
-//! livelli si salvano sul dispositivo tra una run e l'altra.
+//! (`progression.ron: companion_xp`). Ogni compagno ha i suoi rami (colonne della schermata);
+//! un nodo ha uno o più gradi, ognuno costa un punto, e si apre quando i nodi che richiede hanno
+//! almeno un grado. Si guadagna un punto per livello del compagno; i livelli si salvano sul
+//! dispositivo tra una run e l'altra.
 
 use serde::Deserialize;
+
+/// Colore e senso di un ramo: l'attacco del compagno, l'aiuto al player, il compagno stesso.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
+pub enum BranchTheme {
+    #[default]
+    Element,
+    Support,
+    Evolution,
+}
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TalentBranch {
     pub name: String,
+    #[serde(default)]
+    pub theme: BranchTheme,
     pub nodes: Vec<TalentNode>,
 }
 
@@ -18,13 +30,30 @@ pub struct TalentNode {
     pub id: String,
     pub name: String,
     pub description: String,
-    pub effects: Vec<TalentEffect>,
+    /// Posto nella colonna del ramo: colonna 0 o 1 per i due percorsi, 2 al centro; riga
+    /// dall'alto.
+    #[serde(default)]
+    pub col: u32,
+    #[serde(default)]
+    pub row: u32,
+    /// Nodi (dello stesso ramo) che devono avere almeno un grado.
+    #[serde(default)]
+    pub requires: Vec<String>,
+    /// Effetti di ogni grado, in ordine.
+    pub ranks: Vec<Vec<TalentEffect>>,
 }
 
-/// Cosa fa un nodo. Le statistiche si sommano (come le carte); per le meccaniche nuove vale
-/// l'ultimo nodo preso del ramo che le nomina (il nodo 2 "allarga" l'esplosione del nodo 1).
-/// I danni in % partono dal danno dell'attacco già modificato da carte e talenti; raggi,
-/// portate, ritmi e ritardi sono fissi.
+impl TalentNode {
+    pub fn max_rank(&self) -> u32 {
+        self.ranks.len() as u32
+    }
+}
+
+/// Cosa fa un grado di un nodo. Le statistiche si sommano (come le carte, e grado dopo grado);
+/// per le meccaniche nuove vale l'ultimo grado preso che le nomina, nell'ordine dei dati (il
+/// grado 2 "allarga" l'esplosione del grado 1). I danni in % partono dal danno dell'attacco già
+/// modificato da carte e talenti; raggi, portate, ritmi e ritardi sono fissi. Gli effetti
+/// `Player*` aiutano il player finché il compagno è in squadra.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub enum TalentEffect {
     DamagePct(f32),
@@ -77,6 +106,17 @@ pub enum TalentEffect {
         dps_pct: f32,
         duration_s: f32,
     },
+    /// HP massimi del player in più (e cura della stessa quantità).
+    PlayerMaxHp(f32),
+    /// HP al secondo per il player.
+    PlayerRegen(f32),
+    PlayerSpeedPct(f32),
+    PlayerPickupPct(f32),
+    PlayerCoinPct(f32),
+    /// Danni subiti dal player in % (negativo = meno danni), per ogni colpo.
+    PlayerDamageTakenPct(f32),
+    /// Secondi di invulnerabilità in più dopo un colpo.
+    PlayerInvulnSecs(f32),
 }
 
 /// Esperienza dei compagni a fine run e livelli.

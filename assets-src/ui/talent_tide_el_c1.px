@@ -1,0 +1,20 @@
+# Talento v2 tide_el_c1: Onda e getto: onda con un getto al centro. 16x16, tema water,
+# nodo d'unione (bordo chiaro su tutti i lati).
+out: ui/talent_tide_el_c1.png
+---
+.kkkkkkkkkkkkkk.
+kllllllllllllllk
+klCCCkkkkkkCCClk
+klCCkLLLLLwkCClk
+klCkLwLkklllkClk
+klkLwkkLkkkllklk
+klkLLkLwlkklcklk
+klkLkkLlckCkcklk
+klkLkkLlcknkcklk
+klkLlkkcknkccklk
+klkllkknnkkccklk
+klnklllkkcccknlk
+klnnklcccccknnlk
+klnnnkkkkkknnnlk
+kllllllllllllllk
+.kkkkkkkkkkkkkk.
