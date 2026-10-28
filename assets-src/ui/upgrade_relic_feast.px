@@ -1,0 +1,20 @@
+# Carta reliquia relic_feast: Banchetto del bosco (cura 50 HP): cesto con la mela, il fungo e le foglie. 16x16, tema reliquia
+# (viola: luce q, fondo P sopra z, bordo scuro p) con la borchia-gemma in alto a destra.
+out: ui/upgrade_relic_feast.png
+---
+.kkkkkkkkkkkkkk.
+kqqqqqqqqqqqQwpk
+kqPPPkkkkkkPPQpk
+kqPPkDPPPPDkPPpk
+kqPkDPkkPkkDkPpk
+kqPkDkXrkrwrkPpk
+kqPkkXrrRkrrrkpk
+kqkekrrRRkk6kPpk
+kqkEkkRRkek6kzpk
+kqkkkkkkkkkkkkpk
+kqk7d7d7d7d7Dkpk
+kqkdDdDdDdDdDkpk
+kqzkD8D8D8D8kzpk
+kqzzkkkkkkkkzzpk
+kppppppppppppppk
+.kkkkkkkkkkkkkk.

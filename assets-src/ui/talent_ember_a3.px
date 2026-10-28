@@ -1,0 +1,20 @@
+# Talento ember_a3: Brace che cova (i nemici colpiti bruciano per 3 s): nemico viola con tre fiammelle sulla testa. 16x16, tema fire, ramo A
+# (bordo chiaro f, fondo O sopra x, bordo scuro O).
+out: ui/talent_ember_a3.png
+---
+.kkkkkkkkkkkkkk.
+kfffffffffffffOk
+kfOOOOOOOOOOOOOk
+kfOOOkOOkOOkOOOk
+kfOOkykkykkykOOk
+kfOOkfkkfkkfkOOk
+kfOOkokkokkokOOk
+kfOkkkkkkkkkkOOk
+kfkqqppppppPPkOk
+kfkqpkppppkpPkOk
+kfkqpppppppPPkOk
+kfkppppppppPPkOk
+kfxkPPPPPPPPkxOk
+kfxxkkkkkkkkxxOk
+kOOOOOOOOOOOOOOk
+.kkkkkkkkkkkkkk.

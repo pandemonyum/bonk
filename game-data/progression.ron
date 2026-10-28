@@ -12,10 +12,31 @@
         // oltre, l'XP di una gemma nuova si somma a una già a terra (niente migliaia di entità)
         max_on_field: 300,
     ),
+    // monete: cadono da alcuni nemici (enemies.ron: coins), si raccolgono con la calamita delle
+    // gemme e aprono i forzieri (stages.ron: chests)
+    coin: (
+        sprite: "sprites/coin.png",
+        // oltre, il valore di una moneta nuova va alla più vicina già a terra
+        max_on_field: 100,
+        // cadono sparse a questa distanza dalla gemma
+        scatter: 6.0,
+    ),
+    // esperienza dei compagni a fine run (si salva sul dispositivo): un punto ogni 15 s in
+    // squadra, uno ogni 40 nemici finiti, 20 per la vittoria (~85-90 a run); per salire dal
+    // livello n al n+1 servono 100 + 50 × (n − 1): primo talento dopo ~1 run, albero completo
+    // (livello 7, 6 punti) dopo ~15
+    companion_xp: (
+        seconds_per_point: 15.0,
+        kills_per_point: 40,
+        victory: 20,
+        first_level: 100,
+        per_level: 50,
+        max_level: 7,
+    ),
     draft_size: 3,
     // peso relativo di estrazione nel draft
     rarity_weights: (common: 10.0, uncommon: 5.0, rare: 2.0),
     // si parte con un compagno solo; a questi livelli il draft propone soltanto chi può unirsi
     // alla squadra (negli altri draft non escono carte "nuovo compagno"): uno per posto libero
-    companion_levels: [4, 10],
+    companion_levels: [3, 9],
 )

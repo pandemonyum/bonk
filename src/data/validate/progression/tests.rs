@@ -125,14 +125,22 @@ fn upgrade_references_and_stacks_are_checked() {
     );
 }
 
+/// Le reliquie stanno in fondo a `upgrades.ron`: toglierle non sposta gli indici delle carte.
+fn without_relics(c: &mut GameConfig) {
+    c.upgrades.retain(|u| u.rarity != Rarity::Relic);
+}
+
 #[test]
 fn upgrade_effects_must_do_something_and_keep_values_positive() {
     let c = embedded();
     let rate = upgrade_where(&c, |e| matches!(e, Effect::CompanionIntervalPct(_)));
     let max_stack = c.upgrades[rate].max_stack as f32;
-    // −100% / max_stack a ogni stack: al massimo l'intervallo arriva a 0
+    // −100% / max_stack a ogni stack: al massimo l'intervallo arriva a 0 (senza la Clessidra)
     assert_error(
-        |c| c.upgrades[rate].effect = Effect::CompanionIntervalPct(-100.0 / max_stack),
+        |c| {
+            without_relics(c);
+            c.upgrades[rate].effect = Effect::CompanionIntervalPct(-100.0 / max_stack);
+        },
         "le carte CompanionIntervalPct negative, tutte al massimo, portano il fattore a 0",
     );
     assert_error(
@@ -188,7 +196,10 @@ fn physical_limits_hold_with_every_upgrade_maxed() {
     let rate = upgrade_where(&c, |e| matches!(e, Effect::CompanionIntervalPct(_)));
     let max_stack = c.upgrades[rate].max_stack as f32;
     assert_error(
-        |c| c.upgrades[rate].effect = Effect::CompanionIntervalPct(-99.5 / max_stack),
+        |c| {
+            without_relics(c);
+            c.upgrades[rate].effect = Effect::CompanionIntervalPct(-99.5 / max_stack);
+        },
         "sotto un passo",
     );
     // gemme più lente del player: non lo raggiungerebbero mai
@@ -338,6 +349,7 @@ fn a_requirement_that_is_never_offered_is_reported() {
                 Rarity::Common => c.progression.rarity_weights.common = 0.0,
                 Rarity::Uncommon => c.progression.rarity_weights.uncommon = 0.0,
                 Rarity::Rare => c.progression.rarity_weights.rare = 0.0,
+                Rarity::Relic => unreachable!("non è nell'elenco"),
             }
         },
         &format!("upgrades.ron: {dependent_id}.requires"),

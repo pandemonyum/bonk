@@ -414,3 +414,42 @@ fn companion_levels_offer_only_companions_and_other_levels_none() {
     assert_eq!(choices.len(), 3);
     assert!(!choices.iter().any(is_join));
 }
+
+/// Il forziere propone reliquie non ancora prese, a caso; finite quelle, le reliquie che curano.
+#[test]
+fn chests_offer_relics_not_yet_taken_then_healing() {
+    let config = GameConfig::embedded();
+    let relics: Vec<usize> = (0..config.upgrades.len())
+        .filter(|&i| config.upgrades[i].rarity == Rarity::Relic)
+        .collect();
+    let heals: Vec<usize> = relics
+        .iter()
+        .copied()
+        .filter(|&i| matches!(config.upgrades[i].effect, Effect::Heal(_)))
+        .collect();
+    assert!(!heals.is_empty() && heals.len() < relics.len());
+    let mut stacks = UpgradeStacks(vec![0; config.upgrades.len()]);
+    let mut rng = Pcg32::new(3, DRAFT_STREAM);
+    let mut seen = Vec::new();
+    loop {
+        let offer = draw_relics(&mut rng, &config.upgrades, &stacks, 3);
+        assert!(!offer.is_empty());
+        if offer.iter().all(|i| heals.contains(i)) {
+            break; // le altre sono finite
+        }
+        assert!(
+            offer
+                .iter()
+                .all(|i| relics.contains(i) && !heals.contains(i))
+        );
+        assert!(offer.iter().all(|&i| stacks.of(i) == 0), "già presa");
+        stacks.0[offer[0]] += 1;
+        seen.push(offer[0]);
+        assert!(seen.len() < relics.len(), "le reliquie non finiscono mai");
+    }
+    assert_eq!(
+        seen.len(),
+        relics.len() - heals.len(),
+        "prese tutte una volta"
+    );
+}

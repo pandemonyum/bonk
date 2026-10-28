@@ -7,6 +7,7 @@ pub mod combat;
 pub mod companions;
 pub mod damage;
 pub mod enemies;
+pub mod hordes;
 pub mod input;
 pub mod kinematics;
 pub mod orbit;
@@ -16,7 +17,9 @@ pub mod pulse;
 pub mod run;
 pub mod spatial;
 pub mod spawning;
+pub mod talents;
 pub mod threats;
+pub mod treasure;
 pub mod upgrades;
 
 use bevy::prelude::*;
@@ -96,6 +99,9 @@ impl Plugin for GameplayPlugin {
                 companions::CompanionsPlugin,
                 enemies::EnemyPlugin,
                 spawning::SpawningPlugin,
+                hordes::HordesPlugin,
+                treasure::TreasurePlugin,
+                talents::TalentsPlugin,
                 combat::CombatPlugin,
                 damage::DamagePlugin,
                 progression::ProgressionPlugin,

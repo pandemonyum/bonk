@@ -3,7 +3,7 @@
 
 use super::UpgradeStacks;
 use crate::data::GameConfig;
-use crate::data::schema::{AttackPattern, Effect, RarityWeights, UpgradeData};
+use crate::data::schema::{AttackPattern, Effect, Rarity, RarityWeights, UpgradeData};
 use crate::rng::Pcg32;
 
 /// La squadra secondo il compagno iniziale e le carte prese: il primo, poi chi è arrivato con le
@@ -137,6 +137,33 @@ pub fn draw_choices(
     while choices.len() < count && !pool.is_empty() {
         let pick = weighted(rng, &pool);
         choices.push(pool.remove(pick).0);
+    }
+    choices
+}
+
+/// Le reliquie di un forziere: fino a `count` tra quelle non ancora al massimo, a pesi uguali.
+/// Le reliquie che curano escono solo quando le altre sono finite (il forziere non resta vuoto).
+pub fn draw_relics(
+    rng: &mut Pcg32,
+    upgrades: &[UpgradeData],
+    stacks: &UpgradeStacks,
+    count: usize,
+) -> Vec<usize> {
+    let available = |heals: bool| -> Vec<usize> {
+        (0..upgrades.len())
+            .filter(|&i| upgrades[i].rarity == Rarity::Relic)
+            .filter(|&i| stacks.of(i) < upgrades[i].max_stack)
+            .filter(|&i| matches!(upgrades[i].effect, Effect::Heal(_)) == heals)
+            .collect()
+    };
+    let mut pool = available(false);
+    if pool.is_empty() {
+        pool = available(true);
+    }
+    let mut choices = Vec::with_capacity(count);
+    while choices.len() < count && !pool.is_empty() {
+        let pick = (rng.next_u32() % pool.len() as u32) as usize;
+        choices.push(pool.remove(pick));
     }
     choices
 }

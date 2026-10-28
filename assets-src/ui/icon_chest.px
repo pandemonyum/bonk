@@ -1,0 +1,21 @@
+# Indicatore del forziere piu' vicino fuori schermo, 16x16: come il riquadro del boss
+# (src/presentation/boss_pointer.rs: contorno k di 1 px e fondo pieno) ma con il fondo blu
+# notte dei pannelli e un forziere chiuso al posto del teschio; il riquadro e' gia' disegnato.
+out: ui/icon_chest.png
+---
+.kkkkkkkkkkkkkk.
+k11111111111111k
+k11111111111111k
+k111kkkkkkkk111k
+k11kyddddddyk11k
+k1kDgDDDDDDgDk1k
+k1kyyyyyggggGk1k
+k1k8G88yg88G8k1k
+k1kDgDDkGDDgDk1k
+k1kDgDDgGDDgDk1k
+k1kGGGGGGGGGGk1k
+k1kkkkkkkkkkkk1k
+k11111111111111k
+k11111111111111k
+k11111111111111k
+.kkkkkkkkkkkkkk.

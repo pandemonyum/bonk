@@ -1,0 +1,20 @@
+# Carta reliquia relic_oak: Cuore di quercia (HP massimi +50): cuore di legno con le venature e una fogliolina. 16x16, tema reliquia
+# (viola: luce q, fondo P sopra z, bordo scuro p) con la borchia-gemma in alto a destra.
+out: ui/upgrade_relic_oak.png
+---
+.kkkkkkkkkkkkkk.
+kqqqqqqqqqqqQwpk
+kqPPPPPPkkPPPQpk
+kqPPPPPkeikPPPpk
+kqPPkkkkvkkkPPpk
+kqPk77dkk7ddkPpk
+kqPk7dDddddDkPpk
+kqPk7dDdddDDkPpk
+kqzkddDDddDDkzpk
+kqzzkddddDDkzzpk
+kqzzzkdDD8kzzzpk
+kqzzzzkD8kzzzzpk
+kqzzzzzkkzzzzzpk
+kqzzzzzzzzzzzzpk
+kppppppppppppppk
+.kkkkkkkkkkkkkk.

@@ -1,0 +1,20 @@
+# Talento tide_a1: Onda di ritorno (una seconda onda mezzo secondo dopo): due onde, quella dietro piu' scura. 16x16, tema water, ramo A
+# (bordo chiaro l, fondo C sopra n, bordo scuro C).
+out: ui/talent_tide_a1.png
+---
+.kkkkkkkkkkkkkk.
+klllllllllllllCk
+klCCCkCCCCCkCCCk
+klCCklkCCCklkCCk
+klkklclkkklclkCk
+klllckclllckclCk
+klcckCkccckCkcCk
+klkkCkwwkkCkwwCk
+klLkkLllLkkLllCk
+kllLLlcclLLlccCk
+klcllckkcllckkCk
+klkccknnkccknnCk
+klnkknnnnkknnnCk
+klnnnnnnnnnnnnCk
+kCCCCCCCCCCCCCCk
+.kkkkkkkkkkkkkk.

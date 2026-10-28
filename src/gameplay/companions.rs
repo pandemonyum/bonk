@@ -9,6 +9,7 @@ use super::SimSet;
 use super::combat::Source;
 use super::kinematics::{Position, body};
 use super::player::{MoveIntent, PLAYER_SPAWN, Player};
+use super::talents::{LearnedTalents, TalentKit, TalentState};
 use super::upgrades::{Modifiers, UpgradeStacks};
 use crate::app::{AppState, RunSetup};
 use crate::data::schema::{AttackPattern, CompanionData, Effect, FollowData};
@@ -53,6 +54,7 @@ impl Plugin for CompanionsPlugin {
 /// Crea il compagno `data` nel posto `slot`, con l'attacco del suo pattern già modificato
 /// dagli upgrade presi finora. `trail` è la direzione di marcia corrente della squadra: il
 /// compagno nasce già al suo posto dietro al player, non davanti.
+#[allow(clippy::too_many_arguments)]
 pub fn spawn_companion(
     commands: &mut Commands,
     config: &GameConfig,
@@ -61,6 +63,7 @@ pub fn spawn_companion(
     player: Vec2,
     trail: Vec2,
     modifiers: &Modifiers,
+    learned: &LearnedTalents,
 ) {
     let attack = config.companion_attack(data);
     let slot_angle = config.player.companion_slots[slot].angle_deg.to_radians();
@@ -84,15 +87,36 @@ pub fn spawn_companion(
     if let Some(index) = config.companion_index(&data.id) {
         entity.insert(Source(index));
     }
+    // i talenti imparati: statistiche sommate alle carte, meccaniche nuove nel kit
+    let kit = TalentKit::resolve(&data.talents, learned.of(&data.id));
+    let m = kit.modifiers(modifiers);
     match &attack.pattern {
-        AttackPattern::Projectile(p) => entity.insert(modifiers.projectile(attack, p)),
-        AttackPattern::Pulse(p) => entity.insert(modifiers.pulse(attack, p)),
-        AttackPattern::Orbit(o) => entity.insert(modifiers.orbit(attack, o)),
-        AttackPattern::Chain(c) => entity.insert(modifiers.chain(attack, c)),
+        AttackPattern::Projectile(p) => entity.insert(m.projectile(attack, p)),
+        AttackPattern::Pulse(p) => {
+            let mut pulse = m.pulse(attack, p);
+            kit.tune_pulse(&mut pulse);
+            entity.insert(pulse)
+        }
+        AttackPattern::Orbit(o) => {
+            let mut orbit = m.orbit(attack, o);
+            kit.tune_orbit(&mut orbit);
+            entity.insert(orbit)
+        }
+        AttackPattern::Chain(c) => {
+            let mut chain = m.chain(attack, c);
+            kit.tune_chain(&mut chain);
+            entity.insert(chain)
+        }
     };
+    entity.insert((kit, TalentState::default()));
 }
 
-fn spawn_starting_companion(mut commands: Commands, config: Res<GameConfig>, setup: Res<RunSetup>) {
+fn spawn_starting_companion(
+    mut commands: Commands,
+    config: Res<GameConfig>,
+    setup: Res<RunSetup>,
+    learned: Res<LearnedTalents>,
+) {
     let data = setup.starter(&config);
     // a inizio run nessun upgrade: valori base
     spawn_companion(
@@ -103,6 +127,7 @@ fn spawn_starting_companion(mut commands: Commands, config: Res<GameConfig>, set
         PLAYER_SPAWN,
         Vec2::X,
         &Modifiers::default(),
+        &learned,
     );
 }
 
@@ -114,6 +139,7 @@ pub(super) fn join_companions(
     config: Res<GameConfig>,
     stacks: Res<UpgradeStacks>,
     modifiers: Res<Modifiers>,
+    learned: Res<LearnedTalents>,
     player: Single<&Position, With<Player>>,
     present: Query<(&DataId, &Companion)>,
 ) {
@@ -143,6 +169,7 @@ pub(super) fn join_companions(
             player.0,
             trail,
             &modifiers,
+            &learned,
         );
         info!(
             "{} si unisce alla squadra (posto {})",

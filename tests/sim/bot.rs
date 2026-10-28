@@ -3,7 +3,8 @@
 //! girando loro attorno invece di fuggire dritto, esce dai segni di pericolo, prende le gemme
 //! più convenienti (dritto quando è tranquillo, di passaggio quando è stretto), gira attorno
 //! agli ostacoli e ai bordi e sceglie le carte con una priorità ragionevole (compagni, poi danno
-//! e cadenza, cure quando servono). Una stima di chi gioca, non di chi gioca bene.
+//! e cadenza, cure quando servono). Raccoglie anche le monete e, quando bastano, va al forziere
+//! più vicino. Una stima di chi gioca, non di chi gioca bene.
 //!
 //! Prima versione: fuggiva dritto, e una volta inseguito dall'orda attraversava l'arena senza
 //! più raccogliere (XP ferma per minuti, gemme al limite di 300 lasciate indietro).
@@ -19,6 +20,7 @@ use pixel_monster_survivor::gameplay::kinematics::Position;
 use pixel_monster_survivor::gameplay::player::{MoveIntent, Player};
 use pixel_monster_survivor::gameplay::progression::XpGem;
 use pixel_monster_survivor::gameplay::threats::{Charger, Telegraph, TelegraphShape};
+use pixel_monster_survivor::gameplay::treasure::{Chest, Coin, Treasury};
 use pixel_monster_survivor::gameplay::upgrades::{AutoPick, ChooseUpgrade, Draft};
 use pixel_monster_survivor::world::ArenaBounds;
 use pixel_monster_survivor::world::obstacles::ObstacleField;
@@ -33,6 +35,9 @@ const GEM_REACH: f32 = 220.0;
 const SAFE_ENOUGH: f32 = 0.35;
 /// Quanto della spinta dei nemici diventa movimento attorno a loro (in senso antiorario).
 const CIRCLE: f32 = 0.9;
+/// Una moneta vale come una gemma da tanti punti XP; il forziere tira quanto una gemma vicina.
+const COIN_WORTH: f32 = 4.0;
+const CHEST_PULL: f32 = 0.6;
 
 /// Prepara una run per il bot: il draft aspetta la sua scelta, non quella automatica.
 pub fn take_over(app: &mut App) {
@@ -81,6 +86,7 @@ fn score(effect: &Effect, hp: f32) -> i32 {
         Effect::MaxHp(_) => 35,
         Effect::PickupRadiusPct(_) => 30,
         Effect::ProjectileSpeedPct(_) => 20,
+        Effect::CoinGainPct(_) => 15,
         Effect::Heal(_) => 5,
     }
 }
@@ -112,6 +118,10 @@ fn away(from: Vec2, me: Vec2, reach: f32) -> Vec2 {
 
 fn direction(app: &mut App, t: f32) -> Vec2 {
     let arena = *app.world().resource::<ArenaBounds>();
+    let afford = {
+        let plan = &app.world().resource::<GameConfig>().stage.chests;
+        app.world().resource::<Treasury>().can_afford(plan)
+    };
     let world = app.world_mut();
     let Ok(me) = world
         .query_filtered::<&Position, With<Player>>()
@@ -159,11 +169,21 @@ fn direction(app: &mut App, t: f32) -> Vec2 {
     }
     // gemme: la più conveniente (XP per distanza); dritti da tranquilli, di passaggio da stretti
     let mut pull = Vec2::ZERO;
-    let best = world
+    let gems: Vec<(Vec2, f32)> = world
         .query::<(&Position, &XpGem)>()
         .iter(world)
-        .filter(|(g, _)| g.0.distance(me) < GEM_REACH)
-        .map(|(g, gem)| (g.0, gem.value as f32 / (g.0.distance(me) + 20.0)))
+        .map(|(g, gem)| (g.0, gem.value as f32))
+        .collect();
+    let coins: Vec<(Vec2, f32)> = world
+        .query::<(&Position, &Coin)>()
+        .iter(world)
+        .map(|(c, coin)| (c.0, coin.value * COIN_WORTH))
+        .collect();
+    let best = gems
+        .into_iter()
+        .chain(coins)
+        .filter(|(at, _)| at.distance(me) < GEM_REACH)
+        .map(|(at, worth)| (at, worth / (at.distance(me) + 20.0)))
         .max_by(|a, b| a.1.total_cmp(&b.1));
     if let Some((gem, _)) = best {
         let eager = if threat.length() < SAFE_ENOUGH {
@@ -172,6 +192,17 @@ fn direction(app: &mut App, t: f32) -> Vec2 {
             0.25
         };
         pull = (gem - me).normalize_or_zero() * eager;
+    }
+    // con le monete che bastano, verso il forziere più vicino (girando attorno a chi c'è in mezzo)
+    if afford {
+        let chest = world
+            .query_filtered::<&Position, With<Chest>>()
+            .iter(world)
+            .map(|c| c.0)
+            .min_by(|a, b| a.distance(me).total_cmp(&b.distance(me)));
+        if let Some(chest) = chest {
+            pull += (chest - me).normalize_or_zero() * CHEST_PULL;
+        }
     }
     // ostacoli: si gira attorno invece di restarci incastrati
     let field = world.resource::<ObstacleField>();

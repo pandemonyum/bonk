@@ -160,3 +160,65 @@ fn enemy_sheet_frames_are_checked() {
     let ok = errors_after(|c| c.enemies[0].frame = Some(SheetFrame { w: 28, h: 24 }));
     assert!(!ok.iter().any(|e| e.contains(".frame")), "{ok:?}");
 }
+
+#[test]
+fn hordes_are_checked() {
+    assert!(
+        !embedded().stage.run.hordes.list.is_empty(),
+        "i dati hanno orde"
+    );
+    assert_error(
+        |c| c.stage.run.hordes.list[0].groups[0].enemy = "nessuno".into(),
+        "hordes.list[0].groups[0].enemy",
+    );
+    assert_error(
+        |c| c.stage.run.hordes.max_alive = c.stage.spawns.max_alive,
+        "deve superare spawns.max_alive",
+    );
+    assert_error(
+        |c| {
+            let h = &mut c.stage.run.hordes;
+            h.list[1].at_s = h.list[0].at_s + 1.0;
+        },
+        "si sovrappone all'orda prima",
+    );
+    assert_error(
+        |c| c.stage.run.hordes.list[0].at_s = c.stage.run.duration_s,
+        "l'orda finisce dopo il boss",
+    );
+    assert_error(
+        |c| {
+            for g in &mut c.stage.run.hordes.list[0].groups {
+                g.count = 0;
+            }
+        },
+        "l'orda non ha nemici",
+    );
+    let none = errors_after(|c| c.stage.run.hordes.list.clear());
+    assert!(!none.iter().any(|e| e.contains("hordes")), "{none:?}");
+}
+
+#[test]
+fn coins_and_chests_are_checked() {
+    let stage = embedded().stage.id;
+    assert_error(
+        |c| c.enemies[0].coins.chance = 1.5,
+        "coins.chance = 1.5: è una probabilità",
+    );
+    assert_error(
+        |c| c.stage.chests.distance = (900.0, 600.0),
+        &format!("stages.ron: {stage}.chests.distance"),
+    );
+    assert_error(
+        |c| c.stage.chests.respawn_beyond = c.stage.chests.fallback_distance.1,
+        "rinascerebbe subito",
+    );
+    assert_error(
+        |c| c.stage.chests.price_base = 0,
+        "price_base deve essere >= 1",
+    );
+    assert_error(
+        |c| c.progression.coin.max_on_field = 0,
+        "coin.max_on_field deve essere >= 1",
+    );
+}

@@ -16,6 +16,8 @@ manifest `assets/manifest.json`.
 | `assets/sprites/droplet.png` | `assets-src/sprites/droplet.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/spark.png` (scintilla del fulmine di Tuonny, 6×6) | `assets-src/sprites/spark.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
 | `assets/sprites/telegraph.png` | `assets-src/sprites/telegraph.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
+| `assets/sprites/coin.png` (moneta a terra, foglio 4×1 da 10×10) | `assets-src/sprites/coin.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano nella griglia, senza IA né asset esterni |
+| `assets/sprites/chest_sheet.png` (forziere, foglio 4×2 da 24×22) | `assets-src/sprites/chest_sheet.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano nella griglia, senza IA né asset esterni |
 | `assets/sprites/blob_sheet.png` (Gelatina, foglio 4×2 da 28×24) | `assets-src/sprites/blob_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |
 | `assets/sprites/swarm_sheet.png` (Sciame, 4×2 da 24×22) | `assets-src/sprites/swarm_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |
 | `assets/sprites/armored_sheet.png` (Corazzato, 4×2 da 32×28) | `assets-src/sprites/armored_sheet.px` con `enemies.palette.txt` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnato a mano per il progetto (forme ombreggiate rifinite nella griglia), senza IA né asset esterni |
@@ -46,6 +48,41 @@ manifest `assets/manifest.json`.
 | `assets/ui/upgrade_join_sprout.png` | `assets-src/ui/upgrade_join_sprout.px` → `scripts/build-assets.py` | originale, proprietà del progetto (testina dei compagni di D-052 disegnata nel progetto) |
 | `assets/ui/upgrade_join_spark.png` | `assets-src/ui/upgrade_join_spark.px` → `scripts/build-assets.py` | originale, proprietà del progetto (testina dei compagni di D-052 disegnata nel progetto) |
 | `assets/ui/icon_electric.png` | `assets-src/ui/icon_electric.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
+| `assets/ui/coin.png` (moneta dell'HUD e del prezzo dei forzieri, 16×16) | `assets-src/ui/coin.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
+| `assets/ui/icon_chest.png` (indicatore del forziere fuori schermo, 16×16) | `assets-src/ui/icon_chest.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
+| `assets/ui/upgrade_relic_courage.png` (carta reliquia Pietra del coraggio, 16×16) | `assets-src/ui/upgrade_relic_courage.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/upgrade_relic_hourglass.png` (carta reliquia Clessidra svelta, 16×16) | `assets-src/ui/upgrade_relic_hourglass.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/upgrade_relic_nest.png` (carta reliquia Nido di scintille, 16×16) | `assets-src/ui/upgrade_relic_nest.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/upgrade_relic_spyglass.png` (carta reliquia Cannocchiale di corteccia, 16×16) | `assets-src/ui/upgrade_relic_spyglass.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/upgrade_relic_oak.png` (carta reliquia Cuore di quercia, 16×16) | `assets-src/ui/upgrade_relic_oak.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/upgrade_relic_dew.png` (carta reliquia Rugiada perenne, 16×16) | `assets-src/ui/upgrade_relic_dew.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/upgrade_relic_sandals.png` (carta reliquia Sandali di vento, 16×16) | `assets-src/ui/upgrade_relic_sandals.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/upgrade_relic_piggy.png` (carta reliquia Salvadanaio di coccio, 16×16) | `assets-src/ui/upgrade_relic_piggy.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/upgrade_relic_feast.png` (carta reliquia Banchetto del bosco, 16×16) | `assets-src/ui/upgrade_relic_feast.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_ember_a1.png` (talento Brace che scoppia, 16×16) | `assets-src/ui/talent_ember_a1.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_ember_a2.png` (talento Scoppio largo, 16×16) | `assets-src/ui/talent_ember_a2.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_ember_a3.png` (talento Brace che cova, 16×16) | `assets-src/ui/talent_ember_a3.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_ember_b1.png` (talento Soffio rovente, 16×16) | `assets-src/ui/talent_ember_b1.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_ember_b2.png` (talento Fiato lungo, 16×16) | `assets-src/ui/talent_ember_b2.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_ember_b3.png` (talento Soffio ardente, 16×16) | `assets-src/ui/talent_ember_b3.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_tide_a1.png` (talento Onda di ritorno, 16×16) | `assets-src/ui/talent_tide_a1.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_tide_a2.png` (talento Marea lenta, 16×16) | `assets-src/ui/talent_tide_a2.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_tide_a3.png` (talento Marea alta, 16×16) | `assets-src/ui/talent_tide_a3.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_tide_b1.png` (talento Acqua che ristora, 16×16) | `assets-src/ui/talent_tide_b1.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_tide_b2.png` (talento Getto dal profondo, 16×16) | `assets-src/ui/talent_tide_b2.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_tide_b3.png` (talento Sorgente viva, 16×16) | `assets-src/ui/talent_tide_b3.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_sprout_a1.png` (talento Linfa urticante, 16×16) | `assets-src/ui/talent_sprout_a1.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_sprout_a2.png` (talento Quarta foglia, 16×16) | `assets-src/ui/talent_sprout_a2.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_sprout_a3.png` (talento Rovo largo, 16×16) | `assets-src/ui/talent_sprout_a3.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_sprout_b1.png` (talento Radici che afferrano, 16×16) | `assets-src/ui/talent_sprout_b1.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_sprout_b2.png` (talento Radici fitte, 16×16) | `assets-src/ui/talent_sprout_b2.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_sprout_b3.png` (talento Radici spinose, 16×16) | `assets-src/ui/talent_sprout_b3.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_spark_a1.png` (talento Eco del lampo, 16×16) | `assets-src/ui/talent_spark_a1.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_spark_a2.png` (talento Catena salda, 16×16) | `assets-src/ui/talent_spark_a2.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_spark_a3.png` (talento Salto in piu', 16×16) | `assets-src/ui/talent_spark_a3.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_spark_b1.png` (talento Lampo dal cielo, 16×16) | `assets-src/ui/talent_spark_b1.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_spark_b2.png` (talento Cielo carico, 16×16) | `assets-src/ui/talent_spark_b2.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/talent_spark_b3.png` (talento Lampo grande, 16×16) | `assets-src/ui/talent_spark_b3.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
 | `assets/tiles/meadow_tileset.png` | generato da `scripts/build-assets.py` (seed 20261022, 42 tile dalla v1, ridisegnati nello stile del player il 2026-10-28) | originale, proprietà del progetto |
 | Palette "Germoglio" v1 (`assets-src/palette.txt`, 56 colori) | definita per il progetto | originale, proprietà del progetto |
 | Palette dei nemici (`assets-src/sprites/enemies.palette.txt`, 18 colori) | definita per il progetto: viola e rossi della palette "Germoglio", contorno come il player | originale, proprietà del progetto |
@@ -100,6 +137,12 @@ Cosa è stato fatto sul foglio dell'utente (2026-10-28, D-050):
   0–3 sono le pose dell'utente ripulite (il colpito 1 ridotto all'altezza del master).
 
 Il foglio originale e il ritaglio restano fuori dal repository.
+
+Anteprima dei compagni piccoli (2026-10-28, non in gioco e non in `assets/`):
+`assets-src/preview/<id>_sheet_28x24.px` ridisegna a mano a 28×24 le quattro pose approvate dei
+fogli da 40×36 (stessi personaggi dell'utente, stessa palette `companions.palette.txt`, D-052).
+`scripts/build-assets.py` non legge quella cartella; se l'utente li approva sostituiscono i
+fogli `assets-src/sprites/<id>_sheet.px` con la stessa voce di licenza qui sopra.
 
 ## Asset vietati
 

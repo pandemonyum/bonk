@@ -70,6 +70,46 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/chest_sheet.png",
+      "kind": "sprite",
+      "size": [
+        96,
+        44
+      ],
+      "frames": 8,
+      "frame": [
+        24,
+        22
+      ],
+      "columns": 4,
+      "rows": [
+        "idle",
+        "open"
+      ],
+      "anchor": "bottom_center",
+      "source": "assets-src/sprites/chest_sheet.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/coin.png",
+      "kind": "sprite",
+      "size": [
+        40,
+        10
+      ],
+      "frames": 4,
+      "frame": [
+        10,
+        10
+      ],
+      "columns": 4,
+      "rows": [
+        "spin"
+      ],
+      "source": "assets-src/sprites/coin.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "sprites/droplet.png",
       "kind": "sprite",
       "size": [
@@ -343,6 +383,17 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "ui/coin.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/coin.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "ui/heart_empty.png",
       "kind": "ui",
       "size": [
@@ -373,6 +424,17 @@
       ],
       "frames": 1,
       "source": "assets-src/ui/heart_half.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/icon_chest.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/icon_chest.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -487,6 +549,270 @@
       ],
       "frames": 1,
       "source": "assets-src/ui/skull.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_ember_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_ember_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_spark_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_spark_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_sprout_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_sprout_b3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_a1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_a1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_a2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_a2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_a3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_a3.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_b1.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_b1.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_b2.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_b2.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/talent_tide_b3.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/talent_tide_b3.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -619,6 +945,105 @@
       ],
       "frames": 1,
       "source": "assets-src/ui/upgrade_regen.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_relic_courage.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_relic_courage.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_relic_dew.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_relic_dew.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_relic_feast.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_relic_feast.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_relic_hourglass.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_relic_hourglass.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_relic_nest.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_relic_nest.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_relic_oak.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_relic_oak.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_relic_piggy.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_relic_piggy.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_relic_sandals.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_relic_sandals.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/upgrade_relic_spyglass.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/upgrade_relic_spyglass.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {

@@ -11,7 +11,13 @@
 use serde::Deserialize;
 
 mod attacks;
+mod run;
+mod talents;
+mod treasure;
 pub use attacks::*;
+pub use run::*;
+pub use talents::*;
+pub use treasure::*;
 
 /// Versione dello schema supportata da questo codice.
 pub const SCHEMA_VERSION: u32 = 5;
@@ -65,6 +71,8 @@ pub enum Rarity {
     Common,
     Uncommon,
     Rare,
+    /// Solo nei forzieri, mai nel draft dei livelli.
+    Relic,
 }
 
 /// Peso relativo di estrazione per rarità nel draft.
@@ -82,6 +90,7 @@ impl RarityWeights {
             Rarity::Common => self.common,
             Rarity::Uncommon => self.uncommon,
             Rarity::Rare => self.rare,
+            Rarity::Relic => 0.0,
         }
     }
 }
@@ -92,6 +101,8 @@ pub struct ProgressionFile {
     pub version: u32,
     pub xp_to_level: XpCurve,
     pub gem: GemData,
+    pub coin: CoinData,
+    pub companion_xp: CompanionXp,
     /// Carte proposte a ogni livello.
     pub draft_size: u32,
     pub rarity_weights: RarityWeights,
@@ -134,6 +145,8 @@ pub enum Effect {
     PickupRadiusPct(f32),
     /// Cura immediata, nessun effetto permanente.
     Heal(f32),
+    /// Valore delle monete raccolte in più (100 = doppio).
+    CoinGainPct(f32),
     /// Il compagno con questo id (in `companions.ron`) si unisce alla squadra nel primo posto
     /// libero. La carta è proposta solo se c'è un posto libero.
     JoinCompanion(String),
@@ -190,6 +203,9 @@ pub struct CompanionData {
     /// Assente: immagine fissa.
     #[serde(default)]
     pub frame: Option<SheetFrame>,
+    /// Due rami di talenti, sbloccati con i livelli del compagno tra una run e l'altra.
+    #[serde(default)]
+    pub talents: Vec<TalentBranch>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -228,6 +244,9 @@ pub struct EnemyData {
     /// Colpo ad area telegrafato (boss): segna un cerchio dove sta il player, poi colpisce.
     #[serde(default)]
     pub slam: Option<SlamData>,
+    /// Monete lasciate alla morte (nessuna se manca).
+    #[serde(default)]
+    pub coins: CoinDrop,
     /// Fotogramma del foglio animato in `sprite` (4 colonne; righe: movimento, sconfitta e, per
     /// chi carica o colpisce ad area, preparazione e attacco). Assente: immagine fissa.
     #[serde(default)]
@@ -325,6 +344,7 @@ pub struct StageData {
     pub starting_companion: String,
     pub spawns: SpawnPlan,
     pub run: RunPlan,
+    pub chests: ChestPlan,
     pub obstacles: ObstacleParams,
 }
 
@@ -340,6 +360,9 @@ pub struct RunPlan {
     /// Danno da contatto in più per minuto, come sopra.
     pub damage_growth_per_min: f32,
     pub elites: ElitePlan,
+    /// Masse di nemici a istanti fissi, oltre alle ondate continue.
+    #[serde(default)]
+    pub hordes: HordePlan,
     /// Id del boss in `enemies.ron`.
     pub boss: String,
 }

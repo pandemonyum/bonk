@@ -15,6 +15,7 @@ use super::orbit::{leaf_hits, move_leaves, sync_leaves};
 use super::progression::drop_xp_gems;
 use super::pulse::{expand_pulses, fire_pulses, pulse_hits, wear_off_slow};
 use super::spatial::EnemyGrid;
+use super::treasure::drop_coins;
 use crate::app::AppState;
 use crate::world::inside_arena;
 
@@ -142,7 +143,7 @@ pub fn heal(health: &mut Health, amount: f32) -> f32 {
 }
 
 /// La catena del combattimento in `SimSet::Combat` (spari e onde → colpi di proiettili, onde
-/// e foglie → gemme → morti → scadenze).
+/// e foglie → gemme e monete → morti → scadenze).
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CombatSteps;
 
@@ -175,6 +176,7 @@ impl Plugin for CombatPlugin {
                     pulse_hits,
                     leaf_hits,
                     drop_xp_gems,
+                    drop_coins,
                     resolve_deaths,
                     expire_projectiles,
                     fade_hit_flash,

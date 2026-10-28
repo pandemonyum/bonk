@@ -1,0 +1,20 @@
+# Carta reliquia relic_courage: Pietra del coraggio (danno dei compagni +50%): pietra tonda con una runa d'oro che brilla. 16x16, tema reliquia
+# (viola: luce q, fondo P sopra z, bordo scuro p) con la borchia-gemma in alto a destra.
+out: ui/upgrade_relic_courage.png
+---
+.kkkkkkkkkkkkkk.
+kqqqqqqqqqqqQwpk
+kqPPfPPfPPfPPQpk
+kqPPPPPPPPPPPPpk
+kqPPPPkkkkPPPPpk
+kqPPPkTTT5kPPPpk
+kqfPkTT5yT5kPfpk
+kqPPkT5yyTTkPPpk
+kqzzkTywwyTkzzpk
+kqfzkTywwy5kzfpk
+kqzzk5TyyT5kzzpk
+kqzzzk5555kzzzpk
+kqzzzzkkkkzzzzpk
+kqzzfzzfzzfzzzpk
+kppppppppppppppk
+.kkkkkkkkkkkkkk.

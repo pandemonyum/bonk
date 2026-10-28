@@ -1,0 +1,20 @@
+# Moneta dell'HUD (contatore delle monete) e del prezzo dei forzieri, 16x16: stessa moneta
+# d'oro della pickup sprites/coin.png vista di faccia, con bordo rialzato, solco e seme inciso.
+out: ui/coin.png
+---
+................
+....kkkkkkkk....
+...kywyyyyygk...
+..kwwGGGGGGGgk..
+.kyGggggggggGgk.
+.kyGggGGGGggyGk.
+.kyGgGGggyygyGk.
+.kyGgGggggygyGk.
+.kyGgGggggygyGk.
+.kyGgGyggyygyGk.
+.kyGggyyyyggyGk.
+.kgGggggggggyGk.
+..kgGyyyyyyyGk..
+...kgGGGGGGGk...
+....kkkkkkkk....
+................

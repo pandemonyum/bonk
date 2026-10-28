@@ -139,7 +139,7 @@ fn start_director(
     commands.insert_resource(director);
 }
 
-fn run_director(
+pub(super) fn run_director(
     mut commands: Commands,
     time: Res<Time>,
     config: Res<GameConfig>,

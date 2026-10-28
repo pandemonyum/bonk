@@ -1,0 +1,20 @@
+# Talento spark_b1: Lampo dal cielo (ogni 7 s un fulmine dal cielo sul nemico piu' vicino): nuvola bianca con il fulmine che scende. 16x16, tema electric, ramo B
+# (bordo chiaro y, fondo pieno h, bordo scuro G).
+out: ui/talent_spark_b1.png
+---
+.kkkkkkkkkkkkkk.
+kyyyyyyyyyyyyyGk
+kyhhhkkkkhhhhhGk
+kyhhkwwwwkkkhhGk
+kyhkwwwwwww6khGk
+kykww6ww6666tkGk
+kyk6666ttttttkGk
+kyhkkkkkwkkkkhGk
+kyhhhhhkwkhhhhGk
+kyhhhhkwwkhhhhGk
+kyhhhkwwwwkhhhGk
+kyhhhhhkwkhhhhGk
+kyhhhhkwkhhhhhGk
+kyhhhhkkhhhhhhGk
+kGGGGGGGGGGGGGGk
+.kkkkkkkkkkkkkk.

@@ -60,7 +60,7 @@ pub fn edge_point(offset: Vec2, half_view: Vec2, inner_min: Vec2, inner_max: Vec
 }
 
 /// Rettangolo dell'indicatore per una vista di mezze misure `half_view`.
-fn inner_rect(half_view: Vec2) -> (Vec2, Vec2) {
+pub(super) fn inner_rect(half_view: Vec2) -> (Vec2, Vec2) {
     (
         Vec2::new(MARGIN_SIDE - half_view.x, MARGIN_BOTTOM - half_view.y),
         Vec2::new(half_view.x - MARGIN_SIDE, half_view.y - MARGIN_TOP),

@@ -1,0 +1,20 @@
+# Carta reliquia relic_sandals: Sandali di vento (velocita' di movimento +20%): sandalo con un'ala al tallone e linee di vento. 16x16, tema reliquia
+# (viola: luce q, fondo P sopra z, bordo scuro p) con la borchia-gemma in alto a destra.
+out: ui/upgrade_relic_sandals.png
+---
+.kkkkkkkkkkkkkk.
+kqqqqqqqqqqqQwpk
+kqkkPPPPPPPPPQpk
+kqkwkPPPPPWWPPpk
+kqk6wkPPPPPPPPpk
+kqPk6wkPPWWWPPpk
+kqPk66wkPPPPPPpk
+kqPPkk6kPPkkkPpk
+kqzzkdkkzkdddkpk
+kqzzkdkzzkdkdkpk
+kqzkkdkkkkdkdkpk
+kqk7777777777kpk
+kqk8888888888kpk
+kqzkkkkkkkkkkzpk
+kppppppppppppppk
+.kkkkkkkkkkkkkk.

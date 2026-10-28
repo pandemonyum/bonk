@@ -6,11 +6,13 @@ pub mod attacks;
 pub mod boss_bar;
 pub mod boss_pointer;
 pub mod camera;
+pub mod chest_ui;
 pub mod companion_anim;
 pub mod draft;
 pub mod enemy_anim;
 pub mod fonts;
 pub mod health_bar;
+pub mod horde_banner;
 pub mod hud;
 pub mod icons;
 pub mod menu;
@@ -20,6 +22,7 @@ pub mod results;
 pub mod sprites;
 pub mod status;
 pub mod telegraphs;
+pub mod treasure_art;
 
 use bevy::prelude::*;
 
@@ -55,6 +58,9 @@ impl Plugin for PresentationPlugin {
             player_anim::PlayerAnimPlugin,
             enemy_anim::EnemyAnimPlugin,
             companion_anim::CompanionAnimPlugin,
+            horde_banner::HordeBannerPlugin,
+            treasure_art::TreasureArtPlugin,
+            chest_ui::ChestUiPlugin,
         ));
     }
 }

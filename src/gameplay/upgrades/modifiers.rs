@@ -30,6 +30,8 @@ pub struct Modifiers {
     pub extra_pierce: u32,
     pub max_hp_bonus: f32,
     pub regen_per_s: f32,
+    /// Valore di ogni moneta raccolta.
+    pub coin_gain: f32,
 }
 
 impl Default for Modifiers {
@@ -42,6 +44,7 @@ impl Modifiers {
     pub fn from_stacks(upgrades: &[UpgradeData], stacks: &UpgradeStacks) -> Self {
         let (mut damage, mut interval, mut range, mut speed, mut moving, mut pickup) =
             (0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        let mut coins = 0.0;
         let mut m = Self {
             damage: 1.0,
             interval: 1.0,
@@ -53,6 +56,7 @@ impl Modifiers {
             extra_pierce: 0,
             max_hp_bonus: 0.0,
             regen_per_s: 0.0,
+            coin_gain: 1.0,
         };
         for (i, upgrade) in upgrades.iter().enumerate() {
             let n = stacks.of(i);
@@ -72,6 +76,7 @@ impl Modifiers {
                 }
                 Effect::MaxHp(v) => m.max_hp_bonus += v * k,
                 Effect::RegenPerSecond(v) => m.regen_per_s += v * k,
+                Effect::CoinGainPct(v) => coins += v * k,
                 // immediato o un compagno nuovo: nessun valore da modificare
                 Effect::Heal(_) | Effect::JoinCompanion(_) => {}
             }
@@ -82,6 +87,7 @@ impl Modifiers {
         m.projectile_speed = pct_factor(speed);
         m.move_speed = pct_factor(moving);
         m.pickup_radius = pct_factor(pickup);
+        m.coin_gain = pct_factor(coins);
         m
     }
 

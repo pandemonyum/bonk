@@ -1,0 +1,20 @@
+# Talento tide_a2: Marea lenta (i nemici bagnati sono piu' lenti): nemico viola mezzo sommerso con le gocce in testa. 16x16, tema water, ramo A
+# (bordo chiaro l, fondo C sopra n, bordo scuro C).
+out: ui/talent_tide_a2.png
+---
+.kkkkkkkkkkkkkk.
+klllllllllllllCk
+klCCCLCCCCLCCCCk
+klCCkLkCCkLkCCCk
+klCCCkkkkkkCCCCk
+klCCkqqpppPkCCCk
+klCkqpkppkpPkCCk
+klCkqppppppPkCCk
+klkkpppppppPkkCk
+klkLLwLLLwLLLkCk
+klkllllllllllkCk
+klkcllcllcllckCk
+klnkccccccccckCk
+klnnkkkkkkkkknCk
+kCCCCCCCCCCCCCCk
+.kkkkkkkkkkkkkk.

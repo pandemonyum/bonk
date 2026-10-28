@@ -264,9 +264,11 @@ fn print_survival_medium_player() {
         app.update();
         let (mut at5, mut at10, mut boss_at) = (None, None, None);
         let (mut lv2_at, mut xp5, mut party2) = (None, 0, 0);
+        // quando arrivano il secondo e il terzo compagno
+        let mut joined: Vec<String> = Vec::new();
         let trace = std::env::var("PMS_TRACE").is_ok();
         let mut last_pos = Vec2::ZERO;
-        for step in 0..60 * 60 * 14 {
+        for step in 0..60 * 60 * 20 {
             bot::drive(&mut app, step as f32 / 60.0);
             app.update();
             let clock = app.world().resource::<RunClock>().elapsed;
@@ -276,6 +278,13 @@ fn print_survival_medium_player() {
             }
             if trace && step % 3600 == 0 {
                 trace_minute(&mut app, &mut last_pos);
+            }
+            if step % 30 == 0 {
+                let world = app.world_mut();
+                let members = world.query::<&Companion>().iter(world).count();
+                while joined.len() + 1 < members {
+                    joined.push(app.world().resource::<RunClock>().label());
+                }
             }
             if party2 == 0 && clock >= 120.0 {
                 let world = app.world_mut();
@@ -302,6 +311,10 @@ fn print_survival_medium_player() {
         let label = clock.label();
         let level = app.world().resource::<Progression>().level;
         let stats = app.world().resource::<RunStats>().clone();
+        let chests = app
+            .world()
+            .resource::<pixel_monster_survivor::gameplay::treasure::Treasury>()
+            .opened;
         let world = app.world_mut();
         let mut members: Vec<(usize, String)> = world
             .query::<(&Companion, &pixel_monster_survivor::data::DataId)>()
@@ -317,15 +330,17 @@ fn print_survival_medium_player() {
             wins += 1;
         }
         println!(
-            "seed {seed:2} medio: {phase:?} a {label}, Lv2 a {}, compagni a 2:00 {party2}, \
-             Lv5:00 {} (XP {xp5:3}) Lv10:00 {} finale {level:2}, compagni {party}, \
+            "seed {seed:2} medio: {phase:?} a {label}, Lv2 a {}, compagni a 2:00 {party2} \
+             (arrivi {}), Lv5:00 {} (XP {xp5:3}) Lv10:00 {} finale {level:2}, compagni {party}, \
              boss {fight}, danni subiti {:.0}, sconfitti {}",
             lv2_at.unwrap_or("  -  ".into()),
+            joined.join(" "),
             lv(at5),
             lv(at10),
             stats.damage_taken,
             stats.defeated
         );
+        println!("         forzieri aperti {chests}");
     }
     println!("vittorie {wins}/{}", seeds.len());
 }

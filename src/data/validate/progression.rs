@@ -149,6 +149,7 @@ pub(super) fn check(r: &mut Report, config: &GameConfig) {
         effect(r, &at("effect"), &u.effect);
     }
     join_cards(r, config);
+    relics(r, config);
     reachability(r, config);
     limits_at_max(r, config);
 }
@@ -172,9 +173,35 @@ fn effect(r: &mut Report, at: &str, effect: &Effect) {
                 r.0.push(format!("{at}: serve almeno 1 per stack"));
             }
         }
-        Effect::RegenPerSecond(v) => r.positive(at, v),
+        Effect::RegenPerSecond(v) | Effect::CoinGainPct(v) => r.positive(at, v),
         Effect::Heal(v) => r.positive(at, v),
         Effect::JoinCompanion(_) => {} // vedi `join_cards`
+    }
+}
+
+/// Reliquie (solo nei forzieri): niente requisiti (nel forziere si sceglie tra quelle non
+/// ancora prese), niente compagni, e almeno una da proporre se sulla mappa ci sono forzieri.
+fn relics(r: &mut Report, config: &GameConfig) {
+    let mut count = 0;
+    for u in config.upgrades.iter().filter(|u| u.rarity == Rarity::Relic) {
+        count += 1;
+        if !u.requires.is_empty() {
+            r.0.push(format!(
+                "upgrades.ron: {}.requires: una reliquia non ha requisiti",
+                u.id
+            ));
+        }
+        if matches!(u.effect, Effect::JoinCompanion(_)) {
+            r.0.push(format!(
+                "upgrades.ron: {}.effect: i compagni arrivano coi livelli, non dai forzieri",
+                u.id
+            ));
+        }
+    }
+    if count == 0 && config.stage.chests.on_map > 0 {
+        r.0.push(
+            "upgrades.ron: nessuna reliquia (rarity: Relic) per i forzieri di stages.ron".into(),
+        );
     }
 }
 

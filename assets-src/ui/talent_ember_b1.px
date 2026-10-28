@@ -1,0 +1,20 @@
+# Talento ember_b1: Soffio rovente (ogni 6 attacchi un cono di fuoco): fiamma di traverso che esce verso destra (il fuoco di icon_fire girato). 16x16, tema fire, ramo B
+# (bordo chiaro f, fondo pieno x, bordo scuro O).
+out: ui/talent_ember_b1.png
+---
+.kkkkkkkkkkkkkk.
+kfffffffffffffOk
+kfxxkkkxxxxxxxOk
+kfxkfffkkxxxxxOk
+kfkfoofffkxxxxOk
+kffoyyooffkxxxOk
+kffyyyyooffkkxOk
+kfoywwyyooffykOk
+kfoywwyyoooffyOk
+kffyyyyoofkkkkOk
+kffoyyoofkkkxxOk
+kfkfooofffffkxOk
+kfxkfffooffkxxOk
+kfxxkkkkkkkxxxOk
+kOOOOOOOOOOOOOOk
+.kkkkkkkkkkkkkk.

@@ -14,6 +14,8 @@ use super::orbit::OrbitAttack;
 use super::player::Player;
 use super::progression::{PickupRadius, Progression};
 use super::pulse::PulseAttack;
+use super::talents::TalentKit;
+use super::treasure::Treasury;
 use crate::app::{AppState, RunPhase, RunSeed, RunSetup};
 use crate::data::GameConfig;
 use crate::data::schema::Effect;
@@ -37,12 +39,23 @@ impl UpgradeStacks {
 mod modifiers;
 pub use modifiers::{Modifiers, pct_factor};
 
+/// Che cosa propone il draft aperto.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum DraftKind {
+    /// Le carte di un livello.
+    #[default]
+    Level,
+    /// Un livello dei compagni: chi può unirsi alla squadra.
+    Companions,
+    /// Un forziere appena aperto: le reliquie.
+    Chest,
+}
+
 /// Carte del draft aperto: indici in `GameConfig::upgrades`.
 #[derive(Resource, Debug, Clone, PartialEq, Eq, Default)]
 pub struct Draft {
     pub choices: Vec<usize>,
-    /// Draft di un livello dei compagni: le carte sono i compagni che possono unirsi.
-    pub companions: bool,
+    pub kind: DraftKind,
 }
 
 /// Scelta di una carta del draft aperto: indice in `Draft::choices` (0 = la prima).
@@ -61,7 +74,9 @@ pub struct AutoPick {
 struct DraftRng(Pcg32);
 
 mod rules;
-pub use rules::{PartyView, auto_choice, draw_choices, is_eligible, offers_companions};
+pub use rules::{
+    PartyView, auto_choice, draw_choices, draw_relics, is_eligible, offers_companions,
+};
 
 pub struct UpgradesPlugin;
 
@@ -101,20 +116,68 @@ fn reset_upgrades(mut commands: Commands, config: Res<GameConfig>, seed: Res<Run
     commands.insert_resource(DraftRng(Pcg32::new(seed.0, DRAFT_STREAM)));
 }
 
-/// Con un livello da scegliere passa al draft. Le carte si estraggono entrando in `LevelUp`
-/// ([`deal_draft`]): se nello stesso fotogramma vince una pausa (Esc, perdita di focus; vale
-/// l'ultimo `NextState`) nessuna estrazione va sprecata e lo stesso seed dà le stesse carte.
-/// Se non resta nessun upgrade disponibile i livelli passano senza fermare la run.
+/// Il prossimo draft: prima le reliquie di un forziere appena aperto, poi il primo livello
+/// ancora da scegliere (ai livelli dei compagni, i compagni). Nessuna carta se non c'è nulla
+/// da scegliere o nessun upgrade disponibile.
+fn next_draft(
+    config: &GameConfig,
+    stacks: &UpgradeStacks,
+    starter: &str,
+    progression: &Progression,
+    treasury: &Treasury,
+    rng: &mut Pcg32,
+) -> (Vec<usize>, DraftKind) {
+    let p = &config.progression;
+    if treasury.pending {
+        let relics = draw_relics(rng, &config.upgrades, stacks, p.draft_size as usize);
+        return (relics, DraftKind::Chest);
+    }
+    if progression.pending_levels == 0 {
+        return (Vec::new(), DraftKind::Level);
+    }
+    let level = progression.level + 1 - progression.pending_levels;
+    let party = PartyView::of(config, stacks, starter);
+    let companion_level = p.is_companion_level(level);
+    let choices = draw_choices(
+        rng,
+        &config.upgrades,
+        stacks,
+        &party,
+        &p.rarity_weights,
+        p.draft_size as usize,
+        companion_level,
+    );
+    let kind = if offers_companions(&config.upgrades, stacks, &party, companion_level) {
+        DraftKind::Companions
+    } else {
+        DraftKind::Level
+    };
+    (choices, kind)
+}
+
+/// Con un livello da scegliere o un forziere aperto passa al draft. Le carte si estraggono
+/// entrando in `LevelUp` ([`deal_draft`]): se nello stesso fotogramma vince una pausa (Esc,
+/// perdita di focus; vale l'ultimo `NextState`) nessuna estrazione va sprecata e lo stesso seed
+/// dà le stesse carte. Se non resta nessun upgrade disponibile i livelli passano senza fermare
+/// la run.
 fn open_draft(
     config: Res<GameConfig>,
     setup: Res<RunSetup>,
     stacks: Res<UpgradeStacks>,
+    treasury: Res<Treasury>,
     mut progression: ResMut<Progression>,
     player: Query<&Health, With<Player>>,
     mut next: ResMut<NextState<RunPhase>>,
 ) {
-    if progression.pending_levels == 0 || player.iter().any(Health::is_dead) {
+    if player.iter().any(Health::is_dead) {
         return; // da sconfitti decide `declare_defeat`
+    }
+    if treasury.pending {
+        next.set(RunPhase::LevelUp);
+        return;
+    }
+    if progression.pending_levels == 0 {
+        return;
     }
     let weights = &config.progression.rarity_weights;
     let party = PartyView::of(&config, &stacks, &setup.starter(&config).id);
@@ -138,31 +201,29 @@ fn deal_draft(
     setup: Res<RunSetup>,
     stacks: Res<UpgradeStacks>,
     mut progression: ResMut<Progression>,
+    mut treasury: ResMut<Treasury>,
     mut rng: ResMut<DraftRng>,
     mut draft: ResMut<Draft>,
     mut next: ResMut<NextState<RunPhase>>,
 ) {
-    let p = &config.progression;
-    let level = progression.level + 1 - progression.pending_levels;
-    let party = PartyView::of(&config, &stacks, &setup.starter(&config).id);
-    let companion_level = p.is_companion_level(level);
-    draft.choices = draw_choices(
-        &mut rng.0,
-        &config.upgrades,
+    let starter = setup.starter(&config).id.clone();
+    let (choices, kind) = next_draft(
+        &config,
         &stacks,
-        &party,
-        &p.rarity_weights,
-        p.draft_size as usize,
-        companion_level,
+        &starter,
+        &progression,
+        &treasury,
+        &mut rng.0,
     );
-    draft.companions = offers_companions(&config.upgrades, &stacks, &party, companion_level);
-    if draft.choices.is_empty() {
+    if choices.is_empty() {
         // impossibile con la configurazione che ha aperto il draft: si torna a giocare
         progression.pending_levels = 0;
+        treasury.pending = false;
         next.set(RunPhase::Playing);
         return;
     }
-    log_draft(&config, level, &draft.choices);
+    log_draft(&config, &progression, kind, &choices);
+    *draft = Draft { choices, kind };
 }
 
 fn auto_pick(
@@ -186,13 +247,16 @@ fn auto_pick(
 
 /// Applica la prima scelta valida del fotogramma e scarta le altre (tasto e clic insieme non
 /// devono scegliere anche nel draft successivo): uno stack in più (la cura è immediata), poi
-/// un nuovo draft se restano livelli da scegliere, altrimenti si torna a giocare.
+/// un nuovo draft se restano livelli da scegliere, altrimenti si torna a giocare. La scelta di
+/// un forziere non consuma livelli.
+#[allow(clippy::too_many_arguments)]
 fn apply_choice(
     mut choices: MessageReader<ChooseUpgrade>,
     config: Res<GameConfig>,
     setup: Res<RunSetup>,
     mut stacks: ResMut<UpgradeStacks>,
     mut progression: ResMut<Progression>,
+    mut treasury: ResMut<Treasury>,
     mut rng: ResMut<DraftRng>,
     mut draft: ResMut<Draft>,
     mut stats: ResMut<RunStats>,
@@ -221,43 +285,47 @@ fn apply_choice(
             stats.healing += heal(&mut health, amount);
         }
     }
-    progression.pending_levels = progression.pending_levels.saturating_sub(1);
-    let p = &config.progression;
-    // livello del draft successivo (il prossimo ancora da scegliere)
-    let level = progression.level + 1 - progression.pending_levels;
-    let party = PartyView::of(&config, &stacks, &setup.starter(&config).id);
-    let companion_level = p.is_companion_level(level);
-    let again = if progression.pending_levels > 0 {
-        draw_choices(
-            &mut rng.0,
-            &config.upgrades,
-            &stacks,
-            &party,
-            &p.rarity_weights,
-            p.draft_size as usize,
-            companion_level,
-        )
-    } else {
-        Vec::new()
-    };
+    match draft.kind {
+        DraftKind::Chest => treasury.pending = false,
+        DraftKind::Level | DraftKind::Companions => {
+            progression.pending_levels = progression.pending_levels.saturating_sub(1);
+        }
+    }
+    let starter = setup.starter(&config).id.clone();
+    let (again, kind) = next_draft(
+        &config,
+        &stacks,
+        &starter,
+        &progression,
+        &treasury,
+        &mut rng.0,
+    );
     if again.is_empty() {
         progression.pending_levels = 0;
-        draft.choices.clear();
-        draft.companions = false;
+        treasury.pending = false;
+        *draft = Draft::default();
         next.set(RunPhase::Playing);
     } else {
-        log_draft(&config, level, &again);
-        draft.choices = again;
-        draft.companions = offers_companions(&config.upgrades, &stacks, &party, companion_level);
+        log_draft(&config, &progression, kind, &again);
+        *draft = Draft {
+            choices: again,
+            kind,
+        };
     }
 }
 
-fn log_draft(config: &GameConfig, level: u32, choices: &[usize]) {
+fn log_draft(config: &GameConfig, progression: &Progression, kind: DraftKind, choices: &[usize]) {
     let ids: Vec<&str> = choices
         .iter()
         .filter_map(|&i| Some(config.upgrades.get(i)?.id.as_str()))
         .collect();
-    info!("livello {level}: draft {ids:?}");
+    match kind {
+        DraftKind::Chest => info!("forziere: reliquie {ids:?}"),
+        _ => {
+            let level = progression.level + 1 - progression.pending_levels;
+            info!("livello {level}: draft {ids:?}");
+        }
+    }
 }
 
 /// Ricalcola i valori di compagni e player dai dati base più gli stack. La carica degli
@@ -266,17 +334,19 @@ fn refresh_modifiers(
     config: Res<GameConfig>,
     stacks: Res<UpgradeStacks>,
     mut modifiers: ResMut<Modifiers>,
-    mut projectiles: Query<&mut AutoAttack>,
-    mut pulses: Query<&mut PulseAttack>,
-    mut orbits: Query<&mut OrbitAttack>,
-    mut chains: Query<&mut ChainAttack>,
+    mut projectiles: Query<(&mut AutoAttack, Option<&TalentKit>)>,
+    mut pulses: Query<(&mut PulseAttack, Option<&TalentKit>)>,
+    mut orbits: Query<(&mut OrbitAttack, Option<&TalentKit>)>,
+    mut chains: Query<(&mut ChainAttack, Option<&TalentKit>)>,
     mut stats: ResMut<RunStats>,
     mut player: Query<(&mut Player, &mut Health, &mut PickupRadius)>,
 ) {
     let m = Modifiers::from_stacks(&config.upgrades, &stacks);
     *modifiers = m;
     // lo stato in corso (carica, angolo, colpi recenti) resta quello di prima
-    for mut attack in &mut projectiles {
+    // ogni compagno: le carte più i suoi talenti
+    let kit_of = |kit: Option<&TalentKit>| kit.copied().unwrap_or_default();
+    for (mut attack, kit) in &mut projectiles {
         let Some((data, p)) = config
             .attack(&attack.id)
             .and_then(|a| Some((a, a.projectile()?)))
@@ -286,48 +356,54 @@ fn refresh_modifiers(
         let charge = attack.charge;
         *attack = AutoAttack {
             charge,
-            ..m.projectile(data, p)
+            ..kit_of(kit).modifiers(&m).projectile(data, p)
         };
     }
-    for mut attack in &mut pulses {
+    for (mut attack, kit) in &mut pulses {
         let Some((data, p)) = config
             .attack(&attack.id)
             .and_then(|a| Some((a, a.pulse()?)))
         else {
             continue;
         };
+        let kit = kit_of(kit);
         let charge = attack.charge;
         *attack = PulseAttack {
             charge,
-            ..m.pulse(data, p)
+            ..kit.modifiers(&m).pulse(data, p)
         };
+        kit.tune_pulse(&mut attack);
     }
-    for mut attack in &mut orbits {
+    for (mut attack, kit) in &mut orbits {
         let Some((data, o)) = config
             .attack(&attack.id)
             .and_then(|a| Some((a, a.orbit()?)))
         else {
             continue;
         };
+        let kit = kit_of(kit);
         let (angle, recent) = (attack.angle, std::mem::take(&mut attack.recent));
         *attack = OrbitAttack {
             angle,
             recent,
-            ..m.orbit(data, o)
+            ..kit.modifiers(&m).orbit(data, o)
         };
+        kit.tune_orbit(&mut attack);
     }
-    for mut attack in &mut chains {
+    for (mut attack, kit) in &mut chains {
         let Some((data, c)) = config
             .attack(&attack.id)
             .and_then(|a| Some((a, a.chain()?)))
         else {
             continue;
         };
+        let kit = kit_of(kit);
         let charge = attack.charge;
         *attack = ChainAttack {
             charge,
-            ..m.chain(data, c)
+            ..kit.modifiers(&m).chain(data, c)
         };
+        kit.tune_chain(&mut attack);
     }
     let base = &config.player;
     for (mut player, mut health, mut pickup) in &mut player {

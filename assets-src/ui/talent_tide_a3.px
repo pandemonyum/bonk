@@ -1,0 +1,20 @@
+# Talento tide_a3: Marea alta (onda piu' larga): onda alta su tutta la carta con le frecce ai lati. 16x16, tema water, ramo A
+# (bordo chiaro l, fondo C sopra n, bordo scuro C).
+out: ui/talent_tide_a3.png
+---
+.kkkkkkkkkkkkkk.
+klllllllllllllCk
+klCCwCCCCCCwCCCk
+klCwCCCCCCCCwCCk
+klCCwCCCCCCwCCCk
+klCCCCkkCCCCkkCk
+klkCCkwwkCCkwwCk
+klLkkLLLLkkLLLCk
+klLkkLllLkkLllCk
+kllLLlcclLLlccCk
+klcLLckkcLLckkCk
+klkllknnkllknnCk
+klkccknnkccknnCk
+klnkknnnnkknnnCk
+kCCCCCCCCCCCCCCk
+.kkkkkkkkkkkkkk.

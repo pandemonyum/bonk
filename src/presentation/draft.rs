@@ -11,7 +11,7 @@ use crate::app::RunPhase;
 use crate::data::GameConfig;
 use crate::data::schema::{Effect, Rarity, UpgradeData};
 use crate::gameplay::progression::Progression;
-use crate::gameplay::upgrades::{ChooseUpgrade, Draft, UpgradeStacks};
+use crate::gameplay::upgrades::{ChooseUpgrade, Draft, DraftKind, UpgradeStacks};
 
 /// Nome su due righe e descrizione su tre in Pixelify Sans (22 e 16 px) entrano nella carta.
 const CARD_WIDTH: f32 = 212.0;
@@ -48,6 +48,7 @@ pub fn rarity_style(rarity: Rarity) -> (&'static str, Color) {
         Rarity::Common => ("Comune", Color::srgb(0.82, 0.82, 0.86)),
         Rarity::Uncommon => ("Non comune", Color::srgb(0.42, 0.85, 0.45)),
         Rarity::Rare => ("Rara", Color::srgb(0.95, 0.75, 0.3)),
+        Rarity::Relic => ("Reliquia", Color::srgb(0.78, 0.52, 0.98)),
     }
 }
 
@@ -81,10 +82,10 @@ fn show_draft(
         return; // scelta fatta: la fase sta per tornare a Playing
     }
     let levels_left = progression.pending_levels;
-    let what = if draft.companions {
-        "Scegli chi si unisce alla squadra"
-    } else {
-        "Scegli un potenziamento"
+    let what = match draft.kind {
+        DraftKind::Companions => "Scegli chi si unisce alla squadra",
+        DraftKind::Chest => "Scegli una reliquia",
+        DraftKind::Level => "Scegli un potenziamento",
     };
     let subtitle = if levels_left > 1 {
         format!(
@@ -95,10 +96,10 @@ fn show_draft(
         format!("{what}: 1–{} o clic", draft.choices.len())
     };
     let level = progression.level + 1 - levels_left;
-    let title = if draft.companions {
-        format!("NUOVO COMPAGNO!  LIVELLO {level}")
-    } else {
-        format!("LEVEL UP!  LIVELLO {level}")
+    let title = match draft.kind {
+        DraftKind::Companions => format!("NUOVO COMPAGNO!  LIVELLO {level}"),
+        DraftKind::Chest => "FORZIERE!".to_string(),
+        DraftKind::Level => format!("LEVEL UP!  LIVELLO {level}"),
     };
     let root = commands
         .spawn((

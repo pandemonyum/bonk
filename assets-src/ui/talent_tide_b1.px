@@ -1,0 +1,20 @@
+# Talento tide_b1: Acqua che ristora (ogni nemico colpito dall'onda ti cura): cuore sopra una piccola onda. 16x16, tema water, ramo B
+# (bordo chiaro l, fondo pieno n, bordo scuro C).
+out: ui/talent_tide_b1.png
+---
+.kkkkkkkkkkkkkk.
+klllllllllllllCk
+klnnnnnnnnnnnnCk
+klnnkkknnkkknnCk
+klnkXXrkkrrRknCk
+klnkXrwrrrrRknCk
+klnkrrrrrrRRknCk
+klnnkrrrrRRknnCk
+klnnnkrrRRknnnCk
+klnnnnkRRknnknCk
+klnkkkwkkkkkwkCk
+klkLLLllLLLLlkCk
+klklllkkllllknCk
+klnkkknnkkkknnCk
+kCCCCCCCCCCCCCCk
+.kkkkkkkkkkkkkk.

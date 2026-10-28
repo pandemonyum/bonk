@@ -1,0 +1,20 @@
+# Talento ember_a1: Brace che scoppia (la palla di fuoco esplode attorno al nemico colpito): piccola esplosione a otto punte con il nucleo bianco. 16x16, tema fire, ramo A
+# (bordo chiaro f, fondo O sopra x, bordo scuro O).
+out: ui/talent_ember_a1.png
+---
+.kkkkkkkkkkkkkk.
+kfffffffffffffOk
+kfOOOOOOOOOOOOOk
+kfOOOOkOOkOOOOOk
+kfOOOkokkokOOOOk
+kfOOkkoffokkOOOk
+kfOkoofyyfookOOk
+kfOOkfywwyfkOOOk
+kfxxkfywwyfkxxOk
+kfxkoofyyfookxOk
+kfxxkkoffokkxxOk
+kfxxxkokkokxxxOk
+kfxxxxkxxkxxxxOk
+kfxxxxxxxxxxxxOk
+kOOOOOOOOOOOOOOk
+.kkkkkkkkkkkkkk.

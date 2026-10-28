@@ -7,6 +7,115 @@ use crate::data::GameConfig;
 use crate::gameplay::SIM_HZ;
 use crate::gameplay::threats::MIN_TELEGRAPH_S;
 
+/// Orde: nemici esistenti, istanti crescenti dentro la run con il preavviso, e spazio per
+/// nascere oltre ai vivi delle ondate.
+fn hordes(r: &mut Report, config: &GameConfig, at: &dyn Fn(&str) -> String) {
+    let run = &config.stage.run;
+    let h = &run.hordes;
+    if h.list.is_empty() {
+        return;
+    }
+    r.non_negative(&at("hordes.warning_s"), h.warning_s);
+    r.positive(&at("hordes.duration_s"), h.duration_s);
+    if h.max_alive <= config.stage.spawns.max_alive {
+        r.0.push(format!(
+            "{} = {}: deve superare spawns.max_alive ({}), se no a campo pieno l'orda non nasce",
+            at("hordes.max_alive"),
+            h.max_alive,
+            config.stage.spawns.max_alive
+        ));
+    }
+    let mut previous_end = f32::NEG_INFINITY;
+    for (i, horde) in h.list.iter().enumerate() {
+        let here = |field: &str| at(&format!("hordes.list[{i}].{field}"));
+        if horde.at_s - h.warning_s < previous_end || horde.at_s - h.warning_s < 0.0 {
+            r.0.push(format!(
+                "{} = {}: con il preavviso di {} s si sovrappone all'orda prima o all'inizio",
+                here("at_s"),
+                horde.at_s,
+                h.warning_s
+            ));
+        }
+        if horde.at_s + h.duration_s > run.duration_s {
+            r.0.push(format!(
+                "{} = {}: l'orda finisce dopo il boss (duration_s = {})",
+                here("at_s"),
+                horde.at_s,
+                run.duration_s
+            ));
+        }
+        previous_end = horde.at_s + h.duration_s;
+        if horde.total() == 0 {
+            r.0.push(format!("{}: l'orda non ha nemici", here("groups")));
+        }
+        for (k, group) in horde.groups.iter().enumerate() {
+            let exists = config.enemy(&group.enemy).is_some();
+            r.reference(
+                &here(&format!("groups[{k}].enemy")),
+                &group.enemy,
+                exists,
+                "enemies.ron",
+            );
+        }
+    }
+}
+
+/// Monete e forzieri: probabilità sensate, fasce di distanza ordinate e fuori vista, un
+/// prezzo, un raggio per aprirli.
+fn treasure(r: &mut Report, config: &GameConfig) {
+    let coin = &config.progression.coin;
+    r.sprite("progression.ron: coin.sprite", &coin.sprite);
+    if coin.max_on_field == 0 {
+        r.0.push("progression.ron: coin.max_on_field deve essere >= 1".into());
+    }
+    r.non_negative("progression.ron: coin.scatter", coin.scatter);
+    for e in &config.enemies {
+        if !(0.0..=1.0).contains(&e.coins.chance) {
+            r.0.push(format!(
+                "enemies.ron: {}.coins.chance = {}: è una probabilità, serve tra 0 e 1",
+                e.id, e.coins.chance
+            ));
+        }
+    }
+    let c = &config.stage.chests;
+    let at = |field: &str| format!("stages.ron: {}.chests.{field}", config.stage.id);
+    r.sprite(&at("sprite"), &c.sprite);
+    r.sheet_frame(
+        &at("frame_w"),
+        Some(crate::data::schema::SheetFrame {
+            w: c.frame_w,
+            h: c.frame_h,
+        }),
+    );
+    for (field, band) in [
+        ("distance", c.distance),
+        ("fallback_distance", c.fallback_distance),
+    ] {
+        if !(band.0 > 0.0 && band.0 < band.1) {
+            r.0.push(format!(
+                "{} = {band:?}: serve (min, max) con 0 < min < max",
+                at(field)
+            ));
+        }
+    }
+    r.positive(&at("open_radius"), c.open_radius);
+    r.positive(&at("respawn_beyond"), c.respawn_beyond);
+    if c.respawn_beyond <= c.fallback_distance.1 {
+        r.0.push(format!(
+            "{} = {}: deve superare fallback_distance.1 ({}), se no un forziere appena nato \
+             rinascerebbe subito",
+            at("respawn_beyond"),
+            c.respawn_beyond,
+            c.fallback_distance.1
+        ));
+    }
+    r.non_negative(&at("min_from_edge"), c.min_from_edge);
+    r.non_negative(&at("min_apart"), c.min_apart);
+    if c.on_map > 0 && c.price_base == 0 {
+        r.0.push(format!("{} deve essere >= 1", at("price_base")));
+    }
+}
+
 pub(super) fn check(r: &mut Report, config: &GameConfig) {
     let s = &config.stage;
     let run = &s.run;
@@ -25,6 +134,8 @@ pub(super) fn check(r: &mut Report, config: &GameConfig) {
     r.positive(&at("elites.every_s"), run.elites.every_s);
     let boss_exists = config.enemy(&run.boss).is_some();
     r.reference(&at("boss"), &run.boss, boss_exists, "enemies.ron");
+    hordes(r, config, &at);
+    treasure(r, config);
     r.ui_text(
         &format!("stages.ron: {}.display_name", s.id),
         &s.display_name,

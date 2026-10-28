@@ -81,7 +81,8 @@ fn every_spawn_is_valid_caps_hold_and_kinds_enter_on_time() {
             .unwrap_or_else(|| panic!("{} mai comparso", wave.enemy));
         assert!(*t >= wave.start_s - 1e-3, "{} comparso a {t} s", wave.enemy);
     }
-    assert!(known.len() > 200, "solo {} nemici in 3:20", known.len());
+    // lo sciame entra a 2:00: in 3:20 nascono poco meno di 200 nemici
+    assert!(known.len() > 150, "solo {} nemici in 3:20", known.len());
 }
 
 /// Nell'angolo la camera non è centrata sul player e metà dell'anello è fuori dall'arena: gli

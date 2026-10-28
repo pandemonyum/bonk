@@ -1,0 +1,20 @@
+# Carta reliquia relic_nest: Nido di scintille (+2 proiettili, foglie o salti del fulmine): nido intrecciato con tre scintille. 16x16, tema reliquia
+# (viola: luce q, fondo P sopra z, bordo scuro p) con la borchia-gemma in alto a destra.
+out: ui/upgrade_relic_nest.png
+---
+.kkkkkkkkkkkkkk.
+kqqqqqqqqqqqQwpk
+kqPPyPPPPPwPPQpk
+kqPyfyPPPwWwPPpk
+kqPPyPPyPPwPPPpk
+kqPPPPPwPPPPPPpk
+kqPPkkkkkkkkPPpk
+kqPk7yywyyy7kPpk
+kqk8d7d7d7d7Dkpk
+kqkdDdDdDdDdDkpk
+kq8kDdDdDdD8k8pk
+kqzzk8D8D88kzzpk
+kqzzzkkkkkkzzzpk
+kqzzzzzzzzzzzzpk
+kppppppppppppppk
+.kkkkkkkkkkkkkk.

@@ -1,0 +1,20 @@
+# Carta reliquia relic_piggy: Salvadanaio di coccio (ogni moneta vale il doppio): salvadanaio di coccio con una moneta nella fessura. 16x16, tema reliquia
+# (viola: luce q, fondo P sopra z, bordo scuro p) con la borchia-gemma in alto a destra.
+out: ui/upgrade_relic_piggy.png
+---
+.kkkkkkkkkkkkkk.
+kqqqqqqqqqqqQwpk
+kqPPPPkkPPPPPQpk
+kqPPPkygkkkPPPpk
+kqPPPkgGkfokPPpk
+kqPPkkkkkookPPpk
+kqPkfffoookkkPpk
+kqkfwfoookofOkpk
+kqkffooooooffkpk
+kqkfooooooOfOkpk
+kqzkoooooOOkkzpk
+kqzzkoooOOkzzzpk
+kqzkOOkkOOkzzzpk
+kqzzkkzzkkzzzzpk
+kppppppppppppppk
+.kkkkkkkkkkkkkk.

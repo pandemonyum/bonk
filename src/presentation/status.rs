@@ -14,6 +14,7 @@ use crate::gameplay::combat::{Health, RunStats};
 use crate::gameplay::companions::Companion;
 use crate::gameplay::player::Player;
 use crate::gameplay::progression::Progression;
+use crate::gameplay::treasure::Treasury;
 
 /// HP rappresentati da un cuore.
 pub const HP_PER_HEART: f32 = 20.0;
@@ -79,6 +80,9 @@ struct KillsText;
 #[derive(Component)]
 struct NextCompanionText;
 
+#[derive(Component)]
+struct CoinsText;
+
 /// Riga sotto il livello: a che livello si sceglie il prossimo compagno, finché la squadra
 /// (`members` su `slots` posti) ha un posto libero; vuota quando non ne arrivano altri.
 pub fn next_companion_line(
@@ -103,7 +107,8 @@ impl Plugin for StatusPlugin {
                 (
                     show_hearts,
                     show_xp.run_if(resource_changed::<Progression>),
-                    show_right,
+                    show_right.run_if(resource_exists::<GameConfig>),
+                    show_coins,
                 ),
             );
     }
@@ -207,9 +212,29 @@ fn spawn_right(mut commands: Commands, assets: Res<AssetServer>) {
                     (KillsText, label("", 16.0, TEXT)),
                 ],
             ),
+            (
+                Node {
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    column_gap: px(6),
+                    ..default()
+                },
+                children![
+                    ui_icon(&assets, "ui/coin.png", 16.0, 16.0),
+                    (CoinsText, label("", 16.0, TEXT)),
+                ],
+            ),
             (NextCompanionText, label("", 16.0, TEXT)),
         ],
     ));
+}
+
+/// Monete in tasca per difetto (con il Salvadanaio possono avere decimali).
+fn show_coins(treasury: Res<Treasury>, mut coins: Single<&mut Text, With<CoinsText>>) {
+    let line = ((treasury.coins + 1e-3).floor() as u32).to_string();
+    if coins.0 != line {
+        coins.0 = line;
+    }
 }
 
 /// Cuori ricostruiti solo quando cambiano (HP o massimo) o quando la fila è nuova (run
@@ -251,16 +276,19 @@ type OnlyLevel = (
     With<LevelText>,
     Without<KillsText>,
     Without<NextCompanionText>,
+    Without<CoinsText>,
 );
 type OnlyKills = (
     With<KillsText>,
     Without<LevelText>,
     Without<NextCompanionText>,
+    Without<CoinsText>,
 );
 type OnlyNext = (
     With<NextCompanionText>,
     Without<LevelText>,
     Without<KillsText>,
+    Without<CoinsText>,
 );
 
 fn show_right(

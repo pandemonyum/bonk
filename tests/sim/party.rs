@@ -247,7 +247,7 @@ fn restarting_brings_back_only_the_starting_companion() {
 #[test]
 fn companions_are_chosen_only_at_the_companion_levels() {
     use crate::common::give_levels;
-    use pixel_monster_survivor::gameplay::upgrades::{ChooseUpgrade, Draft};
+    use pixel_monster_survivor::gameplay::upgrades::{ChooseUpgrade, Draft, DraftKind};
     let mut app = xp_app();
     let c = config(&app);
     let levels = c.progression.companion_levels.clone();
@@ -261,13 +261,13 @@ fn companions_are_chosen_only_at_the_companion_levels() {
         let draft = app.world().resource::<Draft>().clone();
         let joins = draft.choices.iter().filter(|i| is_join(i)).count();
         if levels.contains(&level) {
-            assert!(draft.companions, "livello {level}");
+            assert_eq!(draft.kind, DraftKind::Companions, "livello {level}");
             assert!(
                 joins > 0 && joins == draft.choices.len(),
                 "livello {level}: {draft:?}"
             );
         } else {
-            assert!(!draft.companions, "livello {level}");
+            assert_eq!(draft.kind, DraftKind::Level, "livello {level}");
             assert_eq!(joins, 0, "livello {level}: {draft:?}");
         }
         app.world_mut().write_message(ChooseUpgrade(0));

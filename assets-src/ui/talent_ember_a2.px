@@ -1,0 +1,20 @@
+# Talento ember_a2: Scoppio largo (esplosione piu' grande e piu' forte): esplosione grande che riempie la carta. 16x16, tema fire, ramo A
+# (bordo chiaro f, fondo O sopra x, bordo scuro O).
+out: ui/talent_ember_a2.png
+---
+.kkkkkkkkkkkkkk.
+kfffffffffffffOk
+kfOOOOOkkOOOOOOk
+kfOOkkkookkkOOOk
+kfOkookookookOOk
+kfOkoffffffokOOk
+kfOkkfyyyyfkkOOk
+kfkoofywwyfookOk
+kfkoofywwyfookOk
+kfxkkfyyyyfkkxOk
+kfxkoffffffokxOk
+kfxkookookookxOk
+kfxxkkkookkkxxOk
+kfxxxxxkkxxxxxOk
+kOOOOOOOOOOOOOOk
+.kkkkkkkkkkkkkk.

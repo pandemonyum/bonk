@@ -1,0 +1,198 @@
+# Forziere della run (da comprare con le monete), foglio 4x2 da 24x22, palette del progetto.
+# Legno scuro (terra-ombra e terra-scura, si stacca anche dalla terra chiara del sentiero)
+# con cinghie, bordo e serratura d'oro e contorno di 1 px; largo quasi come il player
+# (22 px contro 23), alto 18 px chiuso. Luce da nord-ovest come negli altri sprite.
+out: sprites/chest_sheet.png
+frame: 24x22
+columns: 4
+rows: idle open
+anchor: bottom_center
+---
+# --- riga 0, chiuso: 0 fermo, 1 riflesso sulla cinghia sinistra, 2 stella sulla serratura,
+# 3 stellina oltre l'angolo del coperchio (giro del luccichio)
+@ idle 0
+............|............
+............|............
+............|............
+....kkkkkkkk|kkkkkkkk....
+...k77yg7777|7777yg77k...
+..kd77yg7777|7777yg77dk..
+.kddddygdddd|ddddygddddk.
+.kDDDDgGDDDD|DDDDgGDDDDk.
+.kddddygdddd|ddddygdddDk.
+.kyyyyyggggg|gggggggGGGk.
+.khhhhhhhkyy|ggkhhhhhhhk.
+.k8888888kyg|gGk8888888k.
+.kGddDygDkgk|kGkDygDDDGk.
+.kGdDDygDkgk|kGkDygDDDGk.
+.kGDDDygDDkk|kkDDygDDDGk.
+.kG888yG8888|8888yG888Gk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygD8DGk.
+.khGGGGGGGGG|GGGGGGGGGhk.
+9kkkkkkkkkkk|kkkkkkkkkkk9
+..9999999999|9999999999..
+@ idle 1
+............|............
+............|............
+............|............
+....kkkkkkkk|kkkkkkkk....
+...k77wg7777|7777yg77k...
+..kd77wg7777|7777yg77dk..
+.kddddygdddd|ddddygddddk.
+.kDDDDgGDDDD|DDDDgGDDDDk.
+.kddddygdddd|ddddygdddDk.
+.kyyyyyggggg|gggggggGGGk.
+.khhhhhhhkyy|ggkhhhhhhhk.
+.k8888888kyg|gGk8888888k.
+.kGddDygDkgk|kGkDygDDDGk.
+.kGdDDygDkgk|kGkDygDDDGk.
+.kGDDDygDDkk|kkDDygDDDGk.
+.kG888yG8888|8888yG888Gk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygD8DGk.
+.khGGGGGGGGG|GGGGGGGGGhk.
+9kkkkkkkkkkk|kkkkkkkkkkk9
+..9999999999|9999999999..
+@ idle 2
+............|............
+............|............
+............|............
+....kkkkkkkk|kkkkkkkk....
+...k77yg7777|7777yg77k...
+..kd77yg7777|7777yg77dk..
+.kddddygdddd|ddddygddddk.
+.kDDDDgGDDDD|DDDDgGDDDDk.
+.kddddygdddy|ddddygdddDk.
+.kyyyyygggyw|yggggggGGGk.
+.khhhhhhhkyw|ggkhhhhhhhk.
+.k8888888kyg|gGk8888888k.
+.kGddDygDkgk|kGkDygDDDGk.
+.kGdDDygDkgk|kGkDygDDDGk.
+.kGDDDygDDkk|kkDDygDDDGk.
+.kG888yG8888|8888yG888Gk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygD8DGk.
+.khGGGGGGGGG|GGGGGGGGGhk.
+9kkkkkkkkkkk|kkkkkkkkkkk9
+..9999999999|9999999999..
+@ idle 3
+............|............
+............|........y...
+............|.......ywy..
+....kkkkkkkk|kkkkkkkky...
+...k77yg7777|7777yg77k...
+..kd77yg7777|7777yg77dk..
+.kddddygdddd|ddddygddddk.
+.kDDDDgGDDDD|DDDDgGDDDDk.
+.kddddygdddd|ddddygdddDk.
+.kyyyyyggggg|gggggggGGGk.
+.khhhhhhhkyy|ggkhhhhhhhk.
+.k8888888kyg|gGk8888888k.
+.kGddDygDkgk|kGkDygDDDGk.
+.kGdDDygDkgk|kGkDygDDDGk.
+.kGDDDygDDkk|kkDDygDDDGk.
+.kG888yG8888|8888yG888Gk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygD8DGk.
+.khGGGGGGGGG|GGGGGGGGGhk.
+9kkkkkkkkkkk|kkkkkkkkkkk9
+..9999999999|9999999999..
+# --- riga 1, apertura: 0 coperchio su di 1 px con la luce nella fessura, 1 coperchio
+# alzato e inclinato, 2 aperto all'indietro (si vede l'interno), 3 aperto con il bagliore
+@ open 0
+............|............
+............|............
+....kkkkkkkk|kkkkkkkk....
+...k77yg7777|7777yg77k...
+..kd77yg7777|7777yg77dk..
+.kddddygdddd|ddddygddddk.
+.kDDDDgGDDDD|DDDDgGDDDDk.
+.kddddygdddd|ddddygdddDk.
+.kyyyyyggggg|gggggggGGGk.
+.khhhhhhhkyy|ggkhhhhhhhk.
+.kffyyyyykyy|ggkyyyyyffk.
+.k8888888kyg|gGk8888888k.
+.kGddDygDkgk|kGkDygDDDGk.
+.kGdDDygDkgk|kGkDygDDDGk.
+.kGDDDygDDkk|kkDDygDDDGk.
+.kG888yG8888|8888yG888Gk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygD8DGk.
+.khGGGGGGGGG|GGGGGGGGGhk.
+9kkkkkkkkkkk|kkkkkkkkkkk9
+..9999999999|9999999999..
+@ open 1
+............|............
+....kkkkkkkk|kkkkkkkk....
+...kddygdddd|ddddygddk...
+..kyyyyygggg|ggggggGGGk..
+..khhhhhhhhh|hhhhhhhhhk..
+.k8888888888|8888888888k.
+.kD8ffffffff|ffffffff8Dk.
+.kD8fyyyyyyy|yyyyyyyf8Dk.
+.kD8yyyywwww|wwwwyyyy8Dk.
+.kD8yyyyyyyy|yyyyyyyy8Dk.
+.kffyyyyykyy|ggkyyyyyffk.
+.k8888888kyg|gGk8888888k.
+.kGddDygDkgk|kGkDygDDDGk.
+.kGdDDygDkgk|kGkDygDDDGk.
+.kGDDDygDDkk|kkDDygDDDGk.
+.kG888yG8888|8888yG888Gk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygD8DGk.
+.khGGGGGGGGG|GGGGGGGGGhk.
+9kkkkkkkkkkk|kkkkkkkkkkk9
+..9999999999|9999999999..
+@ open 2
+..kkkkkkkkkk|kkkkkkkkkk..
+..kyyyyygggg|gggggggGGk..
+..k8DDDDDDDD|DDDDDDDD8k..
+..k888888888|888888888k..
+..k8DDDDDDDD|DDDDDDDD8k..
+..k8DDDDDDDD|DDDDDDDD8k..
+.kkkkkkkkkkk|kkkkkkkkkkk.
+.kDDDDDDDDDD|DDDDDDDDDDk.
+.kD8ffffffff|ffffffff8Dk.
+.kD8yyyywwww|wwwwyyyy8Dk.
+.kd8yyyyyyyy|yyyyyyyy8dk.
+.kyyyyyggkyg|gGkggggGGGk.
+.kGddDygDkgk|kGkDygDDDGk.
+.kGdDDygDkgk|kGkDygDDDGk.
+.kGDDDygDDkk|kkDDygDDDGk.
+.kG888yG8888|8888yG888Gk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygD8DGk.
+.khGGGGGGGGG|GGGGGGGGGhk.
+9kkkkkkkkkkk|kkkkkkkkkkk9
+..9999999999|9999999999..
+@ open 3
+..kkkykkkkkk|kkkkkkwkkk..
+y.kyyyyygggw|wggggggGGk.y
+.wk8DDDwDDDy|yDDDwDDD8kw.
+y.k8888y888y|y888y8888k..
+..k8dddydddy|ydddyddd8k.y
+..k8fffyfffy|yfffyfff8k..
+.kkkkkkkkkkk|kkkkkkkkkkk.
+.kDDDDDDDDDD|DDDDDDDDDDk.
+.kD8yyyywwww|wwwwyyyy8Dk.
+.kD8yywwwwww|wwwwwwyy8Dk.
+.kd8yyyyyyww|wwyyyyyy8dk.
+.kyyyyyggkyg|gGkggggGGGk.
+.kGddDygDkgk|kGkDygDDDGk.
+.kGdDDygDkgk|kGkDygDDDGk.
+.kGDDDygDDkk|kkDDygDDDGk.
+.kG888yG8888|8888yG888Gk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygDDDGk.
+.kGDDDygDDDD|DDDDygD8DGk.
+.khGGGGGGGGG|GGGGGGGGGhk.
+9kkkkkkkkkkk|kkkkkkkkkkk9
+..9999999999|9999999999..

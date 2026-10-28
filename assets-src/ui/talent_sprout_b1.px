@@ -1,0 +1,20 @@
+# Talento sprout_b1: Radici che afferrano (ogni 6 s radici sotto il nemico piu' vicino): tre radici che escono da terra come dita. 16x16, tema nature, ramo B
+# (bordo chiaro e, fondo pieno N, bordo scuro E).
+out: ui/talent_sprout_b1.png
+---
+.kkkkkkkkkkkkkk.
+keeeeeeeeeeeeeEk
+keNNNNNNNNNNNNEk
+keNkkNNNNNkkNNEk
+kekddkNNNkddkNEk
+kek8kdkNkdk8kNEk
+keNkNkdkdkNkNNEk
+keNNNkdDdkNNNNEk
+keNNkdDkDDkNNNEk
+keNNkdkNkDkNNNEk
+keNkdDkNkD8kNNEk
+kekkdDkkkD8kkkEk
+kek7dddddDD88kEk
+kek8888888888kEk
+kEEEEEEEEEEEEEEk
+.kkkkkkkkkkkkkk.

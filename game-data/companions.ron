@@ -13,6 +13,32 @@
             element: Fire,
             sprite: "sprites/ember_sheet.png",
             frame: Some((w: 40, h: 36)),
+            // due rami: ogni nodo richiede il precedente del suo ramo; un punto per livello
+            // del compagno (dal 2 al 7); per una meccanica vale l'ultimo nodo preso del ramo
+            talents: [
+                (name: "Scoppio", nodes: [
+                    (id: "ember_a1", name: "Brace che scoppia",
+                     description: "Le palle di fuoco esplodono attorno al colpito",
+                     effects: [Explode(radius: 24.0, damage_pct: 25.0)]),
+                    (id: "ember_a2", name: "Scoppio largo",
+                     description: "Esplosione più ampia e più forte",
+                     effects: [Explode(radius: 30.0, damage_pct: 30.0)]),
+                    (id: "ember_a3", name: "Brace che cova",
+                     description: "Chi è colpito brucia per 3 s",
+                     effects: [Burn(dps_pct: 30.0, duration_s: 3.0)]),
+                ]),
+                (name: "Soffio", nodes: [
+                    (id: "ember_b1", name: "Soffio rovente",
+                     description: "Ogni 6 attacchi soffia un cono di fuoco",
+                     effects: [Cone(every: 6, half_angle_deg: 25.0, range: 72.0, damage_pct: 80.0)]),
+                    (id: "ember_b2", name: "Fiato lungo",
+                     description: "Soffio ogni 5 attacchi e più lungo",
+                     effects: [Cone(every: 5, half_angle_deg: 25.0, range: 88.0, damage_pct: 80.0)]),
+                    (id: "ember_b3", name: "Soffio ardente",
+                     description: "Il soffio fa tutto il danno del colpo",
+                     effects: [Cone(every: 5, half_angle_deg: 25.0, range: 88.0, damage_pct: 100.0)]),
+                ]),
+            ],
             attack: "ember_bolt",
             follow: (
                 // px dietro al player quando si ferma (da 18 con gli sprite piccoli)
@@ -29,6 +55,32 @@
             element: Water,
             sprite: "sprites/tide_sheet.png",
             frame: Some((w: 40, h: 36)),
+            // due rami: ogni nodo richiede il precedente del suo ramo; un punto per livello
+            // del compagno (dal 2 al 7); per una meccanica vale l'ultimo nodo preso del ramo
+            talents: [
+                (name: "Marea", nodes: [
+                    (id: "tide_a1", name: "Onda di ritorno",
+                     description: "Mezzo secondo dopo parte una seconda onda",
+                     effects: [Echo(delay_s: 0.5, damage_pct: 35.0)]),
+                    (id: "tide_a2", name: "Marea lenta",
+                     description: "Chi è bagnato va ancora più piano",
+                     effects: [SlowFactor(0.45), SlowSecs(2.0)]),
+                    (id: "tide_a3", name: "Marea alta",
+                     description: "Onda più ampia",
+                     effects: [RangePct(15.0)]),
+                ]),
+                (name: "Sorgente", nodes: [
+                    (id: "tide_b1", name: "Acqua che ristora",
+                     description: "Ogni nemico colpito dall'onda ti cura",
+                     effects: [HealPerHit(hp: 0.2, cap: 0.6)]),
+                    (id: "tide_b2", name: "Getto dal profondo",
+                     description: "Ogni 6 s un getto d'acqua sul nemico più vicino",
+                     effects: [Strike(every_s: 6.0, range: 120.0, radius: 24.0, damage_pct: 150.0)]),
+                    (id: "tide_b3", name: "Sorgente viva",
+                     description: "L'onda cura di più",
+                     effects: [HealPerHit(hp: 0.25, cap: 1.0)]),
+                ]),
+            ],
             attack: "tide_pulse",
             follow: (distance: 30.0, max_speed: 120.0, gain: 5.0),
         ),
@@ -38,6 +90,32 @@
             element: Nature,
             sprite: "sprites/sprout_sheet.png",
             frame: Some((w: 40, h: 36)),
+            // due rami: ogni nodo richiede il precedente del suo ramo; un punto per livello
+            // del compagno (dal 2 al 7); per una meccanica vale l'ultimo nodo preso del ramo
+            talents: [
+                (name: "Rovo", nodes: [
+                    (id: "sprout_a1", name: "Linfa urticante",
+                     description: "Le foglie lasciano una linfa che brucia",
+                     effects: [Burn(dps_pct: 25.0, duration_s: 2.0)]),
+                    (id: "sprout_a2", name: "Quarta foglia",
+                     description: "Una foglia in più in orbita",
+                     effects: [ExtraCount(1)]),
+                    (id: "sprout_a3", name: "Rovo largo",
+                     description: "Orbita più ampia e più veloce",
+                     effects: [RangePct(15.0), AngularSpeedPct(15.0)]),
+                ]),
+                (name: "Radici", nodes: [
+                    (id: "sprout_b1", name: "Radici che afferrano",
+                     description: "Ogni 6 s spuntano radici sotto il nemico più vicino",
+                     effects: [Strike(every_s: 6.0, range: 130.0, radius: 24.0, damage_pct: 150.0)]),
+                    (id: "sprout_b2", name: "Radici fitte",
+                     description: "Radici più spesso",
+                     effects: [Strike(every_s: 5.0, range: 130.0, radius: 24.0, damage_pct: 150.0)]),
+                    (id: "sprout_b3", name: "Radici spinose",
+                     description: "Radici più larghe e più forti",
+                     effects: [Strike(every_s: 5.0, range: 130.0, radius: 30.0, damage_pct: 200.0)]),
+                ]),
+            ],
             attack: "leaf_orbit",
             follow: (distance: 30.0, max_speed: 120.0, gain: 5.0),
         ),
@@ -47,6 +125,32 @@
             element: Electric,
             sprite: "sprites/spark_sheet.png",
             frame: Some((w: 40, h: 36)),
+            // due rami: ogni nodo richiede il precedente del suo ramo; un punto per livello
+            // del compagno (dal 2 al 7); per una meccanica vale l'ultimo nodo preso del ramo
+            talents: [
+                (name: "Catena", nodes: [
+                    (id: "spark_a1", name: "Eco del lampo",
+                     description: "0,4 s dopo, il fulmine riparte",
+                     effects: [Echo(delay_s: 0.4, damage_pct: 20.0)]),
+                    (id: "spark_a2", name: "Catena salda",
+                     description: "Ogni salto perde meno danno",
+                     effects: [ChainFalloff(0.85)]),
+                    (id: "spark_a3", name: "Salto in più",
+                     description: "Il fulmine salta su un nemico in più",
+                     effects: [ExtraCount(1)]),
+                ]),
+                (name: "Temporale", nodes: [
+                    (id: "spark_b1", name: "Lampo dal cielo",
+                     description: "Ogni 7 s un lampo cade sul nemico più vicino",
+                     effects: [Strike(every_s: 7.0, range: 160.0, radius: 24.0, damage_pct: 100.0)]),
+                    (id: "spark_b2", name: "Cielo carico",
+                     description: "Lampi più frequenti",
+                     effects: [Strike(every_s: 5.0, range: 160.0, radius: 24.0, damage_pct: 100.0)]),
+                    (id: "spark_b3", name: "Lampo grande",
+                     description: "Lampo più largo e più forte",
+                     effects: [Strike(every_s: 5.0, range: 160.0, radius: 28.0, damage_pct: 150.0)]),
+                ]),
+            ],
             attack: "spark_chain",
             follow: (distance: 30.0, max_speed: 120.0, gain: 5.0),
         ),
