@@ -1,5 +1,18 @@
 # QA REPORT
 
+## 2026-10-29 — P1, il gioco nel browser (D-061)
+
+| Controllo | Esito | Prova |
+|---|---|---|
+| Build | `dist/` da script, `.wasm` 22,5 MiB (5,9 gzip), nessun file oltre 25 MiB | `scripts/build-web.ps1` |
+| Avvio | pagina, "Clicca per giocare", download con avanzamento, menu con ritratti, font e dati via HTTP | `docs/evidence/web-menu.jpg` |
+| Gioco | run con la tastiera, terreno, nemici, HUD, draft | `docs/evidence/web-run.jpg` |
+| Fine run e salvataggio | sconfitta, risultati con l'esperienza, profilo nel `localStorage` | `docs/evidence/web-risultati.jpg` |
+| Opzioni dall'indirizzo | `?autoplay&seed=3`: la run parte da sola | `docs/evidence/web-autoplay.jpg` |
+| Console | nessun errore del gioco né richieste fallite; un avviso WebGL all'avvio di Bevy | log del browser |
+| Terreno nativo | stesso disegno di prima al pixel (0,17% di pixel diversi, sprite in movimento) | confronto prima/dopo |
+| Test | 215 unit + 101 integrazione (`web::query_args`, pezzi del terreno) | `./scripts/check.ps1` |
+
 ## 2026-10-28 — Alberi grandi e schermata dei talenti (D-059)
 
 | Controllo | Esito | Prova |

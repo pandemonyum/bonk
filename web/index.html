@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pixel Monster Survivor</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b101c; overflow: hidden; }
+    body { font-family: system-ui, sans-serif; color: #f2f2f2; }
+    /* Bevy adatta il canvas al suo contenitore (fit_canvas_to_parent) */
+    #stage { position: fixed; inset: 0; }
+    #game { width: 100%; height: 100%; display: block; outline: none;
+            image-rendering: pixelated; }
+    #overlay { position: fixed; inset: 0; display: flex; align-items: center;
+               justify-content: center; background: #0b101c; }
+    #panel { text-align: center; max-width: 34rem; padding: 2rem; border: 4px solid #4a587a;
+             background: #121a2c; }
+    h1 { margin: 0 0 1rem; color: #f2c94c; letter-spacing: 0.05em; }
+    button { font: inherit; font-size: 1.2rem; padding: 0.6rem 1.6rem; cursor: pointer;
+             color: #0b101c; background: #f2c94c; border: 0; }
+    button:disabled { opacity: 0.5; cursor: progress; }
+    #status { margin-top: 1rem; min-height: 1.5em; opacity: 0.8; }
+    #error { display: none; margin-top: 1rem; color: #f07a6a; white-space: pre-wrap;
+             text-align: left; }
+    .hint { margin-top: 1.2rem; font-size: 0.9rem; opacity: 0.6; }
+  </style>
+</head>
+<body>
+  <div id="stage"><canvas id="game" tabindex="0"></canvas></div>
+  <div id="overlay">
+    <div id="panel">
+      <h1>PIXEL MONSTER SURVIVOR</h1>
+      <button id="play" type="button">Clicca per giocare</button>
+      <div id="status"></div>
+      <div id="error"></div>
+      <div class="hint">WASD o frecce per muoverti · Esc pausa · T talenti nel menu</div>
+    </div>
+  </div>
+  <script type="module">
+    // Il build (scripts/build-web.*) sostituisce __VERSION__ con l'impronta del .wasm: un gioco
+    // nuovo non viene preso dalla cache del browser.
+    const VERSION = "__VERSION__";
+    const overlay = document.getElementById("overlay");
+    const play = document.getElementById("play");
+    const status = document.getElementById("status");
+    const errorBox = document.getElementById("error");
+    const canvas = document.getElementById("game");
+
+    function fail(message) {
+      errorBox.style.display = "block";
+      errorBox.textContent = message;
+      play.disabled = true;
+      overlay.style.display = "flex";
+    }
+
+    // winit sul web interrompe init() con un'eccezione apposta: non è un errore
+    function isControlFlow(reason) {
+      const text = String(reason && (reason.message || reason));
+      return text.includes("Using exceptions for control flow");
+    }
+    window.addEventListener("error", (e) => {
+      if (!isControlFlow(e.error || e.message)) fail("Errore: " + (e.message || e.error));
+    });
+    window.addEventListener("unhandledrejection", (e) => {
+      if (!isControlFlow(e.reason)) fail("Errore: " + e.reason);
+    });
+
+    // il gioco disegna con WebGL2 (D-018): senza, un messaggio chiaro invece di uno schermo nero
+    if (!document.createElement("canvas").getContext("webgl2")) {
+      fail("Questo browser non supporta WebGL2, che serve al gioco.\n" +
+           "Prova un Chrome, Edge o Firefox aggiornato, con l'accelerazione grafica attiva.");
+    }
+
+    // il .wasm con l'avanzamento: è il file grande da scaricare
+    async function fetchWithProgress(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`${url}: ${response.status}`);
+      const total = Number(response.headers.get("content-length")) || 0;
+      if (!response.body || !total) return response;
+      const reader = response.body.getReader();
+      const chunks = [];
+      let loaded = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.length;
+        const mb = (n) => (n / 1048576).toFixed(1);
+        status.textContent = `Caricamento… ${mb(loaded)} / ${mb(total)} MB`;
+      }
+      return new Response(new Blob(chunks), { headers: { "Content-Type": "application/wasm" } });
+    }
+
+    play.addEventListener("click", async () => {
+      play.disabled = true;
+      status.textContent = "Caricamento…";
+      try {
+        const { default: init } = await import(`./game.js?v=${VERSION}`);
+        const wasm = await fetchWithProgress(`./game_bg.wasm?v=${VERSION}`);
+        overlay.style.display = "none";
+        canvas.focus();
+        await init({ module_or_path: wasm });
+      } catch (e) {
+        if (!isControlFlow(e)) fail("Il gioco non è partito: " + (e && e.message || e));
+      }
+    });
+    // il canvas tiene il fuoco della tastiera anche dopo un clic sulla pagina
+    canvas.addEventListener("pointerdown", () => canvas.focus());
+  </script>
+</body>
+</html>

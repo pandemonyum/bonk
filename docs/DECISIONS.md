@@ -498,6 +498,21 @@ sull'anteprima. Nei dati: `frame` 28×24, partenza della palla di fuoco e del fu
 piedi (erano 16), compagni a 19–22 px dietro al player (erano 26–30). I ritratti del menu (40×36)
 restano quelli grandi.
 
+## D-061 Build web: wasm-bindgen, pagina propria, terreno cotto in sprite
+P1 chiesta dall'utente. Niente Trunk: `wasm-bindgen-cli` alla versione del `Cargo.lock`
+(0.2.129, gli script si fermano se non coincide) e una pagina scritta a mano
+(`web/index.html`: "Clicca per giocare", avanzamento del download, messaggio senza WebGL2,
+errori a schermo). Il gioco parte nel canvas `#game` che riempie la finestra, i tasti vanno al
+gioco; le opzioni di avvio passano dall'indirizzo (`?autoplay&seed=3`); il profilo sta nel
+`localStorage` (stesso RON del file). Due problemi trovati solo nel browser: le richieste dei
+`.meta` di ogni asset (404: `AssetMetaCheck::Never`) e il terreno nero, perché il
+`TilemapChunk` di Bevy usa una texture di indici `Rgba16Uint` che WebGL2 rifiuta; il terreno è
+ora cotto sulla CPU in pezzi da 512 px dal tileset e mostrato come sprite, solo attorno alla
+camera, uguale su desktop (stesso disegno, verificato al pixel) e sul web. Dimensioni: il primo
+`.wasm` pesava 54 MiB (20 di nomi delle funzioni): con `strip = "symbols"`, `opt-level = "z"`
+e senza le sezioni dei nomi 22,5 MiB in `dist`, 5,9 MiB compressi, sotto il limite di 25 MiB per
+file. `wasm-opt` non è installato (gli script lo usano se c'è). La CI aspetta un remote GitHub.
+
 ## D-053 Tuonny e il fulmine a catena
 Quarto compagno (elemento nuovo `Electric`, gatto con la coda a stella del foglio dell'utente,
 D-052) con un pattern nuovo `Chain`: colpisce il nemico vivo più vicino entro `range`, poi salta

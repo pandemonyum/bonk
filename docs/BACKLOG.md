@@ -33,11 +33,11 @@ Gate P0: 10 minuti giocabili end-to-end senza crash, con prova umana o autoplay 
 
 | ID | Task | Owner |
 |---|---|---|
-| P1.1 | Build `wasm32-unknown-unknown` (profilo `wasm-release`), scelta bundler dopo verifica reale (`wasm-bindgen-cli` alla versione del lockfile, oppure Trunk) | web-release |
-| P1.2 | `web/index.html`: loader, errore se WebGL2 assente, "clicca per giocare" (autoplay audio dei browser) | web-release |
-| P1.3 | Server HTTP locale + Playwright: screenshot, console senza errori fatali, input | web-release + qa-performance |
-| P1.4 | `scripts/build-web.ps1` e `.sh`, output `dist/` | web-release |
-| P1.5 | Dimensioni `.wasm` (< 25 MiB), MIME, cache busting, percorsi asset; `docs/RELEASE.md` | web-release |
+| ~~P1.1~~ **DONE** | Build `wasm32-unknown-unknown` (profilo `wasm-release`) con `wasm-bindgen-cli` 0.2.129 alla versione del lockfile, senza Trunk (D-061) | orchestrator |
+| ~~P1.2~~ **DONE** | `web/index.html`: "Clicca per giocare", avanzamento, errore se WebGL2 assente, errori a schermo | orchestrator |
+| ~~P1.3~~ **DONE** | Server HTTP locale + browser: menu, run, input da tastiera, sconfitta, risultati, salvataggio, `?autoplay`; console senza errori del gioco | orchestrator |
+| ~~P1.4~~ **DONE** | `scripts/build-web.ps1` e `.sh`, output `dist/` | orchestrator |
+| ~~P1.5~~ **DONE** | `.wasm` 22,5 MiB (5,9 gzip), `application/wasm`, cache busting con l'impronta del `.wasm`, asset e dati via HTTP; `docs/RELEASE.md` | orchestrator |
 | P1.6 | CI GitHub Actions (fmt, clippy, test, build nativa, artefatto web) — serve un remote GitHub: chiedere all'utente | web-release |
 
 ## P2 / P3
@@ -67,7 +67,8 @@ opzioni, browser, release candidate).
 | ~~U-TALENT~~ **DONE** | Talenti persistenti: profilo, esperienza, alberi, sei meccaniche, schermata nel menu (D-058) | orchestrator + game-designer + pixel-art-director | test di profilo, punti e meccaniche; sonda al massimo |
 | ~~U-TREE~~ **DONE** | Alberi grandi (3 rami, gradi, unione, finale) e schermata come il riferimento dell'utente (D-059) | game-designer + orchestrator + pixel-art-director | test di gradi, requisiti, effetti di Supporto, schermata; gioco vero |
 | ~~U-SMALL~~ **DONE** | Compagni più piccoli (28×24, ~2/3 del player), approvati dall'utente (D-060) | pixel-art-director + orchestrator | gate verde; gioco vero |
-| P1-SAVE | Profilo nel `localStorage` sul web (oggi solo in memoria) | web-release | con la P1 |
+| ~~P1-SAVE~~ **DONE** | Profilo nel `localStorage` sul web (D-061) | orchestrator | provato nel browser |
+| P1-FILL | Sul web la finestra raramente è un multiplo esatto di 480×270: il mondo resta al suo multiplo intero con bande nere (la UI usa tutta la finestra). Possibile: mostrare un po' più di mondo invece delle bande | orchestrator + game-designer | da proporre all'utente |
 | U-PLAY | Prova umana: forzieri e orde si sentono? Squadra senza Ondino, talenti al massimo | utente | — |
 
 ## Debito tecnico e idee registrate

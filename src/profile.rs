@@ -1,7 +1,8 @@
 //! Profilo del giocatore salvato sul dispositivo: esperienza e talenti imparati di ogni
 //! compagno, tra una run e l'altra. Niente account né rete: un file RON nella cartella dei dati
-//! dell'utente (sul web, per ora, solo in memoria: la P1 lo porterà nel `localStorage`). Le run
-//! con `--autoplay`, `--god` o `--time-scale` leggono il profilo ma non lo salvano.
+//! dell'utente, sul web lo stesso testo nel `localStorage` del browser (il percorso fa da
+//! chiave). Le run con `--autoplay`, `--god` o `--time-scale` leggono il profilo ma non lo
+//! salvano.
 //!
 //! A fine run (sconfitta o vittoria) ogni compagno in squadra guadagna esperienza (tempo in
 //! squadra, nemici finiti, vittoria: `progression.ron: companion_xp`); ogni livello dà un punto
@@ -59,7 +60,8 @@ pub struct Profile {
 /// Cartella dei dati dell'utente per il gioco, se il sistema ne ha una.
 pub fn default_path() -> Option<PathBuf> {
     if cfg!(target_arch = "wasm32") {
-        return None;
+        // chiave del localStorage (`web::store`)
+        return Some(PathBuf::from("PixelMonsterSurvivor").join(FILE_NAME));
     }
     let env = |name: &str| {
         std::env::var_os(name)
@@ -80,13 +82,13 @@ impl Profile {
     /// Legge il profilo da `path`; un file assente è un profilo nuovo, uno illeggibile viene
     /// messo da parte (`.bak`) invece di essere sovrascritto.
     pub fn open(path: PathBuf) -> Self {
-        let data = match std::fs::read_to_string(&path) {
-            Err(_) => ProfileData::default(),
-            Ok(text) => match ron::from_str::<ProfileData>(&text) {
+        let data = match read_store(&path) {
+            None => ProfileData::default(),
+            Some(text) => match ron::from_str::<ProfileData>(&text) {
                 Ok(data) => data,
                 Err(error) => {
                     warn!("profilo illeggibile ({error}): ne comincio uno nuovo");
-                    let _ = std::fs::rename(&path, path.with_extension("ron.bak"));
+                    set_aside(&path, &text);
                     ProfileData::default()
                 }
             },
@@ -108,11 +110,7 @@ impl Profile {
                 return;
             }
         };
-        let written = path
-            .parent()
-            .map_or(Ok(()), std::fs::create_dir_all)
-            .and_then(|_| std::fs::write(path, text));
-        if let Err(error) = written {
+        if let Err(error) = write_store(path, &text) {
             warn!("profilo non salvato in {}: {error}", path.display());
         }
     }
@@ -195,6 +193,46 @@ impl Profile {
     /// Libera tutti i punti del compagno.
     pub fn reset(&mut self, id: &str) {
         self.entry(id).learned.clear();
+    }
+}
+
+/// Testo del profilo: dal file, sul web dal `localStorage` (chiave = percorso).
+fn read_store(path: &std::path::Path) -> Option<String> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        crate::web::load(&path.to_string_lossy())
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::fs::read_to_string(path).ok()
+    }
+}
+
+fn write_store(path: &std::path::Path, text: &str) -> Result<(), String> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        crate::web::store(&path.to_string_lossy(), text)
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        path.parent()
+            .map_or(Ok(()), std::fs::create_dir_all)
+            .and_then(|_| std::fs::write(path, text))
+            .map_err(|e| e.to_string())
+    }
+}
+
+/// Un profilo rovinato non si perde: resta accanto come `.bak`.
+fn set_aside(path: &std::path::Path, text: &str) {
+    let backup = path.with_extension("ron.bak");
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = crate::web::store(&backup.to_string_lossy(), text);
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let _ = text;
+        let _ = std::fs::rename(path, backup);
     }
 }
 

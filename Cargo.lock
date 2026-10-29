@@ -4392,6 +4392,7 @@ dependencies = [
  "ron",
  "serde",
  "skrifa",
+ "web-sys",
 ]
 
 [[package]]

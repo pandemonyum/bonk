@@ -21,6 +21,11 @@ serde = { version = "1", features = ["derive"] }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 bevy = { version = "0.20.0", default-features = false, features = ["file_watcher"] }
 
+# Solo sul web: profilo nel localStorage e opzioni dall'indirizzo della pagina. Stessa versione
+# che Bevy compila già sul web (Cargo.lock): nessun crate nuovo.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = { version = "0.3.106", features = ["Window", "Storage", "Location"] }
+
 [dev-dependencies]
 # Solo per i test: legge il cmap dei font di assets/fonts/ (stessa versione che Bevy compila già
 # tramite parley e swash, nessun crate nuovo).
@@ -49,9 +54,10 @@ debug = false
 codegen-units = 1
 lto = "thin"
 
-# Profilo per la build web (P1): dimensione del .wasm prima della velocita'.
+# Profilo per la build web (P1): dimensione del .wasm prima della velocita'. Senza simboli: la
+# sezione dei nomi delle funzioni pesava 20 MiB su 54 (misurato nella prima build web).
 [profile.wasm-release]
 inherits = "release"
-opt-level = "s"
+opt-level = "z"
 lto = "fat"
-strip = "debuginfo"
+strip = "symbols"

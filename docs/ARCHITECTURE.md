@@ -39,7 +39,7 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `world::view` | geometria della vista 480×270 e centro camera, condivisa da camera e spawn director | no |
 | `world::obstacles` | rocce/alberi dal seed (pura), `ObstacleField` con griglia spaziale 32 px, entità `Obstacle` | no |
 | `gameplay::collision` | `Footprint`, `push_outside`, respinta dei corpi dagli ostacoli | no |
-| `world::render` | `TilemapChunk` per chunk | sì |
+| `world::render` | terreno in pezzi da 512 px cotti sulla CPU e mostrati come sprite attorno alla camera (D-061) | sì |
 | `presentation::camera` | canvas 480×270, camera mondo/schermo, scala intera, offset mezzo pixel, follow; `UiScale` dalla scala del canvas (D-045) | sì |
 | `presentation::sprites` | observer `On<Add<Enemy/Companion/...>>` → `Sprite`; interpolazione + snap al pixel + y-sort; tinte di colpo e rallentamento | sì |
 | `presentation::player_anim` | sprite del player dal foglio 4×8 (`TextureAtlas`): fermo e cammino in 4 direzioni (sinistra specchiata), colpito, caduta; stato in `PlayerAnimation`, logica pura testata | sì |

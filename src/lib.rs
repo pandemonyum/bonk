@@ -12,8 +12,10 @@ pub mod options;
 pub mod presentation;
 pub mod profile;
 pub mod rng;
+pub mod web;
 pub mod world;
 
+use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
 use bevy::state::app::StatesPlugin;
 use bevy::time::TimeUpdateStrategy;
@@ -39,12 +41,19 @@ pub fn client_app(options: LaunchOptions) -> App {
             .set(ImagePlugin::default_nearest())
             .set(AssetPlugin {
                 watch_for_changes_override: Some(options.watch_files()),
+                // nessun asset ha un file .meta: sul web ognuno costerebbe una richiesta in 404
+                meta_check: AssetMetaCheck::Never,
                 ..default()
             })
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "Pixel Monster Survivor".into(),
                     resolution,
+                    // sul web: il canvas della pagina, grande quanto il suo contenitore, e i
+                    // tasti (frecce, spazio, Tab) al gioco invece che alla pagina
+                    canvas: cfg!(target_arch = "wasm32").then(|| "#game".to_string()),
+                    fit_canvas_to_parent: cfg!(target_arch = "wasm32"),
+                    prevent_default_event_handling: true,
                     ..default()
                 }),
                 ..default()

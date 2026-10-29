@@ -13,6 +13,31 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche P1 "web giocabile" (2026-10-29)
+
+```text
+Task: P1.1-P1.5 + P1-SAVE - il gioco nel browser da un dist/ statico (D-061)
+Owner: orchestrator (ruolo web-release svolto direttamente: le modifiche toccavano anche src/)
+Stato: DONE tranne P1.6 (CI: serve un remote GitHub, da chiedere all'utente)
+File nuovi: web/index.html, scripts/build-web.ps1, scripts/build-web.sh, src/web.rs,
+  docs/RELEASE.md, .claude/launch.json; cambiati: Cargo.toml (web-sys solo wasm, profilo
+  wasm-release), src/lib.rs (canvas, meta), src/options.rs, src/profile.rs, src/world/render.rs
+Comandi eseguiti (risultato):
+  cargo install wasm-bindgen-cli --version 0.2.129 --locked   OK
+  ./scripts/build-web.ps1   OK: wasm grezzo 25,2 MiB, in dist 22,5 MiB, gzip 5,9 MiB; dist 23,3 MiB
+  ./scripts/check.ps1       OK (215 unit + 101 integrazione, 193 PNG)
+  browser (Chromium del pannello, WebGL2 su ANGLE/D3D11): menu, run con tastiera, draft,
+    sconfitta e risultati, profilo nel localStorage, ?autoplay&seed=3, versione nuova senza cache
+Problemi trovati e risolti: 404 sui .meta degli asset; terreno nero (TilemapChunk e
+  Rgba16Uint su WebGL2: terreno cotto in sprite, uguale al pixel sul desktop); .wasm da 54 MiB
+  (nomi delle funzioni); script PowerShell 5.1 (variabile "$want:", stderr di cargo con Stop,
+  pagina letta in ANSI)
+Rischi noti: un avviso WebGL "texSubImage2D: invalid format" all'avvio di Bevy, senza effetti
+  visibili; bande nere quando la finestra non è un multiplo di 480×270 (P1-FILL); wasm-opt non
+  installato; provato su un solo browser
+Prossimo task: P1.6 (CI) quando c'è un remote; pubblicazione solo con il via dell'utente
+```
+
 ## Report tranche "riepilogo, squadra per livelli, orde, forzieri, talenti" (2026-10-28)
 
 ```text

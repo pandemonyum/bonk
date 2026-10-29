@@ -73,7 +73,20 @@ impl LaunchOptions {
     }
 
     /// Legge gli argomenti del processo; in caso di errore stampa l'uso ed esce.
+    /// Le opzioni della riga di comando (sul web: dell'indirizzo della pagina, `web::query_args`).
     pub fn from_env() -> Self {
+        if cfg!(target_arch = "wasm32") {
+            let args = crate::web::query_args(&crate::web::page_query());
+            return match Self::parse(args) {
+                Ok(Some(options)) => options,
+                // nel browser non si esce: opzioni sbagliate, si gioca con quelle di default
+                Ok(None) => Self::default(),
+                Err(message) => {
+                    bevy::log::warn!("opzioni dell'indirizzo ignorate: {message}");
+                    Self::default()
+                }
+            };
+        }
         match Self::parse(std::env::args().skip(1)) {
             Ok(Some(options)) => options,
             Ok(None) => {
