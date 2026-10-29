@@ -6,6 +6,7 @@
 use bevy::prelude::*;
 
 use super::boss_pointer::{edge_point, inner_rect};
+use super::camera::{VisibleArea, visible_rect};
 use super::fonts;
 use super::icons::{UI_PX_PER_TEXEL, ui_icon};
 use crate::app::{AppState, RunPhase};
@@ -13,7 +14,6 @@ use crate::data::GameConfig;
 use crate::gameplay::kinematics::Position;
 use crate::gameplay::player::Player;
 use crate::gameplay::treasure::{Chest, Treasury};
-use crate::world::view::view_rect;
 
 const GOLD: Color = Color::srgb(0.95, 0.78, 0.3);
 const GREY: Color = Color::srgb(0.62, 0.62, 0.68);
@@ -126,6 +126,7 @@ fn ui_at(spot: Vec2) -> (Val, Val) {
 #[allow(clippy::type_complexity)]
 fn point_at_chest(
     config: Res<GameConfig>,
+    area: Res<VisibleArea>,
     treasury: Res<Treasury>,
     player: Query<&Position, With<Player>>,
     chests: Query<&Position, With<Chest>>,
@@ -138,7 +139,7 @@ fn point_at_chest(
     let Ok(me) = player.single() else {
         return;
     };
-    let view = view_rect(me.0);
+    let view = visible_rect(me.0, &area);
     let on_screen = chests
         .iter()
         .any(|c| view.contains(c.0 + Vec2::Y * (LABEL_ABOVE / 2.0)));
@@ -193,6 +194,7 @@ fn point_at_chest(
 fn label_chests(
     mut commands: Commands,
     config: Res<GameConfig>,
+    area: Res<VisibleArea>,
     treasury: Res<Treasury>,
     player: Query<&Position, With<Player>>,
     chests: Query<&Position, With<Chest>>,
@@ -202,7 +204,7 @@ fn label_chests(
     let Ok(me) = player.single() else {
         return;
     };
-    let view = view_rect(me.0);
+    let view = visible_rect(me.0, &area);
     let visible: Vec<Vec2> = chests
         .iter()
         .map(|c| c.0)

@@ -13,7 +13,20 @@ if ($have -ne $want) {
     throw "wasm-bindgen $have, il Cargo.lock vuole ${want}: cargo install wasm-bindgen-cli --version ${want} --locked"
 }
 
-Write-Host "==> cargo build (wasm-release)"
+# versione di asset e dati (contenuto dei file): il gioco li cerca in cartelle con questo nome,
+# così il browser non usa dalla cache quelli di una build vecchia (src/web.rs)
+$sha = [Security.Cryptography.SHA256]::Create()
+$files = Get-ChildItem assets, game-data -Recurse -File | Sort-Object FullName
+$buffer = New-Object IO.MemoryStream
+foreach ($f in $files) {
+    $rel = [Text.Encoding]::UTF8.GetBytes(($f.FullName.Substring((Get-Location).Path.Length) -replace '\\', '/'))
+    $buffer.Write($rel, 0, $rel.Length)
+    $bytes = [IO.File]::ReadAllBytes($f.FullName)
+    $buffer.Write($bytes, 0, $bytes.Length)
+}
+$version = ([BitConverter]::ToString($sha.ComputeHash($buffer.ToArray())) -replace '-', '').Substring(0, 10).ToLower()
+$env:PMS_WEB_VERSION = $version
+Write-Host "==> cargo build (wasm-release, asset e dati $version)"
 cargo build --profile wasm-release --target wasm32-unknown-unknown --bin pixel-monster-survivor
 if ($LASTEXITCODE -ne 0) { throw "build wasm fallita" }
 $raw = "target/wasm32-unknown-unknown/wasm-release/pixel-monster-survivor.wasm"
@@ -42,8 +55,8 @@ $hash = (Get-FileHash $wasm -Algorithm SHA256).Hash.Substring(0, 12).ToLower()
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 $page = [IO.File]::ReadAllText((Resolve-Path web/index.html), $utf8).Replace("__VERSION__", $hash)
 [IO.File]::WriteAllText((Join-Path (Resolve-Path dist) "index.html"), $page, $utf8)
-Copy-Item assets dist/assets -Recurse -ErrorAction Stop
-Copy-Item game-data dist/game-data -Recurse -ErrorAction Stop
+Copy-Item assets "dist/assets-$version" -Recurse -ErrorAction Stop
+Copy-Item game-data "dist/game-data-$version" -Recurse -ErrorAction Stop
 
 # dimensioni: grezza, dopo bindgen/opt, compressa gzip (quello che il browser scarica con un
 # server che comprime)

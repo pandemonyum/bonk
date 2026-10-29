@@ -1,5 +1,15 @@
 # QA REPORT
 
+## 2026-10-29 — Più mappa invece delle bande nere (D-062)
+
+| Controllo | Esito | Prova |
+|---|---|---|
+| Finestre | 960×540 intera; 1280×720 tutta piena (640×360 di mondo); 1366×768 bande sottili oltre il limite | `docs/evidence/piu-mappa-1280x720.png` |
+| Browser | 1280×720 piena, nessun errore; asset e dati in cartelle con la versione (niente cache vecchia) | `docs/evidence/web-piu-mappa.jpg` |
+| Spawn | mai nella vista più grande; angoli e orde con la fascia di riserva (orda intera nel test) | test di `spawning` e `tests/sim/hordes.rs` |
+| Bilanciamento | 27/32 (84%), danni medi 173: come prima | GDD, D-062 |
+| Gate | 216 unit + 101 integrazione, 193 PNG | `./scripts/check.ps1` |
+
 ## 2026-10-29 — P1, il gioco nel browser (D-061)
 
 | Controllo | Esito | Prova |

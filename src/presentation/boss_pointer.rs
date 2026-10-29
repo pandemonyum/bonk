@@ -4,12 +4,12 @@
 
 use bevy::prelude::*;
 
+use super::camera::{VisibleArea, visible_rect};
 use super::icons::{UI_PX_PER_TEXEL, ui_icon};
 use crate::app::AppState;
 use crate::gameplay::enemies::Boss;
 use crate::gameplay::kinematics::Position;
 use crate::gameplay::player::Player;
-use crate::world::view::view_rect;
 
 /// Lato del riquadro in texel.
 const SIDE_TEXELS: f32 = 14.0;
@@ -101,6 +101,7 @@ fn spawn_pointer(mut commands: Commands, assets: Res<AssetServer>) {
 }
 
 fn point_at_boss(
+    area: Res<VisibleArea>,
     player: Query<&Position, With<Player>>,
     boss: Query<&Position, With<Boss>>,
     pointer: Single<(&mut Node, &mut Visibility), With<BossPointer>>,
@@ -108,7 +109,7 @@ fn point_at_boss(
     let (mut node, mut visibility) = pointer.into_inner();
     let spot = match (player.single(), boss.single()) {
         (Ok(me), Ok(boss)) => {
-            let view = view_rect(me.0);
+            let view = visible_rect(me.0, &area);
             let (low, high) = inner_rect(view.half_size());
             edge_point(boss.0 - view.center(), view.half_size(), low, high)
         }

@@ -1,8 +1,12 @@
-//! Camera pixel-perfect: il mondo è disegnato su una texture 480×270 (`WorldCamera`), poi la
-//! texture è mostrata a schermo con scala intera e filtro nearest (`ScreenCamera`), con bande
-//! nere quando la finestra non è un multiplo esatto. La UI usa la `ScreenCamera`.
+//! Camera pixel-perfect: il mondo è disegnato su una texture a bassa risoluzione
+//! (`WorldCamera`), poi la texture è mostrata a schermo con scala intera e filtro nearest
+//! (`ScreenCamera`). La scala si sceglie perché la vista minima 480×270 ci stia; se la finestra
+//! non è un multiplo esatto la texture cresce fino a coprirla, fino a 640×360 pixel di mondo
+//! (D-062): più mappa invece delle bande nere, che restano solo oltre quel limite. La UI usa la
+//! `ScreenCamera`.
 
 use bevy::camera::RenderTarget;
+use bevy::camera::Viewport;
 use bevy::camera::visibility::RenderLayers;
 use bevy::prelude::*;
 use bevy::render::render_resource::TextureFormat;
@@ -11,7 +15,10 @@ use bevy::window::PrimaryWindow;
 use super::icons::ui_scale;
 use super::sprites::SyncTransforms;
 use crate::gameplay::player::Player;
-use crate::world::view::{VIEW_HEIGHT as VIRTUAL_HEIGHT, VIEW_WIDTH as VIRTUAL_WIDTH, view_center};
+use crate::world::view::{
+    MAX_VIEW_HEIGHT, MAX_VIEW_WIDTH, VIEW_HEIGHT as VIRTUAL_HEIGHT, VIEW_WIDTH as VIRTUAL_WIDTH,
+    view_center,
+};
 
 /// Il mondo (layer 0, default di tutte le entità) va sulla texture a bassa risoluzione.
 const WORLD_LAYER: RenderLayers = RenderLayers::layer(0);
@@ -31,11 +38,47 @@ pub struct ScreenCamera;
 #[derive(Component)]
 struct Canvas;
 
+/// Metà della parte di mondo davvero a schermo (pixel di mondo), per gli indicatori ai bordi.
+#[derive(Resource, Debug, Clone, Copy, PartialEq)]
+pub struct VisibleArea {
+    pub half: Vec2,
+}
+
+impl Default for VisibleArea {
+    fn default() -> Self {
+        Self {
+            half: Vec2::new(VIRTUAL_WIDTH as f32, VIRTUAL_HEIGHT as f32) / 2.0,
+        }
+    }
+}
+
+/// Il rettangolo di mondo a schermo con il player in `player` (stesso centro della camera).
+pub fn visible_rect(player: Vec2, area: &VisibleArea) -> Rect {
+    Rect::from_center_half_size(view_center(player), area.half)
+}
+
+/// Misura della texture del mondo per una finestra di `physical` pixel a scala `scale`: quanto
+/// basta a coprirla (per eccesso, pari, così il centro resta sul pixel), tra la vista minima e
+/// la più grande. In riduzione (finestre minuscole) la vista minima.
+pub fn canvas_texels(physical: UVec2, scale: f32) -> UVec2 {
+    let min = UVec2::new(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+    if scale < 1.0 {
+        return min;
+    }
+    let cover = |pixels: u32| {
+        let texels = (pixels as f32 / scale).ceil() as u32;
+        texels + texels % 2
+    };
+    UVec2::new(cover(physical.x), cover(physical.y))
+        .clamp(min, UVec2::new(MAX_VIEW_WIDTH, MAX_VIEW_HEIGHT))
+}
+
 pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ClearColor(Color::BLACK))
+            .init_resource::<VisibleArea>()
             .add_systems(Startup, spawn_cameras)
             .add_systems(
                 PostUpdate,
@@ -73,12 +116,17 @@ pub fn canvas_offset(physical: UVec2, scale: f32) -> Vec2 {
 }
 
 fn spawn_cameras(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
-    let canvas = Image::new_target_texture(
-        VIRTUAL_WIDTH,
-        VIRTUAL_HEIGHT,
-        TextureFormat::Bgra8UnormSrgb,
+    // La texture nasce alla misura più grande e non cambia mai: la camera del mondo disegna solo
+    // nell'angolo che serve (viewport) e lo sprite mostra solo quello (`fit_canvas_to_window`).
+    // RGBA e senza pixel iniziali: sul web (WebGL2) il caricamento degli zeri in BGRA veniva
+    // rifiutato ("texSubImage2D: invalid format") e ridimensionare la texture bloccava il disegno.
+    let mut canvas = Image::new_target_texture(
+        MAX_VIEW_WIDTH,
+        MAX_VIEW_HEIGHT,
+        TextureFormat::Rgba8UnormSrgb,
         None,
     );
+    canvas.data = None;
     let canvas = images.add(canvas);
 
     commands.spawn((
@@ -123,9 +171,12 @@ fn follow_player(
 fn fit_canvas_to_window(
     window: Single<&Window, With<PrimaryWindow>>,
     mut projection: Single<&mut Projection, With<ScreenCamera>>,
-    mut canvas: Single<&mut Transform, With<Canvas>>,
+    canvas: Single<(&mut Transform, &mut Sprite), With<Canvas>>,
+    mut world: Single<&mut Camera, With<WorldCamera>>,
     mut interface: ResMut<UiScale>,
+    mut visible: ResMut<VisibleArea>,
 ) {
+    let (mut canvas, mut sprite) = canvas.into_inner();
     let Projection::Orthographic(ortho) = &mut **projection else {
         return;
     };
@@ -143,6 +194,25 @@ fn fit_canvas_to_window(
     let wanted = ui_scale(scale, window.scale_factor());
     if (interface.0 - wanted).abs() > f32::EPSILON {
         interface.0 = wanted;
+    }
+    // la texture copre la finestra (fino alla vista più grande): più mappa, niente bande
+    let texels = canvas_texels(physical, scale);
+    let half = texels.as_vec2() / 2.0;
+    if visible.half != half {
+        visible.half = half;
+    }
+    // solo l'angolo della texture che serve: la camera ci disegna, lo sprite lo mostra
+    let viewport = Viewport {
+        physical_position: UVec2::ZERO,
+        physical_size: texels,
+        ..default()
+    };
+    if world.viewport.as_ref().map(|v| v.physical_size) != Some(texels) {
+        world.viewport = Some(viewport);
+    }
+    let shown = Some(Rect::new(0.0, 0.0, texels.x as f32, texels.y as f32));
+    if sprite.rect != shown {
+        sprite.rect = shown;
     }
     let offset = canvas_offset(physical, scale);
     if canvas.translation.truncate() != offset {
@@ -177,6 +247,43 @@ mod tests {
             Vec2::splat(0.5 / 3.0)
         );
         assert_eq!(canvas_offset(UVec2::new(241, 135), 0.5), Vec2::ZERO);
+    }
+
+    #[test]
+    fn the_canvas_grows_to_cover_the_window_up_to_the_largest_view() {
+        // multipli esatti: la vista minima
+        assert_eq!(
+            canvas_texels(UVec2::new(960, 540), 2.0),
+            UVec2::new(480, 270)
+        );
+        assert_eq!(
+            canvas_texels(UVec2::new(1920, 1080), 4.0),
+            UVec2::new(480, 270)
+        );
+        // 1280×720 a ×2: tutta la finestra, 640×360
+        assert_eq!(
+            canvas_texels(UVec2::new(1280, 720), 2.0),
+            UVec2::new(640, 360)
+        );
+        // 1366×768 a ×2: oltre il limite, restano due bande sottili
+        assert_eq!(
+            canvas_texels(UVec2::new(1366, 768), 2.0),
+            UVec2::new(640, 360)
+        );
+        // 1536×864 a ×3 e dispari per eccesso: pari, il centro resta sul pixel
+        assert_eq!(
+            canvas_texels(UVec2::new(1536, 864), 3.0),
+            UVec2::new(512, 288)
+        );
+        assert_eq!(
+            canvas_texels(UVec2::new(1601, 901), 3.0),
+            UVec2::new(534, 302)
+        );
+        // finestre minuscole: la vista minima ridotta
+        assert_eq!(
+            canvas_texels(UVec2::new(240, 135), 0.5),
+            UVec2::new(480, 270)
+        );
     }
 
     #[test]

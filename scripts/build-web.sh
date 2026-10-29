@@ -12,7 +12,11 @@ if [ "$have" != "$want" ]; then
   exit 1
 fi
 
-echo "==> cargo build (wasm-release)"
+# versione di asset e dati (contenuto dei file): il gioco li cerca in cartelle con questo nome,
+# così il browser non usa dalla cache quelli di una build vecchia (src/web.rs)
+version=$(find assets game-data -type f | LC_ALL=C sort | while read -r f; do printf '%s' "/$f"; cat "$f"; done | sha256sum | cut -c1-10)
+export PMS_WEB_VERSION="$version"
+echo "==> cargo build (wasm-release, asset e dati $version)"
 cargo build --profile wasm-release --target wasm32-unknown-unknown --bin pixel-monster-survivor
 raw=target/wasm32-unknown-unknown/wasm-release/pixel-monster-survivor.wasm
 
@@ -36,8 +40,8 @@ fi
 echo "==> pagina, asset e dati"
 hash=$(sha256sum "$wasm" | cut -c1-12)
 sed "s/__VERSION__/$hash/g" web/index.html > dist/index.html
-cp -r assets dist/assets
-cp -r game-data dist/game-data
+cp -r assets "dist/assets-$version"
+cp -r game-data "dist/game-data-$version"
 
 mib() { awk -v b="$1" 'BEGIN { printf "%.1f MiB", b / 1048576 }'; }
 echo "wasm: grezzo $(mib "$(stat -c%s "$raw")"), in dist $(mib "$(stat -c%s "$wasm")"), gzip $(mib "$(gzip -9c "$wasm" | wc -c)")"

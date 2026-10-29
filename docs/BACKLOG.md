@@ -68,7 +68,7 @@ opzioni, browser, release candidate).
 | ~~U-TREE~~ **DONE** | Alberi grandi (3 rami, gradi, unione, finale) e schermata come il riferimento dell'utente (D-059) | game-designer + orchestrator + pixel-art-director | test di gradi, requisiti, effetti di Supporto, schermata; gioco vero |
 | ~~U-SMALL~~ **DONE** | Compagni più piccoli (28×24, ~2/3 del player), approvati dall'utente (D-060) | pixel-art-director + orchestrator | gate verde; gioco vero |
 | ~~P1-SAVE~~ **DONE** | Profilo nel `localStorage` sul web (D-061) | orchestrator | provato nel browser |
-| P1-FILL | Sul web la finestra raramente è un multiplo esatto di 480×270: il mondo resta al suo multiplo intero con bande nere (la UI usa tutta la finestra). Possibile: mostrare un po' più di mondo invece delle bande | orchestrator + game-designer | da proporre all'utente |
+| ~~P1-FILL~~ **DONE** | Più mappa invece delle bande nere, fino a 640×360 pixel di mondo (D-062) | orchestrator | finestre 960×540, 1280×720, 1366×768 e browser; sonda 27/32 come prima |
 | U-PLAY | Prova umana: forzieri e orde si sentono? Squadra senza Ondino, talenti al massimo | utente | — |
 
 ## Debito tecnico e idee registrate

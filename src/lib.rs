@@ -40,6 +40,8 @@ pub fn client_app(options: LaunchOptions) -> App {
         DefaultPlugins
             .set(ImagePlugin::default_nearest())
             .set(AssetPlugin {
+                // sul web `assets-<versione>`: niente asset vecchi dalla cache del browser
+                file_path: web::versioned_dir("assets"),
                 watch_for_changes_override: Some(options.watch_files()),
                 // nessun asset ha un file .meta: sul web ognuno costerebbe una richiesta in 404
                 meta_check: AssetMetaCheck::Never,

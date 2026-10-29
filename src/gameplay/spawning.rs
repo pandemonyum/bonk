@@ -29,6 +29,8 @@ const SPAWN_STREAM: u64 = 1;
 pub const SPAWN_VIEW_MARGIN: f32 = 32.0;
 /// Tentativi per trovare un punto valido; se falliscono tutti si riprova al passo successivo.
 const SPAWN_ATTEMPTS: u32 = 16;
+/// Fascia di riserva oltre l'anello, quando nell'anello non c'è un punto fuori vista.
+pub(super) const FALLBACK_BAND: f32 = 160.0;
 
 #[derive(Resource, Debug, Clone)]
 pub struct SpawnDirector {
@@ -78,7 +80,10 @@ pub fn is_valid_spawn(
     !in_view && arena.contains(at) && !in_obstacle
 }
 
-/// Un punto di spawn valido, se lo trova in `SPAWN_ATTEMPTS` tentativi.
+/// Un punto di spawn valido, se lo trova in `SPAWN_ATTEMPTS` tentativi nell'anello o, se no,
+/// nella fascia appena fuori (`FALLBACK_BAND` px). Negli angoli dell'arena la camera si ferma
+/// al bordo e la vista copre gran parte dell'anello: senza la fascia lì nascerebbero metà dei
+/// nemici e l'angolo diventerebbe un riparo.
 pub fn find_spawn_point(
     rng: &mut Pcg32,
     player: Vec2,
@@ -87,9 +92,12 @@ pub fn find_spawn_point(
     field: Option<&ObstacleField>,
     body_radius: f32,
 ) -> Option<Vec2> {
-    (0..SPAWN_ATTEMPTS)
-        .map(|_| ring_point(rng, player, ring.0, ring.1))
-        .find(|at| is_valid_spawn(*at, player, arena, field, body_radius))
+    let outer = (ring.1, ring.1 + FALLBACK_BAND);
+    [ring, outer].into_iter().find_map(|(r_min, r_max)| {
+        (0..SPAWN_ATTEMPTS)
+            .map(|_| ring_point(rng, player, r_min, r_max))
+            .find(|at| is_valid_spawn(*at, player, arena, field, body_radius))
+    })
 }
 
 pub struct SpawningPlugin;

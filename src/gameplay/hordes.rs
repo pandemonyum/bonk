@@ -11,7 +11,7 @@ use super::enemies::{Enemy, Scale, spawn_enemy};
 use super::kinematics::Position;
 use super::player::Player;
 use super::run::RunClock;
-use super::spawning::{SpawnDirector, is_valid_spawn, run_director};
+use super::spawning::{FALLBACK_BAND, SpawnDirector, is_valid_spawn, run_director};
 use crate::app::{AppState, RunSeed};
 use crate::data::GameConfig;
 use crate::data::schema::HordePlan;
@@ -155,17 +155,22 @@ fn run_hordes(
         };
         let wanted = due(group.count, current.elapsed, plan.duration_s);
         while current.born[g] < wanted && alive < plan.max_alive as usize {
-            let found = (0..ATTEMPTS)
-                .map(|_| circle_point(rng, player.0, ring, current.placed, total))
-                .find(|at| {
-                    is_valid_spawn(
-                        *at,
-                        player.0,
-                        &arena,
-                        field.as_deref(),
-                        data.footprint_radius,
-                    )
-                });
+            // come gli spawn normali: se l'anello è in vista (ai lati, negli angoli), la fascia
+            // appena fuori
+            let outer = (ring.1, ring.1 + FALLBACK_BAND);
+            let found = [ring, outer].into_iter().find_map(|band| {
+                (0..ATTEMPTS)
+                    .map(|_| circle_point(rng, player.0, band, current.placed, total))
+                    .find(|at| {
+                        is_valid_spawn(
+                            *at,
+                            player.0,
+                            &arena,
+                            field.as_deref(),
+                            data.footprint_radius,
+                        )
+                    })
+            });
             if let Some(at) = found {
                 spawn_enemy(&mut commands, data, at, director.spawned, scale);
                 director.spawned += 1;

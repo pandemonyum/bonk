@@ -13,7 +13,7 @@ use super::{DATA_FILES, DataSources, DataStatus, GameConfig};
 use crate::app::AppState;
 
 /// Sorgente degli asset per i dati: `data://player.ron` → `game-data/player.ron`
-/// (sul disco accanto ad `assets/`, sul web nella cartella `game-data/` del sito).
+/// (sul disco accanto ad `assets/`, sul web in `game-data-<versione>/` del sito, `web::versioned_dir`).
 pub const DATA_SOURCE: &str = "data";
 const DATA_DIR: &str = "game-data";
 
@@ -49,7 +49,7 @@ impl AssetLoader for DataTextLoader {
 
 /// Da chiamare prima di `DefaultPlugins`: l'AssetServer legge le sorgenti alla creazione.
 pub fn register_data_source(app: &mut App) {
-    register_data_source_at(app, DATA_DIR);
+    register_data_source_at(app, &crate::web::versioned_dir(DATA_DIR));
 }
 
 /// Come [`register_data_source`] ma da una cartella qualsiasi (test).

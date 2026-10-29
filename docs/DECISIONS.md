@@ -498,6 +498,22 @@ sull'anteprima. Nei dati: `frame` 28×24, partenza della palla di fuoco e del fu
 piedi (erano 16), compagni a 19–22 px dietro al player (erano 26–30). I ritratti del menu (40×36)
 restano quelli grandi.
 
+## D-062 Più mappa invece delle bande nere *(utente)*
+Con una finestra che non è un multiplo esatto di 480×270 il canvas resta alla stessa scala
+intera ma cresce fino a coprirla, fino a 640×360 pixel di mondo (1280×720 è tutta piena;
+oltre il limite restano bande sottili). Per la simulazione "in vista" è sempre il rettangolo
+più grande, con ogni finestra: spawn, orde e forzieri non nascono mai sotto gli occhi e una
+seed dà la stessa run su ogni schermo; la camera si ferma ai bordi dell'arena con la stessa
+misura. Gli indicatori al bordo (boss, forzieri) usano la parte davvero a schermo. L'anello di
+spawn passa da (290, 360) a (260, 400) (con (300, 420) i nemici arrivavano tardi e la sonda
+vinceva il 94%), più una fascia di riserva di 160 px oltre l'anello, per gli spawn e per le
+orde: negli angoli e ai lati la vista grande copriva parte dei punti (l'angolo diventava un
+riparo, le orde nascevano all'87%). Sonda dopo: 27/32 (84%) e danni medi 173, come prima (27/32,
+177). Sul web asset e dati stanno
+in cartelle con la versione del loro contenuto (`assets-<v>`, `game-data-<v>`, scelta dagli
+script e passata al gioco in `PMS_WEB_VERSION`): nella prova il browser aveva preso dalla cache
+un `stages.ron` vecchio e il gioco si fermava sull'errore dei dati.
+
 ## D-061 Build web: wasm-bindgen, pagina propria, terreno cotto in sprite
 P1 chiesta dall'utente. Niente Trunk: `wasm-bindgen-cli` alla versione del `Cargo.lock`
 (0.2.129, gli script si fermano se non coincide) e una pagina scritta a mano

@@ -33,7 +33,10 @@ pagina carica da sola.
 4. `web/index.html` in `dist/index.html` con `__VERSION__` = le prime 12 cifre dello SHA-256 del
    `.wasm` (cache busting di `game.js` e `game_bg.wasm`: una build nuova non viene presa dalla
    cache del browser);
-5. copia di `assets/` e `game-data/` (il gioco li legge via HTTP dalle stesse cartelle);
+5. copia di `assets/` e `game-data/` in `assets-<v>/` e `game-data-<v>/`, con `<v>` le prime
+   10 cifre dello SHA-256 del loro contenuto: lo script la passa al gioco alla compilazione
+   (`PMS_WEB_VERSION`), così il browser non usa dalla cache asset o dati di una build vecchia
+   (D-062);
 6. dimensioni (`.wasm` grezzo, in `dist`, gzip) e controllo che nessun file superi 25 MiB.
 
 `dist/` è generata e ignorata da git; lo script la ricrea da zero.

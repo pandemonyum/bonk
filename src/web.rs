@@ -2,6 +2,18 @@
 //! (`index.html?autoplay&seed=3` come `--autoplay --seed 3`) e il profilo si salva nel
 //! `localStorage` del browser invece che su file.
 
+/// Cartella di asset o dati della build: sul web con la versione nel nome (`assets-<versione>`,
+/// messa da `scripts/build-web.*` in `PMS_WEB_VERSION` alla compilazione), così il browser non
+/// usa dalla cache quelli di una build vecchia; sul desktop la cartella così com'è.
+pub fn versioned_dir(base: &str) -> String {
+    match option_env!("PMS_WEB_VERSION") {
+        Some(version) if cfg!(target_arch = "wasm32") && !version.is_empty() => {
+            format!("{base}-{version}")
+        }
+        _ => base.to_string(),
+    }
+}
+
 /// Le opzioni dell'indirizzo come argomenti della riga di comando: `?autoplay&seed=3&time-scale=2`
 /// → `--autoplay --seed 3 --time-scale 2`. Nomi e valori come in `options::USAGE`.
 pub fn query_args(query: &str) -> Vec<String> {

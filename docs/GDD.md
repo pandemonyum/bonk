@@ -40,6 +40,7 @@ Testi in Tiny5 (numeri, etichette) e Pixelify Sans (titoli, frasi), D-044.
 |---|---|---|
 | Evocatore | 75 px/s, 100 HP, 0,75 s di invulnerabilità dopo un colpo | attraversa lo schermo in ~6 s; il tempo di uscire dalla calca (P0.6: da 0,6) |
 | Arena | 4096×4096 px, bordo di siepe | ~55 s per attraversarla: spazio per fuggire senza perdersi |
+| Vista | almeno 480×270 pixel di mondo, fino a 640×360 se la finestra non è un multiplo esatto; nemici e forzieri nascono sempre fuori dalla vista più grande; anello di spawn 260–400 px, poi 160 px di riserva (D-062) | la stessa run su ogni schermo, niente nemici che compaiono sotto gli occhi |
 | Simulazione | 60 Hz fissi | riproducibile con seed |
 | Fiammetto (fuoco) | proiettile: 12 danni, 1 colpo ogni 1,1 s, gittata 150 px, 220 px/s per 0,85 s | valori dell'handoff §7: il bersaglio singolo più lontano |
 | Ondino (acqua) | onda: 8 danni a tutti entro 56 px ogni 2 s, fronte a 160 px/s, nemici al 55% di velocità per 1,5 s | difesa della calca: meno danno, tanti bersagli, rallenta chi ti stringe |

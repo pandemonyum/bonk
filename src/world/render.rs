@@ -1,6 +1,6 @@
 //! Rendering dell'arena (solo client): il terreno in pezzi da 32×32 tile (512 px), "cotti" sulla
 //! CPU in un'immagine normale dal tileset e mostrati come sprite, uno per pezzo e solo attorno
-//! alla camera (2–4 a schermo, gli altri tolti). Uguale su desktop e web: il `TilemapChunk` di
+//! alla camera (fino a 6 pronti, gli altri tolti). Uguale su desktop e web: il `TilemapChunk` di
 //! Bevy legge gli indici da una texture `Rgba16Uint` che WebGL2 rifiuta ("texSubImage2D:
 //! invalid format") e nel browser l'erba non si vedeva.
 
@@ -172,9 +172,9 @@ mod tests {
             piece_center(UVec2::splat(PIECES - 1)),
             Vec2::splat(ARENA_HALF_EXTENT - side / 2.0)
         );
-        // al centro dell'arena la vista tocca i quattro pezzi attorno all'incrocio
+        // al centro dell'arena la vista più grande (640×360 più il margine) tocca 3×2 pezzi
         let near = pieces_near(view_rect(Vec2::ZERO));
-        assert_eq!(near.len(), 4, "{near:?}");
+        assert_eq!(near.len(), 6, "{near:?}");
         // in un angolo, solo pezzi dentro l'arena
         let corner = pieces_near(view_rect(Vec2::splat(-ARENA_HALF_EXTENT)));
         assert!(corner.iter().all(|p| p.x < PIECES && p.y < PIECES));

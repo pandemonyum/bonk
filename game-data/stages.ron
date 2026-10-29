@@ -7,9 +7,11 @@
             display_name: "Prateria dei Germogli",
             starting_companion: "ember",
             spawns: (
-                // anello (min, max) in px attorno al player; i punti in vista vengono scartati
-                // (mezza diagonale dello schermo ~275 px)
-                ring: (290.0, 360.0),
+                // anello (min, max) in px attorno al player; i punti in vista vengono scartati.
+                // La vista che può essere a schermo arriva a 640×360 (mezza diagonale ~367 px,
+                // D-062): era (290, 360) quando lo schermo era sempre 480×270; con (300, 420) i
+                // nemici arrivavano più tardi e la sonda vinceva il 94%
+                ring: (260.0, 400.0),
                 // obiettivo di prestazioni P0: 200 nemici a 60 FPS
                 max_alive: 220,
                 // gelatine all'avvio, per non partire da un campo vuoto
