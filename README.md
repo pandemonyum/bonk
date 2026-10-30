@@ -1,5 +1,7 @@
 # Companion Survivors
 
+[![CI](https://github.com/pandemonyum/bonk/actions/workflows/ci.yml/badge.svg)](https://github.com/pandemonyum/bonk/actions/workflows/ci.yml)
+
 (Fino a D-063 "Pixel Monster Survivor", che resta il nome del crate e dell'eseguibile.)
 
 Survivor roguelite top-down 2D in pixel art: un evocatore e i suoi compagni mostriciattolo

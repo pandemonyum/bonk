@@ -1,0 +1,92 @@
+# CI (P1.6, D-064): a ogni push su main, a ogni pull request e a mano. Due job su Linux:
+# - gate: lo stesso di scripts/check.sh (fmt, clippy senza warning, test, validazione asset);
+# - web: scripts/build-web.sh, con dist/ come artefatto da scaricare (niente pubblicazione).
+# Toolchain dalla rust-toolchain.toml, wasm-bindgen alla versione del Cargo.lock.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# un push nuovo sullo stesso ramo ferma la run vecchia
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  gate:
+    name: Gate (fmt, clippy, test, asset)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      # gilrs (gamepad) vuole libudev, winit le librerie di finestra e tastiera
+      - name: Librerie di sistema per Bevy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+
+      - name: Rust dalla rust-toolchain.toml
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal \
+            --component rustfmt,clippy --target wasm32-unknown-unknown
+          rustc --version
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Pillow per la validazione degli asset
+        run: python -m pip install --disable-pip-version-check pillow
+
+      - name: Gate
+        run: sh scripts/check.sh
+
+  web:
+    name: Build web (dist/)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Rust dalla rust-toolchain.toml
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal --target wasm32-unknown-unknown
+          rustc --version
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Versione di wasm-bindgen nel Cargo.lock
+        id: bindgen
+        run: |
+          version=$(grep -A1 '^name = "wasm-bindgen"$' Cargo.lock | sed -n 's/^version = "\(.*\)"/\1/p')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen@${{ steps.bindgen.outputs.version }}
+
+      - name: Build web
+        run: bash scripts/build-web.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: companion-survivors-web
+          path: dist/
+          retention-days: 14
+          if-no-files-found: error

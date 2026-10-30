@@ -75,8 +75,24 @@ browser e al sito (porta compresa: `localhost:8080` e `localhost:8081` sono prof
 
 Nessuna finora: un hosting statico qualsiasi basta (itch.io, GitHub Pages, Cloudflare Pages,
 Netlify), con `.wasm` servito come `application/wasm` e possibilmente compresso (gzip o brotli).
-Pubblicare, creare account o collegare un repository remoto richiede il via dell'utente
-(AGENTS.md); la CI (P1.6) aspetta un remote GitHub.
+Pubblicare o creare account richiede il via dell'utente (AGENTS.md).
+
+## CI (P1.6, D-064)
+
+Repository: https://github.com/pandemonyum/bonk (pubblico, ramo `main`). Il workflow
+`.github/workflows/ci.yml` parte a ogni push su `main`, a ogni pull request e a mano (Actions →
+CI → Run workflow), con due job su Ubuntu 24.04:
+
+- **gate**: `scripts/check.sh` (fmt, clippy senza warning, test, validazione asset), con le
+  librerie di sistema che Bevy vuole su Linux (`libudev-dev` per gilrs, `libwayland-dev`,
+  `libxkbcommon-dev`, `libasound2-dev`);
+- **web**: `scripts/build-web.sh` con wasm-bindgen alla versione del `Cargo.lock`
+  (`taiki-e/install-action`); `dist/` resta 14 giorni come artefatto
+  `companion-survivors-web`, da scaricare dalla pagina della run. Non pubblica niente.
+
+Toolchain dalla `rust-toolchain.toml`, cache di cargo con `Swatinem/rust-cache`. Un push nuovo
+sullo stesso ramo ferma la run precedente. Windows non è in CI: il gate lì resta
+`scripts/check.ps1` in locale.
 
 ## Misure (2026-10-29)
 

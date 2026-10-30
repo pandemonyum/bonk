@@ -38,7 +38,7 @@ Gate P0: 10 minuti giocabili end-to-end senza crash, con prova umana o autoplay 
 | ~~P1.3~~ **DONE** | Server HTTP locale + browser: menu, run, input da tastiera, sconfitta, risultati, salvataggio, `?autoplay`; console senza errori del gioco | orchestrator |
 | ~~P1.4~~ **DONE** | `scripts/build-web.ps1` e `.sh`, output `dist/` | orchestrator |
 | ~~P1.5~~ **DONE** | `.wasm` 22,5 MiB (5,9 gzip), `application/wasm`, cache busting con l'impronta del `.wasm`, asset e dati via HTTP; `docs/RELEASE.md` | orchestrator |
-| P1.6 | CI GitHub Actions (fmt, clippy, test, build nativa, artefatto web) — serve un remote GitHub: chiedere all'utente | web-release |
+| ~~P1.6~~ **DONE** | CI GitHub Actions: gate di `scripts/check.sh` e build web con `dist/` come artefatto (D-064, `docs/RELEASE.md`) | web-release |
 
 ## P2 / P3
 

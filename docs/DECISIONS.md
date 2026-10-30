@@ -498,6 +498,15 @@ sull'anteprima. Nei dati: `frame` 28×24, partenza della palla di fuoco e del fu
 piedi (erano 16), compagni a 19–22 px dietro al player (erano 26–30). I ritratti del menu (40×36)
 restano quelli grandi.
 
+## D-064 Repository su GitHub e CI con GitHub Actions *(utente)*
+L'utente ha chiesto il push su https://github.com/pandemonyum/bonk (pubblico) e poi la CI. La
+CI gira su Linux (runner gratuiti e più veloci di quelli Windows per un repository pubblico) con
+lo stesso gate di `scripts/check.sh` e la build web, che lascia `dist/` come artefatto: nessuna
+pubblicazione automatica, che resta da decidere con l'utente (GitHub Pages, itch.io). Le
+versioni di toolchain e wasm-bindgen vengono da `rust-toolchain.toml` e `Cargo.lock`, così la
+CI non va aggiornata a mano quando cambiano. I commit portano l'email dell'autore, visibile nel
+repository pubblico: segnalato all'utente.
+
 ## D-063 Pagina iniziale come l'illustrazione dell'utente; il gioco si chiama Companion Survivors *(utente)*
 L'utente ha mandato un'illustrazione della pagina iniziale (paesaggio con il suo player di
 spalle e tre dei suoi compagni, logo in alto a sinistra, pannello scuro con le voci) e poi la
