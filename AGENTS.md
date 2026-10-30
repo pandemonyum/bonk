@@ -47,7 +47,7 @@ uno screenshot: `python scripts/check-pixel-grid.py <png>` (finestra con bande n
 | game-designer | `docs/GDD.md`, valori in `game-data/*.ron` (lo schema è del gameplay-engineer) |
 | gameplay-engineer | `src/app.rs`, `src/rng.rs`, `src/gameplay/`, `src/data/` (schema + loader), `src/presentation/` |
 | world-generation | `src/world/` |
-| pixel-art-director | `docs/ART_BIBLE.md`, `assets-src/`, `assets/`, `scripts/build-assets.py` e `scripts/art_*.py`, `scripts/validate-assets.py`, `ASSET_LICENSES.md` |
+| pixel-art-director | `docs/ART_BIBLE.md`, `docs/art/`, `assets-src/`, `assets/`, `scripts/build-assets.py` e `scripts/art_*.py`, `scripts/validate-assets.py`, `ASSET_LICENSES.md` |
 | qa-performance | `docs/QA_REPORT.md`, `src/diagnostics/`, `tests/` (un solo eseguibile: `tests/sim/`), `benches/`, `scripts/check.*`, `scripts/clean-stale.*` |
 | web-release | `web/`, `scripts/build-web.*`, `.github/`, `docs/RELEASE.md`, sezioni `[profile.*]` di `Cargo.toml` |
 | code-reviewer | nessun file: solo lettura, esito nel report |
@@ -70,6 +70,10 @@ nel task. Due agenti non lavorano mai contemporaneamente sugli stessi file.
   (`src/data/validate.rs`) con un test. I test leggono i valori attesi da `GameConfig`.
 - Mondo renderizzato a 480×270 su texture, upscaling intero nearest-neighbor, letterbox.
 - Niente dipendenze nuove senza voce in `docs/DECISIONS.md` (motivo, versione, licenza).
+- Arte con ChatGPT solo con l'handoff manuale di D-065: il pixel-art-director prepara la
+  richiesta in `docs/art/requests/`, l'utente genera nella sua chat e salva in `.art-inbox/`
+  (ignorata da git), poi controllo e promozione nella pipeline solo con la sua approvazione.
+  Procedura in `docs/art/CHATGPT_ART_WORKFLOW.md`.
 - Moduli piccoli: nessun file Rust oltre ~400 righe senza motivo scritto.
 - Clippy con `-D warnings`; eccezioni ammesse solo in `Cargo.toml [lints]` con motivo.
 
@@ -78,7 +82,7 @@ nel task. Due agenti non lavorano mai contemporaneamente sugli stessi file.
 - Non dichiarare test, build o run riusciti senza averli eseguiti: riporta l'output vero.
 - Non usare asset, nomi, loghi o UI di Pokémon/Nintendo/Game Freak o di altri giochi.
 - Non installare pacchetti non verificati; non usare API a pagamento o generatori IA di asset
-  senza approvazione dell'utente.
+  senza approvazione dell'utente (approvato solo l'handoff manuale con ChatGPT, D-065).
 - Non cancellare o sovrascrivere file esistenti senza averli letti; niente script distruttivi.
 - Non esporre segreti; niente credenziali nel repository.
 - Niente push su remote, deploy pubblici, account o servizi a pagamento senza approvazione.

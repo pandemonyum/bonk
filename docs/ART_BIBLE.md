@@ -540,8 +540,9 @@ home portata dall'utente il 2026-10-30, solo per disposizione e colori. Anteprim
 - **Originalità:** lettering originale, nessun logo di altri giochi preso a modello.
 
 **Illustrazioni** (`assets-src/illustrations/<nome>.png|.webp` → `assets/ui/<nome>.png`):
-- **Origine:** solo immagini fornite dall'utente, che ne dichiara i diritti. Mai generate o
-  scaricate dal progetto.
+- **Origine:** solo immagini fornite dall'utente, che ne dichiara i diritti: le sue (D-063) o
+  quelle che fa con ChatGPT e approva con il workflow manuale (D-065,
+  `docs/art/CHATGPT_ART_WORKFLOW.md`). Il progetto non genera né scarica nulla da sé.
 - **Regole:** non seguono la palette né la griglia, quindi sono l'unica eccezione alla
   pixel art del progetto.
 - **Build:**
@@ -549,10 +550,15 @@ home portata dall'utente il 2026-10-30, solo per disposizione e colori. Anteprim
   - 256 colori con dithering Floyd–Steinberg (palette MAXCOVERAGE presa da una copia a 1/3)
     solo se, mediata su 9×9 pixel, la differenza resta sotto 2/255 in media e 32/255 al
     massimo. Altrimenti, o con la trasparenza, il PNG resta pieno;
-  - la sorgente va in sRGB (il profilo ICC non viene convertito).
+  - la sorgente va in sRGB (il profilo ICC non viene convertito);
+  - provenienza: se accanto alla sorgente c'è `<nome>.license.txt`, la sua prima riga non vuota
+    che non inizia con `#` diventa la `license` del manifest; senza file resta quella di D-063.
+    Un file vuoto, o senza sorgente, ferma il build; il `.txt` non conta come sorgente.
 - **Limiti del validatore:** 2048 px per lato e 4 MiB.
-- `home_background` di oggi è provvisoria (ha logo e menu dipinti): basta sostituire il file
-  con lo stesso nome.
+- `home_background` di oggi è provvisoria (4:3, con logo e menu dipinti). La versione pulita
+  nativa 16:9 è la richiesta ART-HOME-001 (`docs/art/requests/ART-HOME-001.md`): approvata,
+  diventa `home_background.png` al posto del `.webp` (due sorgenti con lo stesso nome fermano il
+  build), con `home_background.license.txt`.
 
 **Bottoni della home** (`ui/menu_<azione>.png`, 16×16, palette del progetto):
 - **Stile:** quello delle icone dell'HUD (simbolo con contorno `k`, luce da nord-ovest, senza
@@ -598,10 +604,12 @@ Altri pezzi del pannello:
 4. Anteprima senza compilare: `python scripts/preview-scene.py` → `docs/evidence/art-preview-*`.
 5. Verifica a schermo nel gioco: screenshot + `python scripts/check-pixel-grid.py`.
 
-Strumenti: nessun editor grafico né generatore IA (D-011). Gli sprite grandi (boss, albero,
-ritratti) sono stati abbozzati con primitive geometriche ombreggiate (ellissi e poligoni con
-la rampa del materiale, script usa e getta fuori dal repository) e poi rifiniti a mano nella
-griglia `.px`, che resta l'unica sorgente.
+Strumenti: nessun editor grafico (D-011). Generatori IA solo con il workflow manuale ChatGPT
+(D-065), per concept e illustrazioni: procedura in `docs/art/CHATGPT_ART_WORKFLOW.md`. Il
+concept di uno sprite è una reference da ridisegnare, mai un foglio pronto: la griglia `.px`
+resta l'unica sorgente degli sprite. Gli sprite grandi (boss, albero, ritratti) sono stati
+abbozzati con primitive geometriche ombreggiate (ellissi e poligoni con la rampa del materiale,
+script usa e getta fuori dal repository) e poi rifiniti a mano nella griglia.
 
 ## Lezioni
 

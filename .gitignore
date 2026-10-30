@@ -9,3 +9,5 @@ Thumbs.db
 .env
 .env.*
 .claude/settings.local.json
+# Immagini fatte dall'utente con ChatGPT e non ancora approvate (D-065): mai nel repository
+/.art-inbox/

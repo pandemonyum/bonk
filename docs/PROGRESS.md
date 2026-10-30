@@ -13,6 +13,35 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "arte con ChatGPT, handoff manuale" (2026-10-30)
+
+```text
+Task: ART-BRIDGE - workflow manuale con ChatGPT (D-065) e dry run ART-HOME-001
+Owner: orchestrator (D-065, AGENTS.md, CLAUDE.md, pixel-art-director.md, skill, .gitignore,
+  docs/agents/README.md, backlog) + pixel-art-director (docs/art/, ART_BIBLE, ASSET_LICENSES,
+  scripts/art_illustration.py); un ritocco dell'orchestratore al prompt di ART-HOME-001 (tolto
+  l'esempio di una creatura vietata: nominarla poteva suggerirla al generatore)
+Stato: DONE; ART-HOME-001 REQUESTED, in attesa dell'utente (gate)
+Assunzioni: nessuna integrazione con ChatGPT (niente API, Codex, MCP remoti, automazione);
+  ChatGPT accetta il .webp della reference, con una copia PNG senza perdita come riserva in
+  .art-inbox/ART-HOME-001/ref/ (ignorata)
+File nuovi: docs/art/CHATGPT_ART_WORKFLOW.md, docs/art/ART_REQUEST_TEMPLATE.md,
+  docs/art/requests/ART-HOME-001.md, .claude/skills/chatgpt-art-bridge/SKILL.md
+File modificati: AGENTS.md, CLAUDE.md, .gitignore (/.art-inbox/), .claude/agents/
+  pixel-art-director.md, docs/{DECISIONS,BACKLOG,PROGRESS,ART_BIBLE}.md, docs/agents/README.md,
+  ASSET_LICENSES.md, scripts/art_illustration.py (provenienza da <nome>.license.txt)
+Comandi eseguiti (risultato):
+  python scripts/build-assets.py      OK: 202 asset, assets/ invariata (git status vuoto)
+  python scripts/validate-assets.py   OK: 202 PNG e 2 font, 0 errori
+  git check-ignore                    .art-inbox/ ignorata; assets-src/illustrations/ no
+  licenza delle illustrazioni         senza file la costante di D-063, con file la prima riga
+    utile, file vuoto o senza sorgente fermano il build (prove usa e getta fuori dal repo)
+Non eseguito: ./scripts/check.ps1 (nessun file Rust toccato); nessuna immagine generata
+Rischi noti: il generatore segue le percentuali solo in modo approssimativo, forse servono
+  revisioni; se ChatGPT dà un 3:2 il ritaglio 16:9 è 1536×864, ingrandito 1,25 volte a 1920×1080
+Prossimo task: ART-HOME-001, INGEST quando l'utente scrive "ART-HOME-001 pronto"
+```
+
 ## Report tranche "pagina iniziale" (2026-10-30)
 
 ```text

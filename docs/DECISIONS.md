@@ -51,7 +51,7 @@ Le entità di gioco nascono senza sprite; la presentazione aggancia `Sprite` con
 Le entità della run hanno `DespawnOnExit(AppState::InRun)`: il restart della P0.6 sarà uscire
 e rientrare nello stato. `MainMenu`, `GameOver`, `Victory`, `LevelUp` si aggiungono in P0.
 
-## D-011 Sprite come griglie di testo + Python/Pillow
+## D-011 Sprite come griglie di testo + Python/Pillow *(integrata da D-065 per concept e illustrazioni)*
 Nessun editor grafico disponibile né approvato; gli agenti modificano file `.px` leggibili.
 Palette "Germoglio" originale. Generatori IA di immagini esclusi senza approvazione.
 
@@ -497,6 +497,32 @@ automatica, che impastava i volti) dalle pose approvate di D-052; l'utente li ha
 sull'anteprima. Nei dati: `frame` 28×24, partenza della palla di fuoco e del fulmine a 11 px dai
 piedi (erano 16), compagni a 19–22 px dietro al player (erano 26–30). I ritratti del menu (40×36)
 restano quelli grandi.
+
+## D-065 Arte con ChatGPT solo con handoff manuale *(utente)*
+L'utente ha autorizzato il 2026-10-30 un solo canale per l'arte fatta con l'IA: la sua
+conversazione ChatGPT, a mano. Niente API di OpenAI, Codex, MCP remoti, automazione o lettura
+della chat, accesso all'account, generatori a pagamento. Per ogni richiesta grafica il
+pixel-art-director sceglie una via:
+- `LOCAL_PIXEL`: tile, icone, ritocchi, palette. Pipeline `.px`, come sempre.
+- `CHATGPT_CONCEPT`: illustrazioni e sfondi, design di compagni o boss nuovi, ritratti
+  elaborati, grandi decorazioni dell'interfaccia.
+- `CHATGPT_EDIT`: modifica di un concept già approvato, a partire dalla sua immagine.
+
+Per le due vie ChatGPT scrive `docs/art/requests/<ID>.md` con un prompt che si regge da solo.
+L'utente lo incolla, allega le reference indicate, genera, sceglie e salva il PNG in
+`.art-inbox/<ID>/`, ignorata da git. Poi l'agente controlla il file vero e lo porta nella
+pipeline solo dopo un'approvazione esplicita dell'utente. Procedura:
+`docs/art/CHATGPT_ART_WORKFLOW.md`.
+
+Integra D-011 solo per i concept e le illustrazioni approvate. Il resto non cambia:
+- sprite, tile e icone hanno come sorgente solo la griglia `.px`; un'immagine di ChatGPT per
+  uno sprite è una reference da ridisegnare, mai un foglio animato pronto;
+- palette, pixel-perfect, font, manifest, validatori e licenze restano quelli di prima;
+- niente elementi riconoscibili di franchise altrui.
+
+Provenienza: richiesta, versione scelta, data e approvazione vanno nella richiesta e in
+`ASSET_LICENSES.md`. I diritti sull'immagine li dichiara l'utente, che usa ChatGPT con il suo
+account e i termini di OpenAI che ha accettato (come le sue immagini di D-050, D-052, D-063).
 
 ## D-064 Repository su GitHub e CI con GitHub Actions *(utente)*
 L'utente ha chiesto il push su https://github.com/pandemonyum/bonk (pubblico) e poi la CI. La

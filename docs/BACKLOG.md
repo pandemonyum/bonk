@@ -71,6 +71,13 @@ opzioni, browser, release candidate).
 | ~~P1-FILL~~ **DONE** | Più mappa invece delle bande nere, fino a 640×360 pixel di mondo (D-062) | orchestrator | finestre 960×540, 1280×720, 1366×768 e browser; sonda 27/32 come prima |
 | U-PLAY | Prova umana: forzieri e orde si sentono? Squadra senza Ondino, talenti al massimo | utente | — |
 
+## Arte con ChatGPT, handoff manuale (2026-10-30, D-065)
+
+| ID | Task | Owner | Criteri di done |
+|---|---|---|---|
+| ~~ART-BRIDGE~~ **DONE** | Workflow manuale con ChatGPT: decisione, procedura, template delle richieste, `.art-inbox/` ignorata, istruzioni del pixel-art-director e skill di Claude Code; dry run con ART-HOME-001 | orchestrator (D-065, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.gitignore`, backlog e progress) + pixel-art-director (`docs/art/`, `docs/ART_BIBLE.md`, `ASSET_LICENSES.md`, `scripts/art_illustration.py`) | richiesta ART-HOME-001 con prompt autosufficiente, reference da allegare e percorso di ritorno; `.art-inbox/` ignorata e `assets-src/` no; build e validazione degli asset passano senza cambiare `assets/`; nessuna immagine generata dal progetto |
+| ART-HOME-001 | Illustrazione della home nativa 16:9 senza logo, menu né testo, dal concept approvato di D-063 | pixel-art-director (richiesta, controllo, promozione) + utente (generazione e approvazione in ChatGPT) + gameplay-engineer (`FOCUS` della home, se serve) | PNG approvato dall'utente in `.art-inbox/ART-HOME-001/`; promosso come `assets-src/illustrations/home_background.*` con licenza e provenienza; build e validazione; home nel gioco vero a 1280×720, 1920×1080 e 1024×768 senza player o compagni tagliati né coperti dalla UI. **In attesa dell'utente** (gate in `docs/art/requests/ART-HOME-001.md`) |
+
 ## Debito tecnico e idee registrate
 
 - Player (D-050): somiglianza con personaggi Nintendo accettata dall'utente, **da rivalutare

@@ -261,14 +261,42 @@ Illustrazione della home (2026-10-30, D-063):
 |---|---|---|
 | `assets/ui/home_background.png` (sfondo della home, 1448×1086) | immagine fornita dall'utente in chat, salvata come `assets-src/illustrations/home_background.webp`; `scripts/build-assets.py` la converte in PNG a piena risoluzione, a 256 colori con dithering se a schermo non si vede differenza (oggi 0,80 MiB contro 2,41 MiB in RGB). Nessun ritocco del contenuto | fornita dall'utente, che ne dichiara i diritti (D-063). Nel manifest: `provided by the user, rights declared by the user (D-063)`. Ritrae il player e tre compagni dell'utente (D-050, D-052): vale lo stesso rischio di somiglianza accettato dall'utente |
 
-La versione attuale è **provvisoria**: ha ancora logo e menu dipinti sopra. L'utente manderà la
-versione pulita con lo stesso nome (`.png` o `.webp`); basta sostituire il file e rifare il
-build.
+La versione attuale è **provvisoria**: ha ancora logo e menu dipinti sopra. La versione pulita,
+nativa 16:9, è la richiesta ChatGPT ART-HOME-001 (D-065, oggi `REQUESTED`): approvata e
+promossa, prende il posto del `.webp` con lo stesso nome e si registra nella sezione "Asset da
+richieste ChatGPT".
 
 Compagni piccoli (2026-10-28, approvati dall'utente, D-060): `assets-src/sprites/<id>_sheet.px`
 ridisegna a mano a 28×24 le quattro pose approvate dei fogli da 40×36 (stessi personaggi
 dell'utente, stessa palette `companions.palette.txt`, D-052) e ha preso il posto del foglio da
 40×36, con la stessa voce di licenza qui sopra. I fogli da 40×36 restano nella storia di git.
+
+## Asset da richieste ChatGPT (D-065)
+
+Immagini che l'utente genera con ChatGPT da una richiesta `docs/art/requests/<ID>.md` e approva
+(procedura: `docs/art/CHATGPT_ART_WORKFLOW.md`). Si registrano solo alla PROMOTE, una riga per
+asset; le bozze non approvate non entrano nel repository e non si registrano.
+
+| Asset | Richiesta e versione | Generata / approvata | Strumento | Reference usate | Cambiato nel progetto | Diritti |
+|---|---|---|---|---|---|---|
+
+Nessuna voce: nessuna richiesta è ancora promossa (ART-HOME-001 è `REQUESTED`).
+
+Come si compila:
+- **Asset:** il file in `assets/` e la sorgente in `assets-src/` (per uno sprite, il `.px`
+  ridisegnato).
+- **Richiesta e versione:** `<ID>` e la `v<N>` scelta.
+- **Generata / approvata:** le due date; l'approvazione è la frase dell'utente nel registro della
+  richiesta.
+- **Strumento:** "ChatGPT, account dell'utente".
+- **Reference usate:** i file del repo allegati (REF-n), anche se allegati come copia di `ref/`.
+- **Cambiato nel progetto:** ritaglio, conversione del profilo colore, codifica del build,
+  ridisegno nella griglia; "nessun ritocco del contenuto" se è così.
+- **Diritti:** dichiarati dall'utente, che ha generato l'immagine con il suo account secondo i
+  termini di OpenAI che ha accettato (D-065). Se ritrae il player o i compagni vale il rischio di
+  somiglianza accettato dall'utente (D-050).
+- **Manifest:** la stessa provenienza in breve e in inglese, nella prima riga di
+  `<nome>.license.txt` (illustrazioni) o in `license:` del `.px` (sprite ridisegnati).
 
 ## Asset vietati
 

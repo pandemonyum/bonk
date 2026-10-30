@@ -21,6 +21,7 @@ semplice (l'intestazione YAML serve solo a Claude Code) e valgono per qualunque 
 | Claude Code (app desktop) | installato | subagent da `.claude/agents/*.md`; l'orchestratore delega con il tool Agent |
 | Codex CLI | **non installato** | quando presente: legge `AGENTS.md`; esegue i ruoli in sequenza leggendo il file del ruolo |
 | GitHub Copilot | non configurato | nessun file dedicato finché non viene usato |
+| ChatGPT (account dell'utente) | nessuna integrazione, per scelta (D-065) | solo handoff manuale per l'arte: l'utente incolla il prompt e salva il PNG in `.art-inbox/` (`docs/art/CHATGPT_ART_WORKFLOW.md`) |
 
 Se uno strumento non supporta subagent, l'esecuzione è **sequenziale**: lo stesso agente
 assume un ruolo alla volta, rispetta l'ownership di quel ruolo e produce il suo report.

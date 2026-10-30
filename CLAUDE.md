@@ -11,3 +11,5 @@ Specifico per Claude Code:
   (aggiungilo al `PATH` della shell se `cargo` non risulta disponibile).
 - Prova visiva: usa le opzioni `--autoplay --screenshot ...` del gioco e apri il PNG prodotto.
   Per il web (dalla P1) è disponibile il server MCP Playwright.
+- Arte con ChatGPT (D-065): skill `.claude/skills/chatgpt-art-bridge/` (`/chatgpt-art-bridge`).
+  Quando l'utente scrive `<ID> pronto` (es. `ART-HOME-001 pronto`) riprendi da quella richiesta.
