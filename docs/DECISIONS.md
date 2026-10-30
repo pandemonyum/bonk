@@ -524,6 +524,10 @@ Provenienza: richiesta, versione scelta, data e approvazione vanno nella richies
 `ASSET_LICENSES.md`. I diritti sull'immagine li dichiara l'utente, che usa ChatGPT con il suo
 account e i termini di OpenAI che ha accettato (come le sue immagini di D-050, D-052, D-063).
 
+Primo uso: ART-HOME-001, lo sfondo della home nativo 16:9 senza logo né menu (1672×941, v1
+approvata dall'utente il 2026-10-30). Ha preso il posto del concept 4:3 di D-063, che resta
+nella storia di git.
+
 ## D-064 Repository su GitHub e CI con GitHub Actions *(utente)*
 L'utente ha chiesto il push su https://github.com/pandemonyum/bonk (pubblico) e poi la CI. La
 CI gira su Linux (runner gratuiti e più veloci di quelli Windows per un repository pubblico) con

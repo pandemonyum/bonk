@@ -508,8 +508,10 @@ dello script `preview-scene.py`.
 ## Home: logo, illustrazione, bottoni (D-063)
 
 Nome mostrato: **Companion Survivors** (solo il nome a schermo). Riferimento: l'immagine della
-home portata dall'utente il 2026-10-30, solo per disposizione e colori. Anteprima ×3/×4:
-`docs/evidence/home_art_preview.png`.
+home portata dall'utente il 2026-10-30, solo per disposizione e colori. Anteprima ×3/×4 di logo
+e bottoni: `docs/evidence/home_art_preview.png` (il logo vi è provato sul concept provvisorio di
+D-063). La home nel gioco con lo sfondo di ART-HOME-001: `docs/evidence/home_page_16x9_1280x720.jpg`,
+`_1920x1080.jpg` e `_1024x768.jpg`.
 
 **Logo** `ui/logo.png` (222×90), generato da `build_logo` in `scripts/art_logo.py` (chiamato da `scripts/build-assets.py`):
 - **Disposizione:** due righe. "Survivors" sotto, spostata di 18 px a destra. È mostrato a
@@ -555,10 +557,12 @@ home portata dall'utente il 2026-10-30, solo per disposizione e colori. Anteprim
     che non inizia con `#` diventa la `license` del manifest; senza file resta quella di D-063.
     Un file vuoto, o senza sorgente, ferma il build; il `.txt` non conta come sorgente.
 - **Limiti del validatore:** 2048 px per lato e 4 MiB.
-- `home_background` di oggi è provvisoria (4:3, con logo e menu dipinti). La versione pulita
-  nativa 16:9 è la richiesta ART-HOME-001 (`docs/art/requests/ART-HOME-001.md`): approvata,
-  diventa `home_background.png` al posto del `.webp` (due sorgenti con lo stesso nome fermano il
-  build), con `home_background.license.txt`.
+- `home_background` è lo sfondo pulito nativo 16:9 della richiesta ART-HOME-001 v1
+  (`docs/art/requests/ART-HOME-001.md`, D-065): 1672×941, senza logo, menu né testo; sorgente
+  `home_background.png` (senza profilo ICC: sRGB per convenzione) con
+  `home_background.license.txt`, nel build a 256 colori. Dal 2026-10-30 prende il posto del
+  concept provvisorio di D-063 (`.webp` 4:3, 1448×1086, con logo e menu dipinti), che resta nella
+  storia di git.
 
 **Bottoni della home** (`ui/menu_<azione>.png`, 16×16, palette del progetto):
 - **Stile:** quello delle icone dell'HUD (simbolo con contorno `k`, luce da nord-ovest, senza

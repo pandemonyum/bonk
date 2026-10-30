@@ -13,6 +13,35 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "sfondo della home 16:9 da ChatGPT" (2026-10-30)
+
+```text
+Task: ART-HOME-001 - sfondo della home nativo 16:9 senza logo né menu (D-065, primo giro)
+Owner: pixel-art-director (INGEST, PROMOTE, VERIFY) + utente (generazione e approvazione in
+  ChatGPT) + orchestrator (backlog, decisione, progress)
+Stato: DONE (richiesta INTEGRATED)
+Assunzioni: PNG senza profilo ICC, trattato come sRGB; nessun ritaglio (già 16:9 al pixel)
+File: assets-src/illustrations/home_background.png (copia byte per byte della v1) e
+  home_background.license.txt al posto di home_background.webp; assets/ui/home_background.png e
+  manifest rigenerati; docs/art/requests/ART-HOME-001.md, docs/ART_BIBLE.md, ASSET_LICENSES.md;
+  prove docs/evidence/home_page_16x9_{1280x720,1920x1080,1024x768}.jpg
+Comandi eseguiti (risultato):
+  INGEST: PNG 1672×941 RGB, alpha 255..255, proporzione 1,7768; nessun testo, logo o menu
+  python scripts/build-assets.py      OK: home 1672×941 a 256 colori, 0,84 MiB
+  python scripts/validate-assets.py   OK: 202 PNG e 2 font, 0 errori
+  cargo run -- --window {1280x720,1920x1080,1024x768} --scale-factor 1 --no-watch
+    --screenshot ... --screenshot-after 4 --exit-after 5   OK, misure vere uguali alle richieste
+Comportamento verificato: player e compagni interi e non coperti a tutte e tre le misure; logo e
+  pannello leggibili senza residui dipinti; FOCUS (0.65, 0.75) invariato
+Accettato dall'utente con la v1: fascia sinistra non più calma del resto, portale fino a x 91,5%
+  (a 1024×768 esce di ~3 px l'arco), una runa che sembra una "M"
+Non verificato: home nel browser (build web non rifatta); ./scripts/check.ps1 non eseguito
+  (nessun file Rust toccato)
+Nota: in .art-inbox/ART-HOME-001/ c'è un file estraneo alla richiesta (.m3u da 84 MB, ignorato
+  da git), lasciato com'è
+Prossimo task: nessuno per ART-HOME-001; build web quando si pubblica
+```
+
 ## Report tranche "arte con ChatGPT, handoff manuale" (2026-10-30)
 
 ```text
