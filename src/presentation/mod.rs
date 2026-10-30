@@ -12,10 +12,13 @@ pub mod draft;
 pub mod enemy_anim;
 pub mod fonts;
 pub mod health_bar;
+pub mod home;
 pub mod horde_banner;
 pub mod hud;
 pub mod icons;
 pub mod menu;
+pub mod menu_list;
+pub mod options_menu;
 pub mod player_anim;
 pub mod recap;
 pub mod results;
@@ -68,6 +71,9 @@ impl Plugin for PresentationPlugin {
             chest_ui::ChestUiPlugin,
             talent_art::TalentArtPlugin,
             talents_menu::TalentsMenuPlugin,
+            home::HomePlugin,
+            menu_list::MenuListPlugin,
+            options_menu::OptionsMenuPlugin,
         ));
     }
 }

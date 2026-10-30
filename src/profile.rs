@@ -38,6 +38,9 @@ pub struct ProfileData {
     pub version: u32,
     #[serde(default)]
     pub companions: Vec<CompanionProgress>,
+    /// Schermo intero (Opzioni); sul desktop anche all'avvio.
+    #[serde(default)]
+    pub fullscreen: bool,
 }
 
 impl Default for ProfileData {
@@ -45,6 +48,7 @@ impl Default for ProfileData {
         Self {
             version: PROFILE_VERSION,
             companions: Vec::new(),
+            fullscreen: false,
         }
     }
 }

@@ -116,7 +116,7 @@ pub(super) fn learn(profile: &mut Profile, config: &GameConfig, id: &str, node: 
     }
 }
 
-fn talent_keys(
+pub(super) fn talent_keys(
     keys: Res<ButtonInput<KeyCode>>,
     config: Res<GameConfig>,
     mut panel: ResMut<TalentPanel>,

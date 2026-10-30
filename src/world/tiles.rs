@@ -1,5 +1,5 @@
 //! Indici del tileset `assets/tiles/meadow_tileset.png`.
-//! Devono restare allineati a `TILE_NAMES` in scripts/build-assets.py.
+//! Devono restare allineati a `TILE_NAMES` in scripts/art_tileset.py.
 
 pub const GRASS_A: u16 = 0;
 pub const GRASS_B: u16 = 1;

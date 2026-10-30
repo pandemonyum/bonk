@@ -59,7 +59,11 @@ Le opzioni della riga di comando passano dall'indirizzo: `?autoplay&seed=3&time-
 - errori della pagina o del gioco nel pannello; l'eccezione con cui winit esce da `init()`
   ("Using exceptions for control flow") non è un errore e viene ignorata;
 - il canvas `#game` riempie la finestra (`fit_canvas_to_parent`), i tasti vanno al gioco e non
-  alla pagina (`prevent_default_event_handling`).
+  alla pagina (`prevent_default_event_handling`);
+- Opzioni → Schermo intero: il gioco lo chiede per `#stage` (`web::set_fullscreen`), il browser
+  lo concede solo dopo un clic o un tasto veri; un rifiuto resta un avviso nel log (la promessa
+  ha il suo `catch`, altrimenti il pannello degli errori la mostrerebbe) e il valore mostrato è
+  lo stato vero della pagina (D-063).
 
 ## Salvataggi sul web
 

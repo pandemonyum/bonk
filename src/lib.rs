@@ -1,4 +1,4 @@
-//! Pixel Monster Survivor — survivor roguelite 2D in pixel art.
+//! Companion Survivors (crate `pixel-monster-survivor`) — survivor roguelite 2D in pixel art.
 //!
 //! La simulazione (`app`, `gameplay`, `world`) non dipende dal rendering: i test la eseguono
 //! con [`headless_app`]. [`client_app`] aggiunge finestra, grafica, input, dati da file e
@@ -49,7 +49,7 @@ pub fn client_app(options: LaunchOptions) -> App {
             })
             .set(WindowPlugin {
                 primary_window: Some(Window {
-                    title: "Pixel Monster Survivor".into(),
+                    title: "Companion Survivors".into(),
                     resolution,
                     // sul web: il canvas della pagina, grande quanto il suo contenitore, e i
                     // tasti (frecce, spazio, Tab) al gioco invece che alla pagina

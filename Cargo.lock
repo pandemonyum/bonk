@@ -4389,9 +4389,11 @@ name = "pixel-monster-survivor"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "js-sys",
  "ron",
  "serde",
  "skrifa",
+ "wasm-bindgen",
  "web-sys",
 ]
 

@@ -21,10 +21,12 @@ serde = { version = "1", features = ["derive"] }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 bevy = { version = "0.20.0", default-features = false, features = ["file_watcher"] }
 
-# Solo sul web: profilo nel localStorage e opzioni dall'indirizzo della pagina. Stessa versione
-# che Bevy compila già sul web (Cargo.lock): nessun crate nuovo.
+# Solo sul web: profilo nel localStorage, opzioni dall'indirizzo della pagina, schermo intero.
+# Stesse versioni che Bevy compila già sul web (Cargo.lock): nessun crate nuovo.
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-web-sys = { version = "0.3.106", features = ["Window", "Storage", "Location"] }
+web-sys = { version = "0.3.106", features = ["Window", "Storage", "Location", "Document", "Element"] }
+js-sys = "0.3.106"
+wasm-bindgen = "0.2.129"
 
 [dev-dependencies]
 # Solo per i test: legge il cmap dei font di assets/fonts/ (stessa versione che Bevy compila già

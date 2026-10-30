@@ -13,6 +13,27 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "pagina iniziale" (2026-10-30)
+
+```text
+Task: pagina iniziale come l'illustrazione dell'utente, nome Companion Survivors (D-063)
+Owner: orchestrator (codice), pixel-art-director (logo, icone, pipeline dell'illustrazione),
+  code-reviewer (CHANGES REQUESTED: scelta non evidenziata rientrando in Compagni, schermo
+  intero sul web non aggiornato, schermo intero salvato contro gli screenshot, compagno scelto
+  non visibile; tutto corretto e coperto da test)
+Stato: DONE con lo sfondo provvisorio (la versione pulita dell'utente non è arrivata come file)
+File nuovi: src/presentation/{home.rs, home/tests.rs, menu_list.rs, options_menu.rs,
+  menu/cards.rs}, scripts/art_{common,tileset,logo,illustration}.py, assets-src/illustrations/,
+  assets-src/logo/, assets-src/ui/menu_*.px e frame_corner.px
+Comandi eseguiti (risultato): ./scripts/check.ps1 (OK: 225 unit, 101 integrazione, 202 PNG);
+  cargo clippy --target wasm32-unknown-unknown --lib -D warnings (OK); ./scripts/build-web.ps1
+  (OK, gzip 6,0 MiB); gioco nativo a 960×540 e 1280×720; browser: pagina, Compagni, Opzioni,
+  Talenti con i tasti, rifiuto dello schermo intero senza errori nella pagina
+Non verificato: schermo intero nel browser con un clic vero (i clic dell'anteprima non
+  arrivano al gioco)
+Prove: docs/evidence/home_page_provvisoria.png, docs/evidence/home_art_preview.png
+```
+
 ## Report tranche P1 "web giocabile" (2026-10-29)
 
 ```text

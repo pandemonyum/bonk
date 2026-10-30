@@ -51,7 +51,10 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `presentation::health_bar` | barra degli HP 16×2 texel sotto i piedi del player, figlia del suo sprite | sì |
 | `presentation::boss_pointer` | teschio al bordo della vista nella direzione del boss fuori schermo | sì |
 | `presentation::status` | in alto a sinistra cuori (20 HP l'uno) con HP, barra XP e il contenitore della fila delle abilità; in alto a destra livello e teschio con le uccisioni | sì |
-| `presentation::menu` | menu iniziale: carte dei compagni (sprite, elemento, attacco, barre relative), 1/2/3, frecce, clic, Invio | sì |
+| `presentation::home` | pagina iniziale (D-063): illustrazione a tutto schermo ("cover"), logo, voci Nuova partita, Compagni, Talenti, Opzioni, Esci; sottostato `MenuScreen` (`Home`, `Companions`, `Options`) di `MainMenu` | sì |
+| `presentation::menu_list` | pannello con il bordo di bronzo e lista di pulsanti con la voce evidenziata (`ListSelection`), per pagina iniziale e opzioni | no |
+| `presentation::menu` | schermata Compagni: carte dei compagni (`menu::cards`: sprite, elemento, attacco, barre relative), 1–4, A/D, clic, Invio parte, Esc indietro | sì |
+| `presentation::options_menu` | opzioni: schermo intero, salvato nel profilo e ripreso all'avvio sul desktop | sì |
 | `presentation::results` | risultati di sconfitta (dopo la caduta del player) e vittoria: tempo, livello, nemici, danni, squadra, potenziamenti | sì |
 | `presentation::boss_bar` | conto alla rovescia al centro in alto, poi nome e barra HP del boss | sì |
 | `presentation::telegraphs` | punti rossi in fila o in cerchio, figli del `Telegraph`, che lampeggiano verso lo scadere | sì |

@@ -268,9 +268,9 @@ Gli effetti della posa felice (bolle, scintille) restano dentro 24×22.
 
 ## Tileset `meadow_tileset.png` (indici in `src/world/tiles.rs`)
 
-Procedurale con seed fisso in `scripts/build-assets.py`, timbri che si avvolgono sui bordi del
-tile (nessuna cucitura). Ridisegnato nello stile del player con gli **stessi 42 indici e ruoli**
-(`TILE_NAMES` e `src/world/` invariati):
+Procedurale con seed fisso in `scripts/art_tileset.py` (chiamato da `scripts/build-assets.py`),
+timbri che si avvolgono sui bordi del tile (nessuna cucitura). Ridisegnato nello stile del
+player con gli **stessi 42 indici e ruoli** (`TILE_NAMES` e `src/world/` invariati):
 - **Erba:** ciuffi tozzi a tre e due fili (punte `b`, base `A`), zolle in ombra e macchie di
   sole tonde.
 - **Fiori:** più grandi, con un bordo verde scuro e l'ombra a terra.
@@ -505,6 +505,77 @@ Sans** per titoli (22/33/44 px) e frasi (16 px) di menu, draft e risultati. Lett
 segni Latin-1 sono disegnati da entrambi. Il carattere 3×5 delle anteprime resta un segnaposto
 dello script `preview-scene.py`.
 
+## Home: logo, illustrazione, bottoni (D-063)
+
+Nome mostrato: **Companion Survivors** (solo il nome a schermo). Riferimento: l'immagine della
+home portata dall'utente il 2026-10-30, solo per disposizione e colori. Anteprima ×3/×4:
+`docs/evidence/home_art_preview.png`.
+
+**Logo** `ui/logo.png` (222×90), generato da `build_logo` in `scripts/art_logo.py` (chiamato da `scripts/build-assets.py`):
+- **Disposizione:** due righe. "Survivors" sotto, spostata di 18 px a destra. È mostrato a
+  texel nativi (1 pixel del logo = 1 texel), filtro nearest.
+- **Lettere:** quelle di Pixelify Sans Regular, portate sulla griglia del font (un pixel del
+  font = 93 unità). Niente antialiasing: il build si ferma se una cella è coperta a metà.
+  - Ogni pixel del font diventa 3×5 pixel, poi la lettera cresce di 3 a destra e 2 in basso
+    (aste e tratti di 6–7 px).
+  - La Bold del font variabile non sta sulla griglia, per questo si ingrassa la Regular.
+  - La C ha la bocca aperta (`LOGO_GLYPH_EDITS`): in Pixelify è chiusa tranne un pixel.
+- **Colori** (`assets-src/logo/logo.palette.txt`), per lettera dall'alto al basso:
+
+  | Riga | Riflesso (1 px in alto) | Sfumatura a quattro fasce | Ombra interna (1 px in basso) | Contorno 2 px | Ombra portata (2 px sotto, 1 a destra) |
+  |---|---|---|---|---|---|
+  | Companion | `1` fff4c8 | `2` ffe07a, `3` ffb547, `4` f7892f, `5` e45a2a (giallo pallido → arancio → rosso-arancio) | `6` a83a1c | `7` 4a2414 marrone scuro | `8` 22100a |
+  | Survivors | `A` eafcff | `B` a6eeff, `C` 66cdf8, `D` 3a9fec, `F` 2a6fd2 (ciano pallido → celeste → blu) | `H` 1d4a9e | `J` 131a48 blu notte | `K` 090d26 |
+
+  Il contorno ha gli angoli arrotondati e si fonde tra le lettere: la riga si legge come un
+  blocco unico sopra qualunque zona dell'illustrazione.
+- **Decorazioni** (`assets-src/logo/logo_parts.px`, a mano):
+  - **Fiamma:** prende il posto del punto della "i" di Companion; è la fiamma di
+    `ui/icon_fire` con il contorno `x`.
+  - **Stella:** a quattro punte d'oro al centro della "o" di Survivors. Facce a girandola,
+    centro `w`, contorno `k`.
+  - **Foglie:** tre a sinistra di "Companion" e tre, specchiate, alla fine di "Survivors". Due
+    verdi (`e` 9fd651 luce sopra, `E` 4f9a3a sotto) e il contorno `N` 173d26. Stanno dietro
+    alle scritte.
+- **Originalità:** lettering originale, nessun logo di altri giochi preso a modello.
+
+**Illustrazioni** (`assets-src/illustrations/<nome>.png|.webp` → `assets/ui/<nome>.png`):
+- **Origine:** solo immagini fornite dall'utente, che ne dichiara i diritti. Mai generate o
+  scaricate dal progetto.
+- **Regole:** non seguono la palette né la griglia, quindi sono l'unica eccezione alla
+  pixel art del progetto.
+- **Build:**
+  - nessun ritaglio né ridimensionamento: il "cover" sulla finestra è del codice;
+  - 256 colori con dithering Floyd–Steinberg (palette MAXCOVERAGE presa da una copia a 1/3)
+    solo se, mediata su 9×9 pixel, la differenza resta sotto 2/255 in media e 32/255 al
+    massimo. Altrimenti, o con la trasparenza, il PNG resta pieno;
+  - la sorgente va in sRGB (il profilo ICC non viene convertito).
+- **Limiti del validatore:** 2048 px per lato e 4 MiB.
+- `home_background` di oggi è provvisoria (ha logo e menu dipinti): basta sostituire il file
+  con lo stesso nome.
+
+**Bottoni della home** (`ui/menu_<azione>.png`, 16×16, palette del progetto):
+- **Stile:** quello delle icone dell'HUD (simbolo con contorno `k`, luce da nord-ovest, senza
+  telaio).
+- **Toni:** chiari, grigio pietra e bianco (`w 6 t T`), la testa in grigio-azzurro
+  (`w 4 3`), così si leggono sul bottone blu notte. Solo la spada di `menu_new_run` è d'oro:
+  è l'azione principale, come il cursore.
+
+| File | Simbolo |
+|---|---|
+| `menu_new_run` | spada di traverso, lama d'oro chiaro, guardia d'oro, impugnatura di cuoio |
+| `menu_companions` | testa tonda di creaturina con orecchie a punta e occhi 2×3 (nessun compagno né creatura di altri giochi) |
+| `menu_talents` | libro aperto, pagina sinistra in luce, righe di testo |
+| `menu_options` | ingranaggio a otto denti col foro tondo |
+| `menu_quit` | porta socchiusa nel telaio, spiraglio scuro a destra |
+
+Altri pezzi del pannello:
+- **Cursore** `ui/menu_arrow.png` (7×11): triangolo d'oro con la punta sulla riga 5.
+- **Angolo** `ui/frame_corner.png` (10×10, alto a sinistra, specchiato dal codice):
+  - borchia quadrata d'oro e bronzo 6×6 con il rivetto;
+  - bracci con il pieno sulla riga 2 e sulla colonna 2: una linea di bordo del pannello
+    sulla seconda riga e colonna di texel si raccorda ai bracci.
+
 ## Pipeline
 
 1. Sprite e icone: file `.px` in `assets-src/sprites/` e `assets-src/ui/` (intestazione `out:`
@@ -513,8 +584,14 @@ dello script `preview-scene.py`.
    `columns:`, `rows:` (e `anchor:`) nell'intestazione e un blocco `@ <riga> <colonna>` per
    fotogramma; il build li affianca in un solo PNG.
 2. `python scripts/build-assets.py` → PNG in `assets/` + `assets/manifest.json` (tipo `sprite`,
-   `ui` o `tileset`; per i fogli anche `frame`, `frames`, `columns`, `rows`, `anchor`).
-3. `python scripts/validate-assets.py`: manifest, dimensioni (sprite ≤ 64, UI ≤ 32; i fogli
+   `ui`, `tileset`, `logo` o `illustration`; per i fogli anche `frame`, `frames`, `columns`,
+   `rows`, `anchor`; per il logo `palette` e `font`; per le illustrazioni `encoding`,
+   `indexed-256` o `rgb`). Due sorgenti con la stessa uscita fermano il build. Il codice sta
+   in `scripts/build-assets.py` (sorgenti `.px`, fogli animati, manifest) e nei moduli
+   accanto: `art_common.py` (percorsi, palette, griglie), `art_tileset.py`, `art_logo.py`,
+   `art_illustration.py`.
+3. `python scripts/validate-assets.py`: manifest, dimensioni (sprite ≤ 64, UI ≤ 40, logo ≤
+   256×128, illustrazioni ≤ 2048 px e ≤ 4 MiB senza controllo di palette; i fogli
    fotogramma per fotogramma, misura multipla intera del fotogramma, nessun fotogramma vuoto,
    riga di base toccata con l'ancora in basso), naming, solo colori della palette, alpha
    0/255, licenza; avvisi se un upgrade o un compagno dei dati non ha icona o ritratto.

@@ -1,0 +1,22 @@
+# Icona del bottone "Compagni" della home, 16x16: testa tonda di una creaturina generica
+# (orecchie a punta, occhi grandi 2x3 col riflesso in alto a sinistra, nasino), grigio-azzurro
+# chiaro (4, luce w, ombra 3) perché si legga sul bottone scuro. Originale: non è nessuno dei
+# compagni del gioco né una creatura di altri giochi.
+out: ui/menu_companions.png
+---
+................
+.kk..........kk.
+.kwk........k4k.
+.kw3k......k34k.
+.kw33kkkkkk334k.
+.k444wwww44444k.
+k4w444444444443k
+k4w444444444443k
+k444wk4444wk443k
+k444kk4444kk443k
+k444kk4444kk443k
+k444444kk444443k
+.k344444444443k.
+..k3344444433k..
+...kk333333kk...
+.....kkkkkk.....

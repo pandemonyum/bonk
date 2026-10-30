@@ -6,7 +6,9 @@ snake_case, tileset multipli di 16 px, sprite e icone UI entro i limiti di dimen
 animati fotogramma per fotogramma: misura multipla del fotogramma, nessun fotogramma vuoto, base
 toccata se l'ancora è in basso al centro), solo
 colori della palette per gli asset generati (quella propria dell'asset se il manifest ha
-"palette"), licenza presente; ogni font ha accanto il suo
+"palette", come il logo), licenza presente. Le illustrazioni fornite dall'utente (tipo
+"illustration", D-063) non sono pixel art del progetto: niente controllo di palette e alpha, ma
+limiti propri di misura e di peso e la sorgente in assets-src/; ogni font ha accanto il suo
 OFL.txt e una riga in ASSET_LICENSES.md. Avvisi (non errori) se un
 upgrade di game-data/upgrades.ron non ha l'icona ui/upgrade_<id>.png o un compagno di
 game-data/companions.ron non ha il ritratto ui/portrait_<id>.png.
@@ -33,6 +35,9 @@ DATA_SPRITE_RE = re.compile(r'\b(?:sprite|projectile_sprite)\s*:\s*"([^"]+)"')
 MAX_SPRITE = 64  # sprite singoli; vedi docs/ART_BIBLE.md
 MAX_FRAME = 96  # fotogrammi dei fogli animati (il boss e' 96x80)
 MAX_UI = 40  # icone e ritratti dell'interfaccia (i ritratti dei compagni sono 40x36)
+MAX_LOGO = (256, 128)  # logo della home a texel nativi (il canvas va da 480x270 a 640x360)
+MAX_ILLUSTRATION = 2048  # lato massimo di un'illustrazione (texture anche per WebGL2)
+MAX_ILLUSTRATION_BYTES = 4 * 2**20  # peso del PNG: il build web scarica tutto assets/
 DATA_ID_RE = re.compile(r'^\s*id\s*:\s*"([a-z0-9_]+)"')
 
 
@@ -108,6 +113,20 @@ def main() -> int:
             errors.append(f"{path}: sprite oltre {MAX_SPRITE}px")
         elif entry["kind"] == "ui" and max(img.size) > MAX_UI:
             errors.append(f"{path}: icona UI oltre {MAX_UI}px")
+        elif entry["kind"] == "logo" and (img.width > MAX_LOGO[0] or img.height > MAX_LOGO[1]):
+            errors.append(f"{path}: logo oltre {MAX_LOGO[0]}x{MAX_LOGO[1]}px")
+        elif entry["kind"] == "illustration":
+            # Fornita dall'utente: colori e sfumature sono i suoi, si controllano solo misura,
+            # peso e sorgente (niente palette né alpha 0/255).
+            if max(img.size) > MAX_ILLUSTRATION:
+                errors.append(f"{path}: illustrazione oltre {MAX_ILLUSTRATION}px per lato")
+            weight = (ASSETS / path).stat().st_size
+            if weight > MAX_ILLUSTRATION_BYTES:
+                limit = MAX_ILLUSTRATION_BYTES / 2**20
+                errors.append(f"{path}: {weight / 2**20:.2f} MiB, oltre {limit:g} MiB")
+            if not (ROOT / entry.get("source", "")).is_file():
+                errors.append(f"{path}: sorgente {entry.get('source')!r} assente")
+            continue
         # Asset generati da assets-src (anche quelli con licenza propria, per esempio forniti
         # dall'utente e ridisegnati qui): solo colori della loro palette, alpha 0 o 255.
         generated = entry["license"].startswith("original") or entry.get("source", "").startswith(

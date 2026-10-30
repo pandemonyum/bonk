@@ -1,0 +1,21 @@
+# Icona del bottone "Talenti" della home, 16x16: libro aperto visto di fronte, le due pagine
+# scendono verso il dorso. Pagina sinistra in luce (w), destra in ombra (6), righe di testo t/T,
+# piega del dorso t e T; contorno k.
+out: ui/menu_talents.png
+---
+................
+................
+..kkkk....kkkk..
+.kwwwwkkkk6666k.
+.kwwwwwtT66666k.
+.kwtttwtT6TTT6k.
+.kwwwwwtT66666k.
+.kwtttwtT6TTT6k.
+.kwwwwwtT66666k.
+.kwttwwtT6TT66k.
+.kwwwwwtT66666k.
+.kwwwwwtT66666k.
+.kkkkkwtT6kkkkk.
+......kkkk......
+................
+................

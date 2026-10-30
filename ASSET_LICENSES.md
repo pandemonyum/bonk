@@ -191,6 +191,15 @@ manifest `assets/manifest.json`.
 | `assets/ui/talent_spark_ev_b3.png` (talento v2 Pelo dritto, 16×16) | `assets-src/ui/talent_spark_ev_b3.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata nella griglia, senza IA né asset esterni |
 | `assets/ui/talent_spark_ev_c1.png` (talento v2 Tuonny cresciuto, 16×16) | `assets-src/ui/talent_spark_ev_c1.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata nella griglia, senza IA né asset esterni |
 | `assets/ui/talent_spark_ev_c2.png` (talento v2 Salto in più, 16×16) | `assets-src/ui/talent_spark_ev_c2.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata nella griglia, senza IA né asset esterni |
+| `assets/ui/menu_new_run.png` (bottone "Nuova partita" della home, spada d'oro, 16×16) | `assets-src/ui/menu_new_run.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/menu_companions.png` (bottone "Compagni", testa di creaturina generica, 16×16) | `assets-src/ui/menu_companions.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/menu_talents.png` (bottone "Talenti", libro aperto, 16×16) | `assets-src/ui/menu_talents.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/menu_options.png` (bottone "Opzioni", ingranaggio, 16×16) | `assets-src/ui/menu_options.px` → `scripts/build-assets.py` | originale, proprietà del progetto: abbozzata con una forma geometrica (otto denti su un anello) e rifinita nella griglia, senza IA né asset esterni |
+| `assets/ui/menu_quit.png` (bottone "Esci", porta socchiusa, 16×16) | `assets-src/ui/menu_quit.px` → `scripts/build-assets.py` | originale, proprietà del progetto: disegnata a mano nella griglia, senza IA né asset esterni |
+| `assets/ui/menu_arrow.png` (cursore del menu della home, 7×11) | `assets-src/ui/menu_arrow.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
+| `assets/ui/frame_corner.png` (angolo della cornice del pannello della home, 10×10) | `assets-src/ui/frame_corner.px` → `scripts/build-assets.py` | originale, proprietà del progetto |
+| `assets/ui/logo.png` (logo "Companion Survivors" della home, 222×90) | generato da `scripts/build-assets.py` (`build_logo` in `scripts/art_logo.py`): lettere dal font Pixelify Sans Regular (`assets/fonts/pixelify-sans/`, OFL 1.1) portate sulla sua griglia e ingrassate, con la sfumatura, i contorni e l'ombra del progetto; foglie, fiamma e stella disegnate a mano in `assets-src/logo/logo_parts.px` | originale, proprietà del progetto (lettering originale, nessun logo di altri giochi preso a modello; l'immagine dell'utente ha dato solo colori e disposizione). Il font non è incluso nel PNG: l'OFL copre il font, non le immagini disegnate con esso |
+| Palette del logo (`assets-src/logo/logo.palette.txt`, 28 colori) | definita per il progetto: rampe calde e fredde delle scritte, foglie; fiamma e oro come la palette "Germoglio" | originale, proprietà del progetto |
 | `assets/tiles/meadow_tileset.png` | generato da `scripts/build-assets.py` (seed 20261022, 42 tile dalla v1, ridisegnati nello stile del player il 2026-10-28) | originale, proprietà del progetto |
 | Palette "Germoglio" v1 (`assets-src/palette.txt`, 56 colori) | definita per il progetto | originale, proprietà del progetto |
 | Palette dei nemici (`assets-src/sprites/enemies.palette.txt`, 18 colori) | definita per il progetto: viola e rossi della palette "Germoglio", contorno come il player | originale, proprietà del progetto |
@@ -245,6 +254,16 @@ Cosa è stato fatto sul foglio dell'utente (2026-10-28, D-050):
   0–3 sono le pose dell'utente ripulite (il colpito 1 ridotto all'altezza del master).
 
 Il foglio originale e il ritaglio restano fuori dal repository.
+
+Illustrazione della home (2026-10-30, D-063):
+
+| Asset | Origine | Diritti e licenza |
+|---|---|---|
+| `assets/ui/home_background.png` (sfondo della home, 1448×1086) | immagine fornita dall'utente in chat, salvata come `assets-src/illustrations/home_background.webp`; `scripts/build-assets.py` la converte in PNG a piena risoluzione, a 256 colori con dithering se a schermo non si vede differenza (oggi 0,80 MiB contro 2,41 MiB in RGB). Nessun ritocco del contenuto | fornita dall'utente, che ne dichiara i diritti (D-063). Nel manifest: `provided by the user, rights declared by the user (D-063)`. Ritrae il player e tre compagni dell'utente (D-050, D-052): vale lo stesso rischio di somiglianza accettato dall'utente |
+
+La versione attuale è **provvisoria**: ha ancora logo e menu dipinti sopra. L'utente manderà la
+versione pulita con lo stesso nome (`.png` o `.webp`); basta sostituire il file e rifare il
+build.
 
 Compagni piccoli (2026-10-28, approvati dall'utente, D-060): `assets-src/sprites/<id>_sheet.px`
 ridisegna a mano a 28×24 le quattro pose approvate dei fogli da 40×36 (stessi personaggi

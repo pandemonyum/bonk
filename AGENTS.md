@@ -47,7 +47,7 @@ uno screenshot: `python scripts/check-pixel-grid.py <png>` (finestra con bande n
 | game-designer | `docs/GDD.md`, valori in `game-data/*.ron` (lo schema è del gameplay-engineer) |
 | gameplay-engineer | `src/app.rs`, `src/rng.rs`, `src/gameplay/`, `src/data/` (schema + loader), `src/presentation/` |
 | world-generation | `src/world/` |
-| pixel-art-director | `docs/ART_BIBLE.md`, `assets-src/`, `assets/`, `scripts/build-assets.py`, `scripts/validate-assets.py`, `ASSET_LICENSES.md` |
+| pixel-art-director | `docs/ART_BIBLE.md`, `assets-src/`, `assets/`, `scripts/build-assets.py` e `scripts/art_*.py`, `scripts/validate-assets.py`, `ASSET_LICENSES.md` |
 | qa-performance | `docs/QA_REPORT.md`, `src/diagnostics/`, `tests/` (un solo eseguibile: `tests/sim/`), `benches/`, `scripts/check.*`, `scripts/clean-stale.*` |
 | web-release | `web/`, `scripts/build-web.*`, `.github/`, `docs/RELEASE.md`, sezioni `[profile.*]` di `Cargo.toml` |
 | code-reviewer | nessun file: solo lettura, esito nel report |

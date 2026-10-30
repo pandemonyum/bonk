@@ -1,0 +1,22 @@
+# Icona del bottone "Esci" della home, 16x16: porta socchiusa nel suo telaio. Telaio con
+# l'architrave e lo stipite sinistro in luce (w) e quello destro in ombra (t); anta grigio chiaro
+# (6, luce w a sinistra, spessore t a destra) con due riquadri e il pomello k; a destra
+# dell'anta lo spiraglio scuro (5) dice che è aperta. Contorno k.
+out: ui/menu_quit.png
+---
+................
+.kkkkkkkkkkkkkk.
+.kwwwwwwwwwwwtk.
+.kwkkkkkkkkkktk.
+.kwkw6666tk55tk.
+.kwkw6tt6tk55tk.
+.kwkw6tt6tk55tk.
+.kwkw6666tk55tk.
+.kwkw666ktk55tk.
+.kwkw6666tk55tk.
+.kwkw6tt6tk55tk.
+.kwkw6tt6tk55tk.
+.kwkw6666tk55tk.
+.kwkw6666tk55tk.
+.kkkkkkkkkkkkkk.
+................

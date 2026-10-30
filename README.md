@@ -1,4 +1,6 @@
-# Pixel Monster Survivor (nome provvisorio)
+# Companion Survivors
+
+(Fino a D-063 "Pixel Monster Survivor", che resta il nome del crate e dell'eseguibile.)
 
 Survivor roguelite top-down 2D in pixel art: un evocatore e i suoi compagni mostriciattolo
 originali contro orde di creature. Rust + Bevy 0.20, desktop Windows ora, web (WASM) dalla P1.

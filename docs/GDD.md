@@ -1,4 +1,4 @@
-# GDD — Pixel Monster Survivor (MVP)
+# GDD — Companion Survivors (MVP)
 
 Documento pratico del game-designer. Fonte dei requisiti: handoff §1 e §7. I valori vivono in
 `game-data/*.ron`; questo documento ne spiega il perché e registra le misure.
@@ -12,7 +12,9 @@ restart immediato.
 
 ## Comandi
 
-Menu: 1/2/3, frecce o clic per il compagno, Invio per iniziare. WASD/frecce: movimento 8
+Pagina iniziale (D-063): W/S o frecce e Invio, oppure il mouse. Nuova partita parte con il
+compagno scelto; Compagni è la scelta (1–4, A/D o clic, Invio parte, Esc indietro); Talenti
+(anche T); Opzioni (schermo intero); Esci (non nel browser). WASD/frecce: movimento 8
 direzioni. Esc o P: pausa. F5: ricomincia. Sui risultati: Invio o F5 nuova run con lo stesso
 compagno, M menu. 1/2/3 o clic: carta del draft. F3: overlay debug. F12: screenshot. Nessun tasto d'attacco: gli
 attacchi sono automatici. In gioco l'HUD ricorda solo "Esc: pausa e comandi": l'elenco dei

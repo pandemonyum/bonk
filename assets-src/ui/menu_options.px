@@ -1,0 +1,21 @@
+# Icona del bottone "Opzioni" della home, 16x16: ingranaggio a otto denti col foro tondo al
+# centro. Grigio pietra chiaro (6), bordo esterno in luce w verso nord-ovest e in ombra t verso
+# sud-est, bordo del foro al contrario (la parete in alto a sinistra è in ombra); contorno k.
+out: ui/menu_options.png
+---
+.......kk.......
+..kk..kwwk..kk..
+.kwwkkkwwkkk66k.
+.kw6www66ww666k.
+..kw666tt6666k..
+..kw66tkkt66tk..
+.kkw6tk..kw6tkk.
+kww6tk....kw6ttk
+kww6tk....kw6ttk
+.kkw6tk..kw6tkk.
+..kw66wkkw66tk..
+..k6666ww666tk..
+.k666tt66ttt6tk.
+.k66kkkttkkkttk.
+..kk..kttk..kk..
+.......kk.......

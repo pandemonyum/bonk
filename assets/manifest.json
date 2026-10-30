@@ -526,6 +526,17 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "ui/frame_corner.png",
+      "kind": "ui",
+      "size": [
+        10,
+        10
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/frame_corner.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "ui/heart_empty.png",
       "kind": "ui",
       "size": [
@@ -622,6 +633,72 @@
       ],
       "frames": 1,
       "source": "assets-src/ui/lock.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/menu_arrow.png",
+      "kind": "ui",
+      "size": [
+        7,
+        11
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/menu_arrow.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/menu_companions.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/menu_companions.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/menu_new_run.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/menu_new_run.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/menu_options.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/menu_options.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/menu_quit.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/menu_quit.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/menu_talents.png",
+      "kind": "ui",
+      "size": [
+        16,
+        16
+      ],
+      "frames": 1,
+      "source": "assets-src/ui/menu_talents.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -2321,6 +2398,31 @@
       ],
       "source": "scripts/build-assets.py (procedural, seed 20261022)",
       "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "ui/logo.png",
+      "kind": "logo",
+      "size": [
+        222,
+        90
+      ],
+      "frames": 1,
+      "palette": "assets-src/logo/logo.palette.txt",
+      "font": "assets/fonts/pixelify-sans/PixelifySans.ttf",
+      "source": "assets-src/logo/logo_parts.px",
+      "license": "original, project-owned (lettering drawn from Pixelify Sans, OFL 1.1; parts in assets-src/logo)"
+    },
+    {
+      "path": "ui/home_background.png",
+      "kind": "illustration",
+      "size": [
+        1448,
+        1086
+      ],
+      "frames": 1,
+      "encoding": "indexed-256",
+      "source": "assets-src/illustrations/home_background.webp",
+      "license": "provided by the user, rights declared by the user (D-063)"
     }
   ]
 }

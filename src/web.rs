@@ -56,6 +56,56 @@ pub fn load(key: &str) -> Option<String> {
     storage()?.get_item(key).ok()?
 }
 
+/// La pagina è a schermo intero (anche se ci è entrata o ne è uscita con i tasti del browser).
+#[cfg(target_arch = "wasm32")]
+pub fn fullscreen() -> bool {
+    web_sys::window()
+        .and_then(|w| w.document())
+        .and_then(|d| d.fullscreen_element())
+        .is_some()
+}
+
+/// Chiede al browser lo schermo intero per il contenitore del canvas (`#stage`, così il canvas
+/// lo riempie a piena risoluzione) o di uscirne. Il browser lo concede solo poco dopo un clic o
+/// un tasto veri (il gioco lo chiede al fotogramma dopo, che basta); se rifiuta, la promessa
+/// fallita va solo nel log: lasciata senza `catch` la pagina la mostrerebbe come errore.
+#[cfg(target_arch = "wasm32")]
+pub fn set_fullscreen(on: bool) {
+    use wasm_bindgen::JsCast;
+    use wasm_bindgen::closure::Closure;
+
+    let Some(document) = web_sys::window().and_then(|w| w.document()) else {
+        return;
+    };
+    if !on {
+        document.exit_fullscreen();
+        return;
+    }
+    let Some(stage) = document.get_element_by_id("stage") else {
+        return;
+    };
+    // `requestFullscreen` restituisce una promessa, che `web_sys` non espone
+    let request = js_sys::Reflect::get(&stage, &"requestFullscreen".into())
+        .ok()
+        .and_then(|f| f.dyn_into::<js_sys::Function>().ok());
+    let Some(request) = request else {
+        return;
+    };
+    match request.call0(&stage) {
+        Ok(result) => {
+            if let Ok(promise) = result.dyn_into::<js_sys::Promise>() {
+                let refused = Closure::<dyn FnMut(wasm_bindgen::JsValue)>::new(|reason| {
+                    bevy::log::warn!("schermo intero rifiutato dal browser: {reason:?}");
+                });
+                let _ = promise.catch(&refused);
+                // la promessa si risolve più tardi: la closure deve restare viva (una per richiesta)
+                refused.forget();
+            }
+        }
+        Err(e) => bevy::log::warn!("schermo intero rifiutato dal browser: {e:?}"),
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 pub fn store(key: &str, value: &str) -> Result<(), String> {
     let storage = storage().ok_or("localStorage non disponibile")?;

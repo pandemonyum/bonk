@@ -498,6 +498,24 @@ sull'anteprima. Nei dati: `frame` 28×24, partenza della palla di fuoco e del fu
 piedi (erano 16), compagni a 19–22 px dietro al player (erano 26–30). I ritratti del menu (40×36)
 restano quelli grandi.
 
+## D-063 Pagina iniziale come l'illustrazione dell'utente; il gioco si chiama Companion Survivors *(utente)*
+L'utente ha mandato un'illustrazione della pagina iniziale (paesaggio con il suo player di
+spalle e tre dei suoi compagni, logo in alto a sinistra, pannello scuro con le voci) e poi la
+stessa senza logo e menu da usare come sfondo. È sua, come i fogli di D-050/D-052: sta in
+`assets-src/illustrations/` e non segue palette né griglia dei pixel (filtro lineare; copre la
+finestra senza deformarsi e il taglio tiene player e compagni). Logo, icone, freccia e fregi
+del pannello sono originali, disegnati nella pipeline. Il menu diventa una pagina iniziale:
+Nuova partita (con il compagno scelto, scritto in fondo al pannello: lo cambiano anche i
+talenti con Tab), Compagni (la scelta di prima, con Indietro), Talenti, Opzioni ed Esci (non nel
+browser). Lo schermo intero delle Opzioni sul desktop si salva nel profilo e vale dall'avvio,
+tranne nelle run automatiche (screenshot, uscita a tempo, profilo in sola lettura); nel browser
+vale per la visita, lo chiede il gioco alla pagina (solo dopo un clic o un tasto veri) e il
+valore mostrato è lo stato vero della pagina, che ne esce anche da sola con Esc. Niente "Continua"
+finché non si può salvare una run a metà (scelta dell'utente). Nome mostrato: Companion
+Survivors (logo, finestra, pagina web, documenti); restano il nome del crate e
+dell'eseguibile, la cartella del profilo e la chiave del `localStorage`, così i progressi già
+salvati non si perdono.
+
 ## D-062 Più mappa invece delle bande nere *(utente)*
 Con una finestra che non è un multiplo esatto di 480×270 il canvas resta alla stessa scala
 intera ma cresce fino a coprirla, fino a 640×360 pixel di mondo (1280×720 è tutta piena;

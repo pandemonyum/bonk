@@ -1,0 +1,41 @@
+# Palette del logo "Companion Survivors" (ui/logo.png) — originale del progetto.
+# Formato di assets-src/palette.txt: <carattere> <hex RGB> <ruolo>. '.' è sempre trasparente.
+# Letta da scripts/build-assets.py (build_logo) e, tramite "palette" nel manifest, da
+# scripts/validate-assets.py. Rampe con luce da nord-ovest, come lo stile v1.
+#
+# Contorno e neutri (come la palette del progetto)
+k 1b1428 contorno-stella
+w f4f1e8 bianco
+# Fiamma: gli stessi colori di ui/icon_fire (nucleo y, luce f, base o, ombra O, contorno x)
+y ffd65c nucleo-e-luce-oro
+f ffaa45 fiamma-luce
+o f27a2e fiamma
+O b84d22 fiamma-ombra
+x 6b2a1c fiamma-contorno
+# Stella d'oro sulla "o" di Survivors: luce y, base, ombra (oro della palette del progetto)
+g f2c94c oro
+G b8862e oro-ombra
+# Foglie: due verdi (luce, ombra) e contorno verde scuro
+e 9fd651 foglia-luce
+E 4f9a3a foglia-ombra
+N 173d26 foglia-contorno
+# "Companion", caldo: riflesso, giallo pallido, arancio chiaro, arancio, rosso-arancio,
+# ombra interna, contorno marrone scuro, ombra portata
+1 fff4c8 caldo-riflesso
+2 ffe07a caldo-giallo-pallido
+3 ffb547 caldo-arancio-chiaro
+4 f7892f caldo-arancio
+5 e45a2a caldo-rosso-arancio
+6 a83a1c caldo-ombra-interna
+7 4a2414 caldo-contorno
+8 22100a caldo-ombra-portata
+# "Survivors", freddo: riflesso, ciano pallido, celeste, azzurro, blu, ombra interna,
+# contorno blu notte, ombra portata
+A eafcff freddo-riflesso
+B a6eeff freddo-ciano-pallido
+C 66cdf8 freddo-celeste
+D 3a9fec freddo-azzurro
+F 2a6fd2 freddo-blu
+H 1d4a9e freddo-ombra-interna
+J 131a48 freddo-contorno
+K 090d26 freddo-ombra-portata
