@@ -12,7 +12,7 @@ pub enum AppState {
     /// In attesa di una `GameConfig` valida. Anche il restart passa da qui.
     #[default]
     Loading,
-    /// Menu iniziale: scelta del compagno e avvio della run (solo client).
+    /// Menu iniziale: pagina iniziale, selezione del compagno e avvio della run (solo client).
     MainMenu,
     /// Una run in corso. Le entità della run hanno `DespawnOnExit(AppState::InRun)`:
     /// uscire e rientrare in questo stato equivale a un restart pulito.
@@ -106,8 +106,9 @@ pub fn restart_run(next: &mut NextState<AppState>) {
     next.set(AppState::Loading);
 }
 
-/// Avvia una run con il compagno `companion` (scelta del menu). F5 e Invio dai risultati
-/// ripartiranno poi direttamente, senza ripassare dal menu.
+/// Avvia una run con il compagno `companion`, senza controlli: il menu passa da
+/// [`try_start_run`]. F5 e Invio dai risultati ripartiranno poi direttamente, senza ripassare dal
+/// menu.
 pub fn start_run(
     setup: &mut RunSetup,
     after: &mut AfterLoading,
@@ -117,6 +118,46 @@ pub fn start_run(
     setup.companion = Some(companion.to_string());
     after.0 = AppState::InRun;
     next.set(AppState::InRun);
+}
+
+/// Perché il menu non ha avviato la run.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StartRefused {
+    /// L'id non c'è nei dati (una ricarica può averlo tolto).
+    Unknown(String),
+    /// Il compagno c'è ma non è ancora un compagno iniziale (D-066).
+    Locked(String),
+}
+
+impl std::fmt::Display for StartRefused {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown(id) => write!(f, "il compagno \"{id}\" non esiste nei dati"),
+            Self::Locked(id) => write!(f, "il compagno \"{id}\" è ancora da sbloccare"),
+        }
+    }
+}
+
+/// Avvia la run scelta nel menu solo con un compagno iniziale disponibile per il profilo
+/// (`profile::unlocks`), anche se l'interfaccia lasciasse passare un compagno bloccato: in quel
+/// caso nulla cambia e si resta nel menu.
+pub fn try_start_run(
+    config: &GameConfig,
+    profile: &crate::profile::Profile,
+    setup: &mut RunSetup,
+    after: &mut AfterLoading,
+    next: &mut NextState<AppState>,
+    companion: &str,
+) -> Result<(), StartRefused> {
+    use crate::profile::{UnlockStatus, unlock_status};
+    match unlock_status(config, profile, companion) {
+        None => Err(StartRefused::Unknown(companion.to_string())),
+        Some(UnlockStatus::Locked) => Err(StartRefused::Locked(companion.to_string())),
+        Some(UnlockStatus::Available) => {
+            start_run(setup, after, next, companion);
+            Ok(())
+        }
+    }
 }
 
 /// Chiude la run e torna al menu.
@@ -141,4 +182,52 @@ fn pause_time(mut time: ResMut<Time<Virtual>>) {
 
 fn resume_time(mut time: ResMut<Time<Virtual>>) {
     time.unpause();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::profile::Profile;
+
+    /// Il controllo sta nella logica dell'avvio, non nel pulsante: un compagno bloccato o
+    /// sconosciuto non tocca né la scelta né lo stato.
+    #[test]
+    fn only_an_available_companion_starts_a_run() {
+        let config = GameConfig::embedded();
+        let profile = Profile::default();
+        let locked = config
+            .companions
+            .iter()
+            .find(|c| !crate::profile::is_unlocked(&config, &profile, &c.id))
+            .expect("un compagno da sbloccare")
+            .id
+            .clone();
+        let mut setup = RunSetup::default();
+        let mut after = AfterLoading(AppState::MainMenu);
+        let mut next = NextState::<AppState>::default();
+        for (id, refused) in [
+            (locked.clone(), StartRefused::Locked(locked.clone())),
+            (
+                "nessuno".to_string(),
+                StartRefused::Unknown("nessuno".into()),
+            ),
+        ] {
+            let result = try_start_run(&config, &profile, &mut setup, &mut after, &mut next, &id);
+            assert_eq!(result, Err(refused));
+            assert_eq!(setup, RunSetup::default());
+            assert_eq!(after, AfterLoading(AppState::MainMenu));
+            assert!(matches!(next, NextState::Unchanged), "{next:?}");
+        }
+        let starter = config.stage.starting_companion.clone();
+        let result = try_start_run(
+            &config, &profile, &mut setup, &mut after, &mut next, &starter,
+        );
+        assert_eq!(result, Ok(()));
+        assert_eq!(setup.companion.as_deref(), Some(starter.as_str()));
+        assert_eq!(after, AfterLoading(AppState::InRun));
+        assert!(
+            matches!(next, NextState::Pending(AppState::InRun)),
+            "{next:?}"
+        );
+    }
 }

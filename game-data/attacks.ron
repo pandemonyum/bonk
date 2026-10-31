@@ -2,12 +2,16 @@
 // upgrade "Companion" li modificano tutti). Il pattern dice come colpiscono:
 // - Projectile: proiettili mirati sul nemico più vicino entro `range` (P0.2);
 // - Pulse: onda che si allarga attorno al player fino a `range`, colpisce e rallenta (P0.5);
-// - Orbit: foglie che girano attorno al player a distanza `range` (P0.5).
+// - Orbit: foglie che girano attorno al player a distanza `range` (P0.5);
+// - Chain: fulmine sul nemico più vicino che salta ai vicini (Tuonny).
+// `display_name` e `description`: nome e frase dell'abilità nella selezione del compagno (D-066).
 (
-    version: 5,
+    version: 6,
     attacks: [
         (
             id: "ember_bolt",
+            display_name: "Palla di fuoco",
+            description: "Lancia una palla di fuoco sul nemico più vicino.",
             damage: 12.0,
             // secondi tra due attacchi
             interval_s: 1.1,
@@ -31,6 +35,8 @@
         ),
         (
             id: "tide_pulse",
+            display_name: "Onda di marea",
+            description: "Un'onda parte da te, colpisce e rallenta i nemici attorno.",
             // colpisce tutti i nemici nell'area: meno danno, più bersagli
             damage: 8.0,
             interval_s: 2.0,
@@ -48,6 +54,8 @@
         ),
         (
             id: "leaf_orbit",
+            display_name: "Foglie rotanti",
+            description: "Foglie taglienti ti girano attorno e colpiscono chi toccano.",
             damage: 6.0,
             // secondi prima che le foglie colpiscano di nuovo lo stesso nemico
             interval_s: 0.6,
@@ -64,6 +72,8 @@
         ),
         (
             id: "spark_chain",
+            display_name: "Fulmine a catena",
+            description: "Colpisce il nemico più vicino e salta ai vicini, scuotendoli.",
             // primo colpo un po' sotto la palla di fuoco (9 al secondo contro 11), ma i salti
             // colpiscono la calca. Prima taratura 10 ogni 1,6 s con 3 salti da 60 px: la squadra
             // senza Ondino (Foglin + Fiammetto + Tuonny) perdeva 8 run su 9 verso il minuto 4

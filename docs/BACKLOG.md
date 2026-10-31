@@ -71,6 +71,12 @@ opzioni, browser, release candidate).
 | ~~P1-FILL~~ **DONE** | Più mappa invece delle bande nere, fino a 640×360 pixel di mondo (D-062) | orchestrator | finestre 960×540, 1280×720, 1366×768 e browser; sonda 27/32 come prima |
 | U-PLAY | Prova umana: forzieri e orde si sentono? Squadra senza Ondino, talenti al massimo | utente | — |
 
+## Selezione del compagno iniziale (2026-10-30, D-066)
+
+| ID | Task | Owner | Criteri di done |
+|---|---|---|---|
+| ~~U-SELECT~~ **DONE** | Nuova Partita → selezione del compagno iniziale → Inizia Partita; griglia dai dati con i bloccati oscurati e il lucchetto, niente al centro, dettagli dai dati, sblocchi persistenti (solo Fiammetto su un profilo nuovo), avvio rifiutato per un bloccato | gameplay-engineer (`src/presentation/`, `src/app.rs`, `src/profile.rs`, `src/data/`, `src/options.rs`, campi di testo e `unlock` in `game-data/companions.ron` e `attacks.ron`, assegnati dall'orchestratore) + code-reviewer + orchestrator (decisione, backlog, progress, build web) | test: profilo nuovo, selezione iniziale, bloccato non avviabile, avvio con Fiammetto, Indietro, persistenza, profilo vecchio, nessuna run che sblocca, schermata aperta e chiusa più volte senza duplicati; `./scripts/check.ps1` e clippy wasm verdi; build web; screenshot a 1280×720, 1920×1080 e 1024×768 |
+
 ## Arte con ChatGPT, handoff manuale (2026-10-30, D-065)
 
 | ID | Task | Owner | Criteri di done |

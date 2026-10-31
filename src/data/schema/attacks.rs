@@ -1,5 +1,5 @@
-//! Schema di `attacks.ron`: campi comuni e parametri di ogni pattern (proiettile, onda,
-//! orbita, fulmine a catena).
+//! Schema di `attacks.ron`: nome e testo dell'abilità, campi comuni e parametri di ogni pattern
+//! (proiettile, onda, orbita, fulmine a catena).
 
 use serde::Deserialize;
 
@@ -9,6 +9,10 @@ use serde::Deserialize;
 #[serde(deny_unknown_fields)]
 pub struct AttackData {
     pub id: String,
+    /// Nome dell'abilità nella selezione del compagno ("Palla di fuoco").
+    pub display_name: String,
+    /// Cosa fa, in una frase, per la selezione del compagno.
+    pub description: String,
     pub damage: f32,
     /// Proiettile, onda e fulmine: secondi tra due attacchi. Orbita: secondi prima che le foglie
     /// possano colpire di nuovo lo stesso nemico.

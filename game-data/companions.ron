@@ -4,13 +4,19 @@
 // forniti dall'utente. La distanza di inseguimento segue i corpi del foglio (~30 di larghezza).
 // Il compagno iniziale è in stages.ron; gli altri arrivano con le carte JoinCompanion di
 // upgrades.ron, nei posti liberi di player.ron (companion_slots).
+// `description`: testo della schermata di selezione del compagno iniziale (D-066).
+// `unlock`: Start = si può scegliere come compagno iniziale anche su un profilo nuovo; Locked =
+// non ancora (si sblocca solo con una condizione futura, salvata nel profilo). Serve almeno un
+// Start e lo stage deve partire con uno Start.
 (
-    version: 5,
+    version: 6,
     companions: [
         (
             id: "ember",
             display_name: "Fiammetto",
+            description: "Un piccolo lucertolino con una fiamma sempre accesa sulla coda. Coraggioso e leale, è il compagno ideale per iniziare la tua avventura.",
             element: Fire,
+            unlock: Start,
             sprite: "sprites/ember_sheet.png",
             frame: Some((w: 28, h: 24)),
             // tre rami (elemento, Supporto, Evoluzione), proposta del game-designer in
@@ -110,7 +116,9 @@
         (
             id: "tide",
             display_name: "Ondino",
+            description: "Una lontra allegra che gioca con le bolle. Con le sue onde tiene lontani i nemici e li rallenta.",
             element: Water,
+            unlock: Locked,
             sprite: "sprites/tide_sheet.png",
             frame: Some((w: 28, h: 24)),
             // tre rami (elemento, Supporto, Evoluzione), proposta del game-designer in
@@ -201,7 +209,9 @@
         (
             id: "sprout",
             display_name: "Foglin",
+            description: "Una volpe con le foglie al posto delle orecchie e della coda. Svelta e curiosa, ti protegge con un vortice di foglie.",
             element: Nature,
+            unlock: Locked,
             sprite: "sprites/sprout_sheet.png",
             frame: Some((w: 28, h: 24)),
             // tre rami (elemento, Supporto, Evoluzione), proposta del game-designer in
@@ -292,7 +302,9 @@
         (
             id: "spark",
             display_name: "Tuonny",
+            description: "Un gatto vivace con la coda a stella. Carica l'aria di elettricità e colpisce più nemici in un lampo.",
             element: Electric,
+            unlock: Locked,
             sprite: "sprites/spark_sheet.png",
             frame: Some((w: 28, h: 24)),
             // tre rami (elemento, Supporto, Evoluzione), proposta del game-designer in

@@ -6,21 +6,24 @@
 //! `progression.ron` e `upgrades.ron`) → 4 (P0.5: attacchi con `pattern` proiettile / onda /
 //! orbita, slot dei compagni nel player, carte che aggiungono un compagno) → 5 (P0.6: durata
 //! della run, difficoltà per minuto, élite e boss negli stage, cariche e colpi ad area
-//! telegrafati nei nemici).
+//! telegrafati nei nemici) → 6 (U-SELECT, D-066: `description` e `unlock` dei compagni,
+//! `display_name` e `description` degli attacchi, per la selezione del compagno iniziale).
 
 use serde::Deserialize;
 
 mod attacks;
+mod companions;
 mod run;
 mod talents;
 mod treasure;
 pub use attacks::*;
+pub use companions::*;
 pub use run::*;
 pub use talents::*;
 pub use treasure::*;
 
 /// Versione dello schema supportata da questo codice.
-pub const SCHEMA_VERSION: u32 = 5;
+pub const SCHEMA_VERSION: u32 = 6;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -172,47 +175,6 @@ pub struct UpgradeData {
 pub struct UpgradesFile {
     pub version: u32,
     pub upgrades: Vec<UpgradeData>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
-pub enum Element {
-    Fire,
-    Water,
-    Nature,
-    Electric,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct FollowData {
-    pub distance: f32,
-    pub max_speed: f32,
-    pub gain: f32,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct CompanionData {
-    pub id: String,
-    pub display_name: String,
-    pub element: Element,
-    pub sprite: String,
-    pub attack: String,
-    pub follow: FollowData,
-    /// Fotogramma del foglio animato in `sprite` (4 colonne; righe: fermo, cammino, attacco).
-    /// Assente: immagine fissa.
-    #[serde(default)]
-    pub frame: Option<SheetFrame>,
-    /// Due rami di talenti, sbloccati con i livelli del compagno tra una run e l'altra.
-    #[serde(default)]
-    pub talents: Vec<TalentBranch>,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct CompanionsFile {
-    pub version: u32,
-    pub companions: Vec<CompanionData>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize)]

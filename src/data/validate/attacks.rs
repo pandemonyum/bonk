@@ -26,6 +26,8 @@ pub(super) fn check(r: &mut Report, config: &GameConfig) {
     r.unique_ids("attacks.ron", config.attacks.iter().map(|a| &a.id));
     for a in &config.attacks {
         let at = |field: &str| format!("attacks.ron: {}.{field}", a.id);
+        r.text(&at("display_name"), &a.display_name);
+        r.text(&at("description"), &a.description);
         r.positive(&at("damage"), a.damage);
         r.positive(&at("interval_s"), a.interval_s);
         r.positive(&at("range"), a.range);

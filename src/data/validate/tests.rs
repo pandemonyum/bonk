@@ -261,3 +261,56 @@ fn companion_sheet_frames_are_checked() {
     let ok = errors_after(|c| c.companions[0].frame = Some(SheetFrame { w: 28, h: 28 }));
     assert!(!ok.iter().any(|e| e.contains(".frame")), "{ok:?}");
 }
+
+/// D-066: almeno un compagno iniziale, lo stage parte con uno di questi, testi della
+/// selezione presenti.
+#[test]
+fn starting_companions_and_selection_texts_are_checked() {
+    use crate::data::schema::Unlock;
+    let c = embedded();
+    let starter = c.stage.starting_companion.clone();
+    let locked = c
+        .companions
+        .iter()
+        .position(|x| x.unlock == Unlock::Locked)
+        .expect("i dati hanno un compagno da sbloccare");
+    assert_error(
+        |c| {
+            c.companions
+                .iter_mut()
+                .for_each(|x| x.unlock = Unlock::Locked)
+        },
+        "serve almeno un compagno con unlock: Start",
+    );
+    assert_error(
+        |c| c.stage.starting_companion = c.companions[locked].id.clone(),
+        &format!(
+            "stages.ron: {}.starting_companion = \"{}\": serve un compagno con unlock: Start",
+            c.stage.id, c.companions[locked].id
+        ),
+    );
+    // un altro compagno Start oltre a quello dello stage va bene
+    assert!(errors_after(|c| c.companions[locked].unlock = Unlock::Start).is_empty());
+    let first = c.companions[0].id.clone();
+    assert_error(
+        |c| c.companions[0].display_name.clear(),
+        &format!("companions.ron: {first}.display_name: serve un testo"),
+    );
+    assert_error(
+        |c| c.companions[0].description = "  ".into(),
+        &format!("companions.ron: {first}.description: serve un testo"),
+    );
+    let attack = c.attacks[0].id.clone();
+    assert_error(
+        |c| c.attacks[0].display_name.clear(),
+        &format!("attacks.ron: {attack}.display_name: serve un testo"),
+    );
+    assert_error(
+        |c| c.attacks[0].description = "Un colpo ✦".into(),
+        &format!("attacks.ron: {attack}.description contiene '✦'"),
+    );
+    assert!(
+        c.companion(&starter)
+            .is_some_and(|x| x.unlock == Unlock::Start)
+    );
+}

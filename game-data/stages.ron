@@ -1,6 +1,6 @@
 // Stage (mappe). La prima voce è quella giocata.
 (
-    version: 5,
+    version: 6,
     stages: [
         (
             id: "meadow",

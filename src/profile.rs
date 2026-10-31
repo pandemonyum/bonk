@@ -6,7 +6,8 @@
 //!
 //! A fine run (sconfitta o vittoria) ogni compagno in squadra guadagna esperienza (tempo in
 //! squadra, nemici finiti, vittoria: `progression.ron: companion_xp`); ogni livello dà un punto
-//! da spendere nel suo albero (`companions.ron: talents`) dal menu.
+//! da spendere nel suo albero (`companions.ron: talents`) dal menu. I compagni iniziali
+//! sbloccati stanno in `unlocked` e le loro regole in `unlocks`: nessuna run ne sblocca.
 
 use std::path::PathBuf;
 
@@ -21,6 +22,9 @@ use crate::gameplay::combat::{RunStats, Source};
 use crate::gameplay::companions::Companion;
 use crate::gameplay::run::RunClock;
 use crate::gameplay::talents::{LearnedTalents, node_rank};
+
+mod unlocks;
+pub use unlocks::{UnlockStatus, first_unlocked, is_unlocked, proposed_starter, unlock_status};
 
 pub const PROFILE_VERSION: u32 = 1;
 const FILE_NAME: &str = "profile.ron";
@@ -41,6 +45,10 @@ pub struct ProfileData {
     /// Schermo intero (Opzioni); sul desktop anche all'avvio.
     #[serde(default)]
     pub fullscreen: bool,
+    /// Compagni sbloccati come compagni iniziali da una condizione (`unlocks`, D-066), ordinati e
+    /// senza doppioni. Quelli `Start` nei dati non ci sono: lo sono per tutti.
+    #[serde(default)]
+    pub unlocked: Vec<String>,
 }
 
 impl Default for ProfileData {
@@ -49,6 +57,7 @@ impl Default for ProfileData {
             version: PROFILE_VERSION,
             companions: Vec::new(),
             fullscreen: false,
+            unlocked: Vec::new(),
         }
     }
 }
@@ -89,7 +98,11 @@ impl Profile {
         let data = match read_store(&path) {
             None => ProfileData::default(),
             Some(text) => match ron::from_str::<ProfileData>(&text) {
-                Ok(data) => data,
+                Ok(mut data) => {
+                    data.unlocked.sort();
+                    data.unlocked.dedup();
+                    data
+                }
                 Err(error) => {
                     warn!("profilo illeggibile ({error}): ne comincio uno nuovo");
                     set_aside(&path, &text);
@@ -362,95 +375,4 @@ fn award_run(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn learning_needs_points_ranks_and_requirements() {
-        let config = GameConfig::embedded();
-        let ember = config.companion("ember").unwrap();
-        let first = &ember.talents[0].nodes[0];
-        let after = ember.talents[0]
-            .nodes
-            .iter()
-            .find(|n| n.requires.contains(&first.id))
-            .expect("un nodo richiede il primo");
-        let mut profile = Profile::default();
-        assert_eq!(profile.points(&config, "ember"), (1, 0, 0));
-        assert!(
-            !profile.learn(&config, "ember", &first.id),
-            "nessun punto a livello 1"
-        );
-        // tanti punti quanti i gradi del primo nodo più uno
-        let curve = config.progression.companion_xp;
-        let points = first.max_rank() + 1;
-        profile.entry("ember").xp = curve.total_for(points + 1);
-        assert!(
-            !profile.can_learn(&config, "ember", &after.id),
-            "serve il nodo prima"
-        );
-        for rank in 1..=first.max_rank() {
-            assert!(profile.learn(&config, "ember", &first.id));
-            assert_eq!(profile.rank(&config, "ember", &first.id), rank);
-        }
-        assert!(!profile.learn(&config, "ember", &first.id), "al massimo");
-        assert!(
-            profile.learn(&config, "ember", &after.id),
-            "aperto dal primo"
-        );
-        assert_eq!(
-            profile.points(&config, "ember"),
-            (points + 1, points, points)
-        );
-        assert!(
-            !profile.can_learn(&config, "ember", &after.id),
-            "punti finiti"
-        );
-        profile.reset("ember");
-        assert_eq!(profile.points(&config, "ember").2, 0);
-    }
-
-    #[test]
-    fn a_run_awards_time_kills_and_victory() {
-        let config = GameConfig::embedded();
-        let mut profile = Profile::default();
-        let lines = award(
-            &config,
-            &mut profile,
-            &[("ember".into(), 960.0, 1000), ("tide".into(), 30.0, 0)],
-            true,
-        );
-        let curve = config.progression.companion_xp;
-        assert_eq!(lines[0].gain, curve.earned(960.0, 1000, true));
-        assert_eq!(profile.progress("ember").xp, lines[0].gain.total());
-        assert_eq!(lines[0].level_before, 1);
-        assert_eq!(lines[0].level_after, curve.level(lines[0].gain.total()));
-        assert_eq!(
-            profile.progress("tide").xp,
-            curve.earned(30.0, 0, true).total()
-        );
-    }
-
-    #[test]
-    fn the_profile_round_trips_through_its_file() {
-        let dir = std::env::temp_dir().join(format!("pms-profile-{}", std::process::id()));
-        let path = dir.join(FILE_NAME);
-        let mut profile = Profile::open(path.clone());
-        assert_eq!(
-            profile.data,
-            ProfileData::default(),
-            "file assente: profilo nuovo"
-        );
-        profile.entry("spark").xp = 321;
-        profile.entry("spark").learned.push("spark_a1".into());
-        profile.save();
-        let again = Profile::open(path.clone());
-        assert_eq!(again.data, profile.data);
-        // un file rovinato non si perde: resta come .bak
-        std::fs::write(&path, "(version: 1, companions: [rotto").unwrap();
-        let broken = Profile::open(path.clone());
-        assert_eq!(broken.data, ProfileData::default());
-        assert!(path.with_extension("ron.bak").exists());
-        let _ = std::fs::remove_dir_all(dir);
-    }
-}
+mod tests;

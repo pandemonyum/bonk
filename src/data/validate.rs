@@ -115,6 +115,15 @@ impl Report {
         }
     }
 
+    /// Testo mostrato a schermo che non può mancare: non vuoto e disegnabile dai font.
+    fn text(&mut self, at: &str, text: &str) {
+        if text.trim().is_empty() {
+            self.0
+                .push(format!("{at}: serve un testo, trovato \"{text}\""));
+        }
+        self.ui_text(at, text);
+    }
+
     /// Un corpo che si sposta di più di (impronta minima + proprio raggio) in un passo può
     /// saltare oltre il centro di un tronco: la respinta lo manda dall'altra parte.
     fn body_speed(&mut self, at: &str, speed: f32, footprint_radius: f32) {
@@ -154,19 +163,7 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
         }
     }
 
-    r.unique_ids("companions.ron", config.companions.iter().map(|c| &c.id));
-    for c in &config.companions {
-        let at = |field: &str| format!("companions.ron: {}.{field}", c.id);
-        r.non_negative(&at("follow.distance"), c.follow.distance);
-        r.positive(&at("follow.max_speed"), c.follow.max_speed);
-        r.positive(&at("follow.gain"), c.follow.gain);
-        r.sprite(&at("sprite"), &c.sprite);
-        r.sheet_frame(&at("frame"), c.frame);
-        r.ui_text(&at("display_name"), &c.display_name);
-        let exists = config.attack(&c.attack).is_some();
-        r.reference(&at("attack"), &c.attack, exists, "attacks.ron");
-    }
-
+    companions::check(&mut r, config);
     attacks::check(&mut r, config);
 
     r.unique_ids("enemies.ron", config.enemies.iter().map(|e| &e.id));
@@ -276,6 +273,7 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
 }
 
 mod attacks;
+mod companions;
 mod progression;
 mod run;
 mod talents;

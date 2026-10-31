@@ -6,7 +6,7 @@
 // con carica o colpo ad area, preparazione e attacco). Hurtbox, contatto e separazione seguono
 // i corpi dei fogli (misurati sui PNG); l'impronta resta quella dei piedi (max 9).
 (
-    version: 5,
+    version: 6,
     enemies: [
         (
             id: "blob",

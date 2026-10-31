@@ -1,5 +1,5 @@
 //! Pagina iniziale: copertura dell'illustrazione, voci, schermate e tasti tra le schermate e il
-//! pannello dei talenti.
+//! pannello dei talenti. `menu_app`, `go`, `tap` e `named` servono anche ai test della selezione.
 
 use bevy::input::ButtonState;
 use bevy::input::keyboard::{Key, KeyboardInput, NativeKey};
@@ -7,6 +7,7 @@ use bevy::state::app::StatesPlugin;
 
 use super::*;
 use crate::app::{AfterLoading, RunSetup};
+use crate::data::GameConfig;
 use crate::presentation::menu::GOLD;
 use crate::presentation::menu_list::ListSelection;
 use crate::profile::{CompanionProgress, Profile};
@@ -32,10 +33,13 @@ fn the_browser_has_no_quit_entry() {
     assert_eq!(home_entries(false).last(), Some(&HomeEntry::Quit));
     assert!(!home_entries(true).contains(&HomeEntry::Quit));
     assert_eq!(home_entries(true)[0], HomeEntry::NewRun);
+    // la scelta del compagno sta dopo "Nuova Partita" (D-066): niente voce "Compagni"
+    let labels: Vec<&str> = home_entries(false).iter().map(|e| e.label()).collect();
+    assert_eq!(labels, ["Nuova Partita", "Talenti", "Opzioni", "Esci"]);
 }
 
 /// Il menu senza finestra, con `profile` e tutte le schermate e il pannello dei talenti.
-fn menu_app(profile: Profile) -> App {
+pub(crate) fn menu_app(profile: Profile) -> App {
     let mut app = App::new();
     app.add_plugins((
         MinimalPlugins,
@@ -60,25 +64,25 @@ fn menu_app(profile: Profile) -> App {
     app
 }
 
-fn named(app: &mut App, name: &str) -> usize {
+pub(crate) fn named(app: &mut App, name: &str) -> usize {
     let world = app.world_mut();
     let mut names = world.query::<&Name>();
     names.iter(world).filter(|n| n.as_str() == name).count()
 }
 
-fn go(app: &mut App, screen: MenuScreen) {
+pub(crate) fn go(app: &mut App, screen: MenuScreen) {
     app.world_mut()
         .resource_mut::<NextState<MenuScreen>>()
         .set(screen);
     app.update();
 }
 
-fn screen(app: &App) -> MenuScreen {
+pub(crate) fn screen(app: &App) -> MenuScreen {
     *app.world().resource::<State<MenuScreen>>().get()
 }
 
 /// Un tasto premuto e lasciato, come dalla tastiera (passa dall'`InputPlugin`).
-fn tap(app: &mut App, key: KeyCode) {
+pub(crate) fn tap(app: &mut App, key: KeyCode) {
     let message = |state| KeyboardInput {
         key_code: key,
         logical_key: Key::Unidentified(NativeKey::Unidentified),
@@ -102,7 +106,7 @@ fn every_menu_screen_builds() {
     assert_eq!(named(&mut app, "Home"), 1);
     assert_eq!(named(&mut app, "Illustrazione"), 1);
     for (target, name) in [
-        (MenuScreen::Companions, "MainMenu"),
+        (MenuScreen::Select, "Selezione"),
         (MenuScreen::Options, "Opzioni"),
         (MenuScreen::Home, "Home"),
     ] {
@@ -119,16 +123,17 @@ fn every_menu_screen_builds() {
     assert_eq!(named(&mut app, "Talenti"), 1);
 }
 
-/// Rientrando in "Compagni" la carta scelta è di nuovo evidenziata.
+/// Rientrando nella selezione la carta scelta è di nuovo evidenziata.
 #[test]
 fn the_chosen_card_is_highlighted_every_time() {
     let mut app = menu_app(Profile::default());
-    let chosen = format!("Carta {}", app.world().resource::<MenuChoice>().0);
-    for target in [
-        MenuScreen::Companions,
-        MenuScreen::Home,
-        MenuScreen::Companions,
-    ] {
+    let chosen = format!(
+        "Carta {}",
+        app.world()
+            .resource::<crate::presentation::menu::MenuChoice>()
+            .0
+    );
+    for target in [MenuScreen::Select, MenuScreen::Home, MenuScreen::Select] {
         go(&mut app, target);
     }
     let world = app.world_mut();
@@ -180,7 +185,7 @@ fn enter_on_talents_only_opens_the_panel() {
 #[test]
 fn escape_closes_the_talents_panel_before_leaving_a_screen() {
     let mut app = menu_app(Profile::default());
-    for target in [MenuScreen::Companions, MenuScreen::Options] {
+    for target in [MenuScreen::Select, MenuScreen::Options] {
         go(&mut app, target);
         app.world_mut().resource_mut::<TalentPanel>().open = true;
         app.update();
@@ -190,4 +195,23 @@ fn escape_closes_the_talents_panel_before_leaving_a_screen() {
         tap(&mut app, KeyCode::Escape);
         assert_eq!(screen(&app), MenuScreen::Home);
     }
+}
+
+/// "Nuova Partita" apre la selezione del compagno e non avvia la run (D-066).
+#[test]
+fn new_run_opens_the_companion_selection() {
+    let mut app = menu_app(Profile::default());
+    let new_run = entries()
+        .iter()
+        .position(|e| *e == HomeEntry::NewRun)
+        .unwrap();
+    app.world_mut().resource_mut::<ListSelection>().0 = new_run;
+    tap(&mut app, KeyCode::Enter);
+    assert_eq!(screen(&app), MenuScreen::Select);
+    assert_eq!(
+        *app.world().resource::<State<AppState>>().get(),
+        AppState::MainMenu
+    );
+    assert_eq!(app.world().resource::<RunSetup>(), &RunSetup::default());
+    assert_eq!(named(&mut app, "Selezione"), 1);
 }

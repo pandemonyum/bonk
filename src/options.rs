@@ -22,7 +22,34 @@ Uso: pixel-monster-survivor [opzioni]
   --time-scale <f>         velocità del tempo di gioco (es. 4 = 4 minuti di gioco al minuto)
   --watch / --no-watch     ricarica a caldo di assets/ e game-data/ (default: attiva nella
                            build di sviluppo, spenta in release; non disponibile sul web)
+  --menu-screen <nome>     apre il menu su: home (default), select (selezione del compagno
+                           iniziale, anche companions) o options (prove e screenshot)
   -h, --help               mostra questo aiuto";
+
+/// Schermata del menu su cui si apre il gioco (`--menu-screen`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum MenuPage {
+    #[default]
+    Home,
+    /// Selezione del compagno iniziale.
+    Select,
+    Options,
+}
+
+impl FromStr for MenuPage {
+    type Err = String;
+
+    fn from_str(raw: &str) -> Result<Self, String> {
+        match raw {
+            "home" => Ok(Self::Home),
+            "select" | "companions" => Ok(Self::Select),
+            "options" => Ok(Self::Options),
+            other => Err(format!(
+                "--menu-screen: atteso home, select o options, trovato '{other}'"
+            )),
+        }
+    }
+}
 
 #[derive(Resource, Debug, Clone, PartialEq)]
 pub struct LaunchOptions {
@@ -44,6 +71,8 @@ pub struct LaunchOptions {
     pub time_scale: f32,
     /// Ricarica a caldo; `None` = default della build (vedi [`LaunchOptions::watch_files`]).
     pub watch: Option<bool>,
+    /// Schermata del menu all'avvio (con `--autoplay` il menu non si vede).
+    pub menu_screen: MenuPage,
 }
 
 impl Default for LaunchOptions {
@@ -61,6 +90,7 @@ impl Default for LaunchOptions {
             god: false,
             time_scale: 1.0,
             watch: None,
+            menu_screen: MenuPage::Home,
         }
     }
 }
@@ -134,6 +164,9 @@ impl LaunchOptions {
                 },
                 "--watch" => options.watch = Some(true),
                 "--no-watch" => options.watch = Some(false),
+                "--menu-screen" => {
+                    options.menu_screen = value::<String>(&mut args, &flag)?.parse()?
+                }
                 "-h" | "--help" => return Ok(None),
                 other => return Err(format!("opzione sconosciuta: {other}")),
             }
@@ -237,6 +270,30 @@ mod tests {
         assert_eq!(o.screenshot_burst, 8);
         assert!(parse(&["--screenshot-burst", "0"]).is_err());
         assert!(parse(&["--screenshot-burst", "51"]).is_err());
+    }
+
+    #[test]
+    fn parses_the_menu_screen() {
+        assert_eq!(parse(&[]).unwrap().unwrap().menu_screen, MenuPage::Home);
+        for (raw, page) in [
+            ("home", MenuPage::Home),
+            ("select", MenuPage::Select),
+            ("companions", MenuPage::Select),
+            ("options", MenuPage::Options),
+        ] {
+            let o = parse(&["--menu-screen", raw]).unwrap().unwrap();
+            assert_eq!(o.menu_screen, page, "{raw}");
+        }
+        let error = parse(&["--menu-screen", "talenti"]).unwrap_err();
+        assert!(error.contains("home, select o options"), "{error}");
+        assert!(parse(&["--menu-screen"]).is_err());
+        assert!(USAGE.contains("--menu-screen"));
+        // sul web arriva dall'indirizzo: `?menu-screen=select`
+        let web = crate::web::query_args("?menu-screen=select");
+        assert_eq!(
+            LaunchOptions::parse(web).unwrap().unwrap().menu_screen,
+            MenuPage::Select
+        );
     }
 
     #[test]

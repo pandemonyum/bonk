@@ -13,7 +13,7 @@ use super::icons::ui_icon;
 use super::menu::GOLD;
 use crate::app::AppState;
 
-const FRAME: Color = Color::srgb_u8(0x9a, 0x74, 0x3c);
+pub(super) const FRAME: Color = Color::srgb_u8(0x9a, 0x74, 0x3c);
 const FILL: Color = Color::srgba(0.07, 0.09, 0.14, 0.92);
 const BUTTON: Color = Color::srgb_u8(0x1c, 0x23, 0x33);
 const BUTTON_ON: Color = Color::srgb_u8(0x33, 0x2c, 0x1c);
@@ -108,6 +108,12 @@ pub(super) fn spawn_panel(commands: &mut Commands, assets: &AssetServer, node: N
     let panel = commands
         .spawn((node, BackgroundColor(FILL), BorderColor::all(FRAME)))
         .id();
+    add_corners(commands, assets, panel);
+    panel
+}
+
+/// Un fregio di bronzo in ogni angolo di `panel` (bordo di 4 unità), come nei pannelli.
+pub(super) fn add_corners(commands: &mut Commands, assets: &AssetServer, panel: Entity) {
     for (flip_x, flip_y) in [(false, false), (true, false), (false, true), (true, true)] {
         // il fregio è disegnato per l'angolo in alto a sinistra: specchiato per gli altri
         let mut image = ImageNode::new(assets.load("ui/frame_corner.png"));
@@ -131,7 +137,6 @@ pub(super) fn spawn_panel(commands: &mut Commands, assets: &AssetServer, node: N
             .id();
         commands.entity(panel).add_child(corner);
     }
-    panel
 }
 
 /// Pulsante `index` di una lista, con icona facoltativa; il testo è un figlio a parte, per le

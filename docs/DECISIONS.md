@@ -498,6 +498,36 @@ sull'anteprima. Nei dati: `frame` 28×24, partenza della palla di fuoco e del fu
 piedi (erano 16), compagni a 19–22 px dietro al player (erano 26–30). I ritratti del menu (40×36)
 restano quelli grandi.
 
+## D-066 Selezione del compagno iniziale e compagni da sbloccare *(utente)*
+Richiesta dell'utente del 2026-10-30, con un mockup fatto con ChatGPT (solo reference: la
+schermata è fatta di nodi UI veri). Il flusso diventa Nuova Partita → selezione → Inizia
+Partita → run; Indietro (o Esc) torna alla pagina iniziale senza run. La selezione prende il
+posto della schermata "Compagni" (D-040): la voce "Compagni" e la riga "Parti con …" della
+pagina iniziale (D-063) spariscono, perché ripeterebbero la stessa scelta. Il gioco non ha
+"Continua" (D-063), quindi non c'è nulla da mantenere.
+
+La schermata ha la griglia dei compagni a sinistra e i dettagli a destra. Al centro non c'è
+nulla, si vede solo lo sfondo: l'anteprima animata del mockup è stata provata e l'utente l'ha
+fatta togliere ("è orrendo quel fiammetto che stai mettendo al centro").
+
+Sblocchi:
+- ogni compagno ha nei dati una regola `unlock`: `Start`, disponibile su un profilo nuovo, o
+  `Locked`, non ancora ottenibile. Le condizioni future saranno regole nuove, valutate in un
+  solo posto; la UI legge solo lo stato. Per ora solo Fiammetto è `Start`, e niente missioni,
+  costi o obiettivi;
+- il profilo salva in `unlocked` i compagni sbloccati da una condizione, oggi nessuno. Un
+  profilo vecchio si legge senza perdere esperienza, talenti e opzioni, e ha anche lui solo
+  Fiammetto: niente diritti acquisiti per chi ha già giocato con gli altri;
+- l'avvio della run rifiuta un compagno bloccato anche se la UI lo lasciasse passare;
+- i compagni che si uniscono durante la run (D-055) non diventano compagni iniziali;
+- il compagno iniziale dello stage deve essere `Start` (validazione dei dati).
+
+I testi vengono dai file di gioco: la descrizione del compagno da `companions.ron`, il nome e la
+descrizione dell'attacco da `attacks.ron`. Le statistiche vengono dall'attacco: danno, cadenza,
+portata. I compagni non hanno punti salute, quindi la "Salute" del mockup non c'è. L'elemento
+Electric si chiama "Fulmine" a schermo. Nessun asset nuovo: ritratti, fogli animati, icone e
+lucchetto ci sono già.
+
 ## D-065 Arte con ChatGPT solo con handoff manuale *(utente)*
 L'utente ha autorizzato il 2026-10-30 un solo canale per l'arte fatta con l'IA: la sua
 conversazione ChatGPT, a mano. Niente API di OpenAI, Codex, MCP remoti, automazione o lettura

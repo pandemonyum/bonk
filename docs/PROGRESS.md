@@ -13,6 +13,55 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "selezione del compagno iniziale" (2026-10-31)
+
+```text
+Task: U-SELECT - Nuova Partita → selezione del compagno → Inizia Partita, compagni da sbloccare
+  (D-066)
+Owner: gameplay-engineer + code-reviewer + orchestrator (decisione, backlog, progress, build web)
+Stato: DONE (review APPROVATA CON NOTE; le note sul codice sono corrette)
+Assunzioni: niente "Salute" (i compagni non hanno punti salute); al centro nulla, per scelta
+  dell'utente (l'anteprima animata è stata tolta); "Danno" è il danno al secondo dell'attacco
+File: src/app.rs (try_start_run, StartRefused), src/options.rs (--menu-screen), src/profile.rs e
+  src/profile/{unlocks,tests}.rs, src/data/schema.rs, schema/{attacks,companions}.rs,
+  validate.rs, validate/{attacks,companions,tests}.rs, src/presentation/home.rs e
+  home/tests.rs, menu.rs, menu/{select,cards,details,stats,keys,tests}.rs, menu_list.rs,
+  game-data/*.ron (schema 6; unlock, descrizioni, nomi degli attacchi), docs/ARCHITECTURE.md,
+  AGENTS.md; prove docs/evidence/select_companion_{1280x720,1920x1080,1024x768}.jpg,
+  select_companion_locked_1920x1080.jpg, home_without_companions_1280x720.jpg
+Comandi eseguiti (risultato), con CARGO_TARGET_DIR privato (vedi Rischi):
+  ./scripts/check.ps1   OK: fmt, clippy, test lib 247, sim 101 (7 ignorati), asset 212 PNG
+  cargo clippy --target wasm32-unknown-unknown --lib -- -D warnings   OK, nessun avviso
+  build web (passi di scripts/build-web.ps1 con il .wasm del target privato)   OK: wasm 22,7 MiB
+    in dist, 6,0 MiB gzip
+  cargo run -- --window {1280x720,1920x1080,1024x768} --scale-factor 1 --no-watch
+    --menu-screen select --screenshot ... --screenshot-after 4 --exit-after 5   OK
+Comportamento verificato:
+  test headless: profilo nuovo con solo Fiammetto; un bloccato non parte né con Invio, Spazio,
+    tastierino, né chiamando StartRun; Inizia Partita disabilitato solo sui bloccati; Indietro,
+    Esc e Backspace tornano alla Home; grant → save → open persiste; un profilo vecchio
+    conserva xp, talenti e opzioni e ha solo Fiammetto; una run con compagni uniti non sblocca
+    nessuno; schermata aperta e chiusa 3 volte senza duplicati
+  a schermo (nativo): nessuna sovrapposizione alle tre misure, centro vuoto
+  nel browser (dist/ su localhost): Nuova Partita apre la selezione, Ondino scelto con 2 non
+    parte con Invio, Esc torna alla Home; nessun errore in console
+  profilo reale %APPDATA%\PixelMonsterSurvivor\profile.ron invariato (sha1) dopo le run di prova
+Rischi:
+  - target/ del repo condiviso con un altro worktree (scratchpad/wt di un'altra sessione):
+    cargo può prendere per aggiornati artefatti dell'altro checkout; gate e build fatti con un
+    target privato
+  - solo in debug: se una ricarica a caldo porta a Locked l'ultimo compagno usato, la run
+    riparte con lui (anche F5 e Invio dai risultati riusano RunSetup senza ricontrollare)
+  - le run con --screenshot o --exit-after senza --autoplay possono scrivere il profilo
+    (src/lib.rs, preesistente); nei flussi del menu non si scrive nulla
+Non verificato: hover e scorrimento della griglia solo nei test (con 4 compagni non scorre); la
+  build web è precedente all'ultimo giro (validazione del nome e due test)
+Note aperte: tests/sim/run.rs avvia con start_run un compagno ora Locked (qa-performance);
+  assets/ui/menu_companions.png non è più usato (pixel-art-director); icone neutre per le
+  statistiche e icone d'abilità facoltative
+Prossimo task: condizioni di sblocco vere (da decidere con l'utente), poi i punti aperti sopra
+```
+
 ## Report tranche "sfondo della home 16:9 da ChatGPT" (2026-10-30)
 
 ```text
