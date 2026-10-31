@@ -1,9 +1,10 @@
-//! Opzioni (dalla pagina iniziale, `MenuScreen::Options`): schermo intero e animazioni della
-//! pagina iniziale (`home_ambient`, salvate nel profilo anche sul web). W/S o
-//! frecce per la voce, Invio, spazio, A/D o clic per cambiarla, Esc o "Indietro" per tornare.
-//! Sul desktop la scelta si salva nel profilo e vale anche dall'avvio dopo. Nel browser vale per
-//! la visita (lo schermo intero si può chiedere solo subito dopo un clic o un tasto) e il valore
-//! mostrato è quello vero della pagina, che ne esce anche da sola con Esc.
+//! Opzioni (dalla pagina iniziale, `MenuScreen::Options`): schermo intero, animazioni della
+//! pagina iniziale (`home_ambient`, salvate nel profilo anche sul web) e audio (volumi e audio
+//! fuori dalla finestra, `options_audio`). W/S o frecce per la voce, Invio, spazio, A/D o clic
+//! per cambiarla, Esc o "Indietro" per tornare. Ogni cambio si salva subito nel profilo e vale
+//! anche dall'avvio dopo, tranne lo schermo intero nel browser: lì vale per la visita (si può
+//! chiedere solo subito dopo un clic o un tasto) e il valore mostrato è quello vero della pagina,
+//! che ne esce anche da sola con Esc. Un cambio di tacca chiede `ui.tick`, un Sì/No `ui.toggle`.
 
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
@@ -18,14 +19,30 @@ use super::menu_list::{
     ListKeys, ListSelection, TEXT, confirmed, panel_node, spawn_list_button, spawn_panel,
     step_selection,
 };
+use super::options_audio::{
+    TICK, TOGGLE, activate_row, clicked, current, next_step, nudged, show_sliders, show_unfocused,
+    spawn_slider, spawn_unfocused,
+};
 use super::talents_menu::{panel_closed, talent_keys};
+use crate::audio::{AudioManager, AudioSettings, Slider};
 use crate::options::LaunchOptions;
 use crate::profile::Profile;
 
 const FULLSCREEN: usize = 0;
 const ANIMATIONS: usize = 1;
-const BACK: usize = 2;
-const ENTRIES: usize = 3;
+/// I quattro cursori dell'audio, nell'ordine di `Slider::ALL`.
+const FIRST_SLIDER: usize = 2;
+const UNFOCUSED: usize = FIRST_SLIDER + Slider::ALL.len();
+const BACK: usize = UNFOCUSED + 1;
+const ENTRIES: usize = BACK + 1;
+/// Pannello largo quanto serve ad "Audio fuori dalla finestra" e al suo Sì/No; righe più vicine
+/// (6 invece di 8) perché otto voci stiano larghe anche in 960×540 unità (1920×1080, D-045).
+const PANEL: (f32, f32) = (480.0, 6.0);
+
+/// Il cursore della voce `entry`, se è una riga del volume.
+fn slider_at(entry: usize) -> Option<Slider> {
+    Slider::ALL.get(entry.checked_sub(FIRST_SLIDER)?).copied()
+}
 
 /// Il "Sì"/"No" accanto a "Schermo intero".
 #[derive(Component)]
@@ -85,6 +102,8 @@ impl Plugin for OptionsMenuPlugin {
                         .in_set(ListKeys),
                     show_value,
                     show_animations,
+                    show_sliders,
+                    show_unfocused,
                 )
                     .run_if(in_state(MenuScreen::Options)),
             );
@@ -128,7 +147,11 @@ fn spawn_options(
             DespawnOnExit(MenuScreen::Options),
         ))
         .id();
-    let panel = spawn_panel(&mut commands, &assets, panel_node(px(340)));
+    let node = Node {
+        row_gap: px(PANEL.1),
+        ..panel_node(px(PANEL.0))
+    };
+    let panel = spawn_panel(&mut commands, &assets, node);
     let title = commands
         .spawn((
             Text::new("Opzioni"),
@@ -187,32 +210,51 @@ fn spawn_options(
         .entity(animations)
         .add_child(animations_value)
         .observe(|_: On<Activate>, mut actions: OptionsActions| actions.activate(ANIMATIONS));
-    let back = spawn_list_button(
+    let mut rows = Vec::new();
+    for (k, slider) in Slider::ALL.into_iter().enumerate() {
+        rows.push(spawn_slider(
+            &mut commands,
+            &assets,
+            FIRST_SLIDER + k,
+            slider,
+        ));
+    }
+    rows.push(spawn_unfocused(&mut commands, &assets, UNFOCUSED));
+    rows.push(spawn_list_button(
         &mut commands,
         &assets,
         BACK,
         Some("ui/menu_quit.png"),
         "Indietro",
-    );
-    commands
-        .entity(back)
-        .observe(|_: On<Activate>, mut actions: OptionsActions| actions.activate(BACK));
+    ));
+    for &row in &rows {
+        commands.entity(row).observe(activate_row);
+    }
     commands
         .entity(panel)
-        .add_children(&[title, fullscreen, animations, back]);
+        .add_children(&[title, fullscreen, animations])
+        .add_children(&rows);
     commands.entity(root).add_child(panel);
 }
 
+/// Quello che le voci cambiano: finestra, profilo, animazioni, audio e schermata.
 #[derive(SystemParam)]
-struct OptionsActions<'w, 's> {
+pub(super) struct OptionsActions<'w, 's> {
     windows: Query<'w, 's, &'static mut Window, With<PrimaryWindow>>,
     profile: Option<ResMut<'w, Profile>>,
     ambient: Option<ResMut<'w, HomeAmbient>>,
+    settings: Option<ResMut<'w, AudioSettings>>,
+    audio: AudioManager<'w>,
     screen: ResMut<'w, NextState<MenuScreen>>,
 }
 
 impl OptionsActions<'_, '_> {
-    fn activate(&mut self, entry: usize) {
+    /// Invio, spazio o clic sulla voce `entry`.
+    pub(super) fn activate(&mut self, entry: usize) {
+        if let Some(slider) = slider_at(entry) {
+            self.change_slider(slider, next_step);
+            return;
+        }
         match entry {
             FULLSCREEN => {
                 let Ok(mut window) = self.windows.single_mut() else {
@@ -220,15 +262,58 @@ impl OptionsActions<'_, '_> {
                 };
                 let on = !fullscreen_now(&window);
                 toggle_fullscreen(&mut window, self.profile.as_deref_mut(), on);
+                self.audio.play(TOGGLE);
             }
             ANIMATIONS => {
                 if let Some(ambient) = self.ambient.as_deref_mut() {
                     let on = !ambient.enabled;
                     set_animations(ambient, self.profile.as_deref_mut(), on);
+                    self.audio.play(TOGGLE);
                 }
             }
+            UNFOCUSED => self.change_audio(TOGGLE, |s| s.play_unfocused = !s.play_unfocused),
             _ => self.screen.set(MenuScreen::Home),
         }
+    }
+
+    /// Sinistra o destra: una tacca sui volumi, il Sì/No sugli interruttori, nulla su
+    /// "Indietro".
+    fn sideways(&mut self, entry: usize, right: bool) {
+        match slider_at(entry) {
+            Some(slider) => self.change_slider(slider, |steps| nudged(steps, right)),
+            None if entry != BACK => self.activate(entry),
+            None => {}
+        }
+    }
+
+    /// Un clic sulla tacca `notch` del cursore `slider`.
+    pub(super) fn click_notch(&mut self, slider: Slider, notch: u8) {
+        self.change_slider(slider, |steps| clicked(steps, notch));
+    }
+
+    fn change_slider(&mut self, slider: Slider, step: impl FnOnce(u8) -> u8) {
+        self.change_audio(TICK, |s| {
+            let steps = step(s.slider(slider));
+            s.set_slider(slider, steps);
+        });
+    }
+
+    /// Cambia le impostazioni dell'audio; se cambiano davvero le scrive nella risorsa e nel
+    /// profilo (salvato subito, senza il muto della sessione) e chiede il suono `cue`.
+    fn change_audio(&mut self, cue: &str, change: impl FnOnce(&mut AudioSettings)) {
+        let now = current(self.settings.as_deref(), self.profile.as_deref());
+        let mut next = now.clone();
+        change(&mut next);
+        if next == now {
+            return;
+        }
+        if let Some(profile) = self.profile.as_deref_mut() {
+            next.store(profile);
+        }
+        if let Some(settings) = self.settings.as_deref_mut() {
+            *settings = next;
+        }
+        self.audio.play(cue);
     }
 }
 
@@ -267,16 +352,13 @@ fn options_keys(
         return;
     }
     step_selection(&mut selection, &keys, ENTRIES);
-    let selection = *selection;
-    let sideways = [
-        KeyCode::KeyA,
-        KeyCode::KeyD,
-        KeyCode::ArrowLeft,
-        KeyCode::ArrowRight,
-    ];
-    let toggle = selection.0 != BACK && keys.any_just_pressed(sideways);
-    if confirmed(keys.bypass_change_detection()) || toggle {
-        actions.activate(selection.0);
+    let entry = selection.0;
+    let left = keys.any_just_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]);
+    let right = keys.any_just_pressed([KeyCode::KeyD, KeyCode::ArrowRight]);
+    if confirmed(keys.bypass_change_detection()) {
+        actions.activate(entry);
+    } else if left != right {
+        actions.sideways(entry, right);
     }
 }
 
@@ -311,58 +393,4 @@ fn show_animations(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    use crate::profile::ProfileData;
-
-    #[test]
-    fn saved_fullscreen_applies_only_to_real_runs_with_a_writable_profile() {
-        let profile = |fullscreen: bool, writable: bool| Profile {
-            data: ProfileData {
-                fullscreen,
-                ..default()
-            },
-            path: writable.then(|| "profile.ron".into()),
-        };
-        let normal = LaunchOptions::default();
-        assert!(starts_fullscreen(&profile(true, true), Some(&normal)));
-        assert!(starts_fullscreen(&profile(true, true), None));
-        assert!(!starts_fullscreen(&profile(false, true), Some(&normal)));
-        // autoplay, --god, --time-scale: profilo in sola lettura
-        assert!(!starts_fullscreen(&profile(true, false), Some(&normal)));
-        let screenshot = LaunchOptions {
-            screenshot: Some("s.png".into()),
-            ..default()
-        };
-        assert!(!starts_fullscreen(&profile(true, true), Some(&screenshot)));
-        let timed = LaunchOptions {
-            exit_after_secs: Some(3.0),
-            ..default()
-        };
-        assert!(!starts_fullscreen(&profile(true, true), Some(&timed)));
-    }
-
-    #[test]
-    fn the_animations_switch_follows_the_profile() {
-        let mut ambient = HomeAmbient::default();
-        let mut profile = Profile::default();
-        set_animations(&mut ambient, Some(&mut profile), false);
-        assert!(!ambient.enabled && profile.data.still_home);
-        set_animations(&mut ambient, Some(&mut profile), true);
-        assert!(ambient.enabled && !profile.data.still_home);
-        set_animations(&mut ambient, None, false);
-        assert!(!ambient.enabled);
-    }
-
-    #[test]
-    fn profiles_saved_before_the_option_still_load() {
-        let old: ProfileData = ron::from_str("(version: 1, companions: [])").unwrap();
-        assert!(!old.fullscreen);
-        assert!(!old.still_home, "le animazioni restano accese");
-        assert_eq!(
-            window_mode(true),
-            WindowMode::BorderlessFullscreen(MonitorSelection::Current)
-        );
-    }
-}
+mod tests;

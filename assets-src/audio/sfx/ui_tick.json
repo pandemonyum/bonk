@@ -1,0 +1,28 @@
+{
+  "cue": "ui.tick",
+  "out": "audio/sfx/ui/tick.wav",
+  "notes": "Tacca del volume nelle Opzioni (AUDIO-2): blip secco che scende di una quarta, corpo triangolare all'ottava sotto e un clic di rumore. Breve e morbido per reggere la ripetizione veloce (cooldown 40 ms).",
+  "peak_dbfs": -3.0,
+  "fade_in_ms": 1.5,
+  "fade_out_ms": 4.0,
+  "lowpass_hz": 7000,
+  "layers": [
+    {
+      "wave": "square", "duty": 0.25, "freq_hz": 1320,
+      "start_ms": 0, "length_ms": 44, "gain": 0.7,
+      "env": {"attack_ms": 0.4, "decay_ms": 40, "sustain": 0.0, "release_ms": 4, "curve": 2.4},
+      "sweep": {"to_hz": 990, "time_ms": 30, "shape": "exp"}
+    },
+    {
+      "wave": "triangle", "freq_hz": 660,
+      "start_ms": 0, "length_ms": 40, "gain": 0.6,
+      "env": {"attack_ms": 0.4, "decay_ms": 36, "sustain": 0.0, "release_ms": 4, "curve": 2.0},
+      "sweep": {"to_hz": 495, "time_ms": 30, "shape": "exp"}
+    },
+    {
+      "wave": "noise", "seed": 2117,
+      "start_ms": 0, "length_ms": 5, "gain": 0.3,
+      "env": {"attack_ms": 0.2, "decay_ms": 4.5, "sustain": 0.0, "release_ms": 0.3, "curve": 2.0}
+    }
+  ]
+}

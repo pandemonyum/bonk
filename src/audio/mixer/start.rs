@@ -27,7 +27,7 @@ pub(super) struct Rules {
     trim: f32,
     jitter_db: f32,
     pitch: (f32, f32),
-    expiry_s: f64,
+    length_s: f32,
     variants: usize,
 }
 
@@ -47,7 +47,7 @@ impl Rules {
             trim,
             jitter_db: data.gain_jitter_db,
             pitch: data.pitch,
-            expiry_s: f64::from(data.length_s) + super::EXPIRY_GRACE_S,
+            length_s: data.length_s,
             variants: data.files.len(),
         }
     }
@@ -173,7 +173,7 @@ impl Mixer {
             cue,
             priority: rules.priority,
             started: now,
-            expires: now + rules.expiry_s,
+            expires: super::expiry_time(now, rules.length_s),
             playing: false,
             mix_gain: gain * rules.trim,
         });

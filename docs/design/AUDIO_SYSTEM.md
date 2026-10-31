@@ -156,9 +156,10 @@ guadagno della voce = generale × bus(utente) × trim del bus (catalogo) × guad
 - Bus: `Music`, `Sfx`, `Ambience`. Il generale li moltiplica tutti. I suoni dell'interfaccia
   hanno un trim proprio nel catalogo ma seguono il cursore "Effetti" (quattro cursori in tutto,
   come chiede il requisito 1).
-- Valori utente da 0 a 10 tacche; guadagno = (tacche / 10)². Lo 0 è silenzio vero (il sink
-  viene messo in pausa, non solo azzerato), il 10 è 0 dB. Predefiniti: generale 8, musica 7,
-  effetti 8, ambiente 7.
+- Valori utente da 0 a 10 tacche; guadagno = (tacche / 10)². Lo 0 è silenzio vero (volume
+  scritto a zero; gli effetti non si mettono in pausa, perché un one-shot in pausa non si
+  svuoterebbe mai e terrebbe il suo posto nel mixer: la pausa servirà alla musica, AUDIO-3), il
+  10 è 0 dB. Predefiniti: generale 8, musica 7, effetti 8, ambiente 7.
 - `GlobalVolume` resta a 1. Un cambio delle impostazioni ricalcola il volume di tutte le voci
   vive nello stesso fotogramma (`Changed<AudioSettings>`); il volume di ogni sink si riscrive
   solo se cambia di più di 0,001.
@@ -200,9 +201,9 @@ Classi di priorità proposte:
 - `Low`: colpo su un nemico, sconfitta dei nemici comuni, gemme e monete raccolte.
 
 Una voce si toglie dalla `VoiceTable` quando il sink è vuoto, oppure dopo la sua durata più
-0,5 s se il sink non è mai nato (asset non pronto, dispositivo assente). Se per 2 s nessuna
-voce riceve un sink mentre ce ne sono di pronte, il backend si considera senza uscita: un solo
-avviso nel log, nessuna voce nuova finché non arriva un sink.
+0,5 s se il sink non è mai nato (asset non pronto, dispositivo assente). Senza dispositivo le voci
+continuano a nascere e a scadere così, con un solo avviso nel log (AUDIO-2): il costo è basso
+perché i limiti del mixer valgono anche lì.
 
 ### 3.6 Varianti e pitch
 
@@ -272,16 +273,18 @@ AppState::InRun:
 
 ### 3.10 Impostazioni e persistenza
 
-- `ProfileData.audio: AudioPrefs { master: 8, music: 7, sfx: 8, ambience: 7, muted: false,
+- `ProfileData.audio: AudioSettings { master: 8, music: 7, sfx: 8, ambience: 7, muted: false,
   play_unfocused: false }`, con `#[serde(default)]` sul campo e su ogni sotto-campo: i profili
-  salvati prima si leggono (test come `profiles_saved_before_the_option_still_load`).
+  salvati prima si leggono (test come `profiles_saved_before_the_option_still_load`). Il muto
+  della sessione (`--mute`) è `session_muted`, con `#[serde(skip)]`: non si salva mai.
 - Sul desktop va nel file del profilo, sul web nel `localStorage`, con lo stesso testo RON. Le
   run automatiche (`--autoplay`, `--god`, `--time-scale`) leggono le impostazioni ma non le
   salvano, come oggi.
 - Opzioni: righe "Volume generale", "Musica", "Effetti", "Ambiente" con una barra a 10 tacche
   fatta di nodi UI (nessun glifo nuovo, D-044), sinistra e destra per cambiare, clic sulla
-  barra; "Audio fuori dalla finestra: Sì/No". Cambiando "Effetti" suona `ui.tick` come
-  anteprima. Salvataggio alla chiusura della schermata, non a ogni tacca.
+  barra; "Audio fuori dalla finestra: Sì/No". Ogni cambio di tacca suona `ui.tick` come
+  anteprima, gli interruttori `ui.toggle`. Si salva a ogni cambio, come le altre opzioni
+  (AUDIO-2).
 - CLI e indirizzo: `--mute` (`?mute` sul web) per le prove automatiche, senza salvare;
   `--no-audio` non aggiunge l'`AudioPlugin` di Bevy
   (`DefaultPlugins.build().disable::<AudioPlugin>()`); i sistemi di riproduzione girano allora
@@ -291,8 +294,9 @@ AppState::InRun:
 
 **Windows (WASAPI tramite `cpal`).** Nessuna dipendenza di sistema. Latenza tipica di qualche
 decina di ms. Fuori fuoco l'app continua a 60 Hz (`WinitSettings::game`): con
-`play_unfocused = false` il generale scende a zero in 0,25 s e i sink si mettono in pausa; al
-ritorno del fuoco ripartono. Limite noto: se cambia il dispositivo predefinito (cuffie
+`play_unfocused = false` il generale scende a zero in 0,25 s e risale in 0,25 s al ritorno del
+fuoco: è solo volume, mai `suspend()`, perché sul web lo script della pagina riprenderebbe il
+contesto. Limite noto: se cambia il dispositivo predefinito (cuffie
 staccate), Bevy 0.20 non riapre l'uscita (`AudioOutput` nasce una volta sola). Si documenta, non
 si aggira in questa fase.
 

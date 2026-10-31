@@ -87,6 +87,22 @@ pub fn ui(size: f32) -> impl Bundle {
     (Typeface::Ui, TextFont::from_font_size(size))
 }
 
+/// Come [`ui`], senza le legature standard (`liga`): in Pixelify Sans "fi" diventa un segno solo
+/// che a 22 px si legge come una "A" ("Audio fuori dalla finestra"). Per le voci delle liste.
+pub fn ui_unligated(size: f32) -> impl Bundle {
+    use bevy::text::{FontFeatureTag, FontFeatures};
+    let font_features = FontFeatures::builder()
+        .set(FontFeatureTag::STANDARD_LIGATURES, 0)
+        .build();
+    (
+        Typeface::Ui,
+        TextFont {
+            font_features,
+            ..TextFont::from_font_size(size)
+        },
+    )
+}
+
 pub struct FontsPlugin;
 
 impl Plugin for FontsPlugin {

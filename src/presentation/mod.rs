@@ -19,6 +19,7 @@ pub mod hud;
 pub mod icons;
 pub mod menu;
 pub mod menu_list;
+mod options_audio;
 pub mod options_menu;
 pub mod player_anim;
 pub mod recap;

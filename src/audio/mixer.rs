@@ -30,6 +30,13 @@ pub const AUDIO_SEED: u64 = 0xA0D1_0000_5EED;
 pub const AUDIO_STREAM: u64 = 0xA0D1;
 /// Secondi oltre la durata stimata dopo cui una voce che non ha mai suonato si toglie.
 pub const EXPIRY_GRACE_S: f64 = 0.5;
+
+/// Istante in cui una voce avviata a `started` che non ha mai suonato scade: la sua durata
+/// stimata `length_s` più [`EXPIRY_GRACE_S`]. La stessa regola per il mixer e per la
+/// riproduzione, che così riconosce le fermate per scadenza.
+pub fn expiry_time(started: f64, length_s: f32) -> f64 {
+    started + (f64::from(length_s) + EXPIRY_GRACE_S)
+}
 /// Boost di coalescenza per ogni raddoppio della quantità, in dB (fino a `max_db` del cue).
 pub const BOOST_DB_PER_DOUBLING: f32 = 1.5;
 

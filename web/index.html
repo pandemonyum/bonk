@@ -36,6 +36,58 @@
       <div class="hint">WASD o frecce per muoverti · Esc pausa · T talenti nel menu</div>
     </div>
   </div>
+  <script>
+    // Audio (AUDIO-2, D-069). cpal crea il suo AudioContext dentro init(), e game.js legge il
+    // costruttore globale una volta sola, quando il modulo viene valutato (lAudioContext):
+    // lo script quindi gira prima dell'import e lo avvolge per tenere l'elenco dei contesti.
+    // Lo stato di ogni contesto segue la scheda: nascosta = sospeso. Senza, i callback "ended"
+    // di cpal continuerebbero a chiedere campioni e il suono andrebbe avanti a gioco fermo.
+    (() => {
+      const contexts = [];
+      const hidden = () => document.visibilityState === "hidden";
+      // la promessa ha il suo catch: rifiutata finirebbe nel pannello degli errori
+      function change(ctx, method, why) {
+        console.info(`audio: contesto ${contexts.indexOf(ctx)} ${method}() (${why})`);
+        ctx[method]().catch((e) => console.warn(`audio: ${method}() rifiutato:`, e));
+      }
+      function follow(ctx, why) {
+        if (ctx.state === "running" && hidden()) change(ctx, "suspend", why);
+        if (ctx.state === "suspended" && !hidden()) change(ctx, "resume", why);
+      }
+      for (const name of ["AudioContext", "webkitAudioContext"]) {
+        if (typeof window[name] !== "function") continue;
+        window[name] = new Proxy(window[name], {
+          // l'oggetto resta un AudioContext vero: stesso prototipo, instanceof come prima
+          construct(target, args, newTarget) {
+            const ctx = Reflect.construct(target, args, newTarget);
+            const id = contexts.push(ctx) - 1;
+            console.info(`audio: contesto ${id} creato (${ctx.state}, ${ctx.sampleRate} Hz)`);
+            // cpal chiama resume() appena creato: con la scheda nascosta si sospende qui
+            ctx.addEventListener("statechange", () => {
+              console.info(`audio: contesto ${id}: ${ctx.state}`);
+              follow(ctx, "statechange");
+            });
+            return ctx;
+          },
+        });
+      }
+      // autoplay: Chrome, Edge e Firefox avviano il contesto già dopo "Clicca per giocare";
+      // se resta sospeso (Safari) lo riprende un clic, un tocco o un tasto veri
+      for (const type of ["pointerdown", "keydown", "touchend"]) {
+        window.addEventListener(type, () => contexts.forEach((c) => follow(c, type)),
+                                { capture: true, passive: true });
+      }
+      document.addEventListener("visibilitychange",
+                                () => contexts.forEach((c) => follow(c, "visibilitychange")));
+      // per le prove (console, Playwright): sola lettura, una fotografia a ogni lettura
+      Object.defineProperty(window, "__pmsAudio", { value: Object.freeze({
+        get contexts() {
+          return Object.freeze(contexts.map((c) => Object.freeze(
+            { state: c.state, sampleRate: c.sampleRate, currentTime: c.currentTime })));
+        },
+      }) });
+    })();
+  </script>
   <script type="module">
     // Il build (scripts/build-web.*) sostituisce __VERSION__ con l'impronta del .wasm: un gioco
     // nuovo non viene preso dalla cache del browser.

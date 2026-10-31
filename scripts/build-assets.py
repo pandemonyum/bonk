@@ -17,10 +17,12 @@
   assets/ui/<nome>.png a piena risoluzione, a 256 colori se non si vede la differenza (D-063).
 - Animazioni ambientali della home (D-067): maschere e vortice del portale ricavati
   dall'illustrazione della home -> assets/ui/home_ambient/*.png, layout assets/ui/home_ambient.ron.
-- Scrive assets/manifest.json con dimensioni, sorgente e licenza di ogni PNG.
+- Scrive assets/manifest.json con dimensioni, sorgente e licenza di ogni PNG. Le voci audio
+  (tipi sfx, music, ambience) le scrive scripts/audio_sfx.py (D-070): qui si conservano come
+  sono, in coda, così i due script si possono lanciare in qualunque ordine.
 
 Moduli accanto a questo script: art_common (percorsi, palette, griglie), art_tileset,
-art_forest, art_logo, art_illustration, art_home_ambient.
+art_forest, art_logo, art_illustration, art_home_ambient; audio_common (voci audio del manifest).
 
 Uso: python scripts/build-assets.py
 Richiede: Python 3.10+ e Pillow (10.1+ per la misura frazionaria del font).
@@ -28,7 +30,6 @@ Richiede: Python 3.10+ e Pillow (10.1+ per la misura frazionaria del font).
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -49,6 +50,7 @@ from art_home_ambient import ILLUSTRATION_OUT, build_home_ambient, write_home_am
 from art_illustration import build_illustrations  # noqa: E402
 from art_logo import LOGO_OUT, build_logo  # noqa: E402
 from art_tileset import TILE, TILE_NAMES, TILESET_SEED, build_tileset  # noqa: E402
+from audio_common import audio_entries, manifest_text  # noqa: E402
 
 LICENSE = "original, project-owned (generated from assets-src)"
 # Sorgenti .px per cartella, con il tipo scritto nel manifest.
@@ -243,15 +245,16 @@ def main() -> None:
         write_home_ambient(ambient, ambient_layout)
         manifest.extend(entry for _, _, entry in ambient)
 
-    (OUT / "manifest.json").write_text(
-        json.dumps({"version": 1, "assets": manifest}, indent=2) + "\n", encoding="utf-8"
-    )
+    # voci audio del manifest già scritto (scripts/audio_sfx.py): restano, in coda
+    audio = audio_entries(OUT / "manifest.json")
+    (OUT / "manifest.json").write_text(manifest_text(manifest + audio), encoding="utf-8")
     for entry in manifest:
         size = f"{entry['size'][0]}x{entry['size'][1]}"
         if "frame" in entry:
             size += f" ({entry['frames']} fotogrammi {entry['frame'][0]}x{entry['frame'][1]})"
         print(f"  {entry['path']:32} {size}")
-    print(f"OK: {len(manifest)} asset generati in {OUT.relative_to(ROOT)}/")
+    print(f"OK: {len(manifest)} asset generati in {OUT.relative_to(ROOT)}/, "
+          f"{len(audio)} voci audio del manifest conservate (scripts/audio_sfx.py)")
 
 
 if __name__ == "__main__":

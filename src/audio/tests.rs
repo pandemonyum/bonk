@@ -1,16 +1,21 @@
-//! Test dell'audio: catalogo (`tests/catalog.rs`), mixer (`tests/mixer.rs`, `tests/margin.rs` e
-//! `tests/mixer_time.rs`), plugin e `AudioManager` in un'app con `MinimalPlugins`
-//! (`tests/plugin.rs`). Qui gli aiuti comuni: i cataloghi di prova si costruiscono nel codice, il
-//! catalogo vero (senza cue in AUDIO-1) si controlla solo per la validità.
+//! Test dell'audio: catalogo (`tests/catalog.rs`), decodifica dei file del catalogo vero
+//! (`tests/decode.rs`), mixer (`tests/mixer.rs`, `tests/margin.rs` e `tests/mixer_time.rs`),
+//! plugin, `AudioManager` e impostazioni dal profilo in un'app con `MinimalPlugins`
+//! (`tests/plugin.rs`), riproduzione senza dispositivo (`tests/playback.rs`, `tests/playback_time.rs`). Qui gli aiuti
+//! comuni: i cataloghi di prova si costruiscono nel codice, il catalogo vero si controlla per la
+//! validità e per i suoi file.
 
 use std::collections::BTreeMap;
 
 use super::catalog::*;
 
 mod catalog;
+mod decode;
 mod margin;
 mod mixer;
 mod mixer_time;
+mod playback;
+mod playback_time;
 mod plugin;
 
 /// Un cue di prova senza caso (niente variazioni di guadagno e pitch).

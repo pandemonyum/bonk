@@ -15,6 +15,7 @@ use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::app::RunPhase;
+use crate::audio::AudioSettings;
 use crate::data::GameConfig;
 use crate::data::schema::TalentNode;
 use crate::data::schema::XpGain;
@@ -52,6 +53,10 @@ pub struct ProfileData {
     /// Pagina iniziale senza animazioni (Opzioni → Animazioni, D-067).
     #[serde(default)]
     pub still_home: bool,
+    /// Volumi e audio fuori dalla finestra (Opzioni, AUDIO-2). Ogni sotto-campo ha un default;
+    /// il muto di `--mute` non si serializza mai.
+    #[serde(default)]
+    pub audio: AudioSettings,
 }
 
 impl Default for ProfileData {
@@ -62,6 +67,7 @@ impl Default for ProfileData {
             fullscreen: false,
             unlocked: Vec::new(),
             still_home: false,
+            audio: AudioSettings::default(),
         }
     }
 }
@@ -229,6 +235,8 @@ fn read_store(path: &std::path::Path) -> Option<String> {
     }
 }
 
+/// Sul desktop scrive un file accanto e poi lo rinomina sopra il profilo (su Windows `rename`
+/// sostituisce il file esistente): un'interruzione a metà non lascia mai il profilo troncato.
 fn write_store(path: &std::path::Path, text: &str) -> Result<(), String> {
     #[cfg(target_arch = "wasm32")]
     {
@@ -236,9 +244,11 @@ fn write_store(path: &std::path::Path, text: &str) -> Result<(), String> {
     }
     #[cfg(not(target_arch = "wasm32"))]
     {
+        let temporary = path.with_extension("ron.tmp");
         path.parent()
             .map_or(Ok(()), std::fs::create_dir_all)
-            .and_then(|_| std::fs::write(path, text))
+            .and_then(|_| std::fs::write(&temporary, text))
+            .and_then(|_| std::fs::rename(&temporary, path))
             .map_err(|e| e.to_string())
     }
 }

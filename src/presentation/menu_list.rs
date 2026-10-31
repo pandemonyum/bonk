@@ -9,7 +9,7 @@ use bevy::prelude::*;
 use bevy::ui_widgets::Button;
 
 use super::fonts;
-use super::icons::ui_icon;
+use super::icons::{UI_PX_PER_TEXEL, ui_icon};
 use super::menu::GOLD;
 use crate::app::AppState;
 
@@ -17,7 +17,7 @@ pub(super) const FRAME: Color = Color::srgb_u8(0x9a, 0x74, 0x3c);
 const FILL: Color = Color::srgba(0.07, 0.09, 0.14, 0.92);
 const BUTTON: Color = Color::srgb_u8(0x1c, 0x23, 0x33);
 const BUTTON_ON: Color = Color::srgb_u8(0x33, 0x2c, 0x1c);
-const EDGE: Color = Color::srgb_u8(0x46, 0x50, 0x68);
+pub(super) const EDGE: Color = Color::srgb_u8(0x46, 0x50, 0x68);
 pub(super) const TEXT: Color = Color::srgb_u8(0xdf, 0xe6, 0xf2);
 
 /// Pulsante numero `n` della lista a schermo.
@@ -139,8 +139,9 @@ pub(super) fn add_corners(commands: &mut Commands, assets: &AssetServer, panel: 
     }
 }
 
-/// Pulsante `index` di una lista, con icona facoltativa; il testo è un figlio a parte, per le
-/// schermate che lo cambiano.
+/// Pulsante `index` di una lista con l'icona di 16×16 texel; senza icona uno spazio della stessa
+/// misura, così i testi restano in colonna. Il testo è un figlio a parte, per le schermate che lo
+/// cambiano.
 pub(super) fn spawn_list_button(
     commands: &mut Commands,
     assets: &AssetServer,
@@ -181,15 +182,23 @@ pub(super) fn spawn_list_button(
             )],
         ))
         .id();
-    if let Some(icon) = icon {
-        let icon = commands.spawn(ui_icon(assets, icon, 16.0, 16.0)).id();
-        commands.entity(button).add_child(icon);
-    }
+    let icon = match icon {
+        Some(icon) => commands.spawn(ui_icon(assets, icon, 16.0, 16.0)).id(),
+        None => commands
+            .spawn(Node {
+                width: px(16.0 * UI_PX_PER_TEXEL),
+                height: px(16.0 * UI_PX_PER_TEXEL),
+                flex_shrink: 0.0,
+                ..default()
+            })
+            .id(),
+    };
+    commands.entity(button).add_child(icon);
     let text = commands
         .spawn((
             ListLabel(index),
             Text::new(label.to_string()),
-            fonts::ui(22.0),
+            fonts::ui_unligated(22.0),
             TextColor(TEXT),
         ))
         .id();

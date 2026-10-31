@@ -3,15 +3,18 @@
 //! Solo in `client_app`: la simulazione non conosce questo modulo. L'audio osserva i fatti di
 //! gioco, non scrive nulla nel mondo della simulazione e ha un caso proprio (`mixer`). Tre livelli:
 //! ascolto (fatti di gioco → [`CueRequest`] nella [`CueQueue`], AUDIO-5), politica ([`Mixer`],
-//! pura e testata senza scheda audio) e riproduzione (AUDIO-2, l'unico punto che userà
-//! `bevy_audio`). In AUDIO-1 c'è la politica: le decisioni finiscono in [`VoiceCommands`], che
-//! ancora nessuno esegue.
+//! pura e testata senza scheda audio) e riproduzione ([`playback`], l'unico punto che usa
+//! `bevy_audio`: esegue le [`VoiceCommands`]). Le impostazioni vengono dal profilo
+//! ([`settings::apply_profile`]); con la finestra non attiva l'audio si spegne in dissolvenza
+//! ([`focus`]).
 //!
 //! Tempo dell'audio: `Time<Real>`, così pausa, draft e `--time-scale` non cambiano i cooldown.
 
 pub mod catalog;
 pub mod cues;
+pub mod focus;
 pub mod mixer;
+pub mod playback;
 pub mod settings;
 
 #[cfg(test)]
@@ -21,8 +24,10 @@ use bevy::prelude::*;
 
 pub use catalog::{AudioCatalog, CueBus, CueId, Priority};
 pub use cues::{AudioManager, CueQueue, CueRequest};
+pub use focus::FocusFade;
 pub use mixer::{Decision, Mixer, MixerStats, VoiceId};
-pub use settings::{AudioSettings, Bus};
+pub use playback::{AudioLibrary, PlaybackStats, PlaybackVoice};
+pub use settings::{AudioSettings, Bus, Slider};
 
 use crate::gameplay::kinematics::Position;
 use crate::gameplay::player::Player;
@@ -92,8 +97,8 @@ impl Plugin for AudioCorePlugin {
     }
 }
 
-/// L'audio del gioco: il nucleo più le impostazioni del giocatore. In AUDIO-2 si aggiungono la
-/// riproduzione e le impostazioni dal profilo.
+/// L'audio del gioco: il nucleo, le impostazioni del giocatore (dal profilo all'avvio), il
+/// fuoco della finestra e la riproduzione (accesa solo con `Assets<AudioSource>`).
 pub struct GameAudioPlugin {
     /// Muto della sessione (`--mute`): `AudioSettings::session_muted`, mai salvato nel profilo.
     pub muted: bool,
@@ -101,11 +106,20 @@ pub struct GameAudioPlugin {
 
 impl Plugin for GameAudioPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(AudioCorePlugin)
+        app.add_plugins((AudioCorePlugin, playback::PlaybackPlugin))
             .insert_resource(AudioSettings {
                 session_muted: self.muted,
                 ..default()
-            });
+            })
+            .add_message::<bevy::window::WindowFocused>()
+            .init_resource::<FocusFade>()
+            .add_systems(Startup, settings::apply_profile)
+            .add_systems(
+                Update,
+                focus::follow_focus
+                    .in_set(AudioSet::Apply)
+                    .before(playback::PlaybackStep::Execute),
+            );
     }
 }
 

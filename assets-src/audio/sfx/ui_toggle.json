@@ -1,0 +1,43 @@
+{
+  "cue": "ui.toggle",
+  "out": "audio/sfx/ui/toggle.wav",
+  "notes": "Interruttore Si/No nelle Opzioni (AUDIO-2): due note brevi in salita di una terza maggiore (Do6, Mi6), quadra stretta con corpo triangolare all'ottava sotto, un pizzico di altezza e un clic a ogni nota. Motivo generico, nessun jingle.",
+  "peak_dbfs": -3.0,
+  "fade_in_ms": 2.0,
+  "fade_out_ms": 6.0,
+  "lowpass_hz": 7500,
+  "layers": [
+    {
+      "wave": "square", "duty": 0.125, "freq_hz": 1088,
+      "start_ms": 0, "length_ms": 48, "gain": 0.45,
+      "env": {"attack_ms": 0.5, "decay_ms": 44, "sustain": 0.0, "release_ms": 5, "curve": 1.8},
+      "sweep": {"to_hz": 1046.5, "time_ms": 10, "shape": "exp"}
+    },
+    {
+      "wave": "triangle", "freq_hz": 523.25,
+      "start_ms": 0, "length_ms": 44, "gain": 0.55,
+      "env": {"attack_ms": 0.5, "decay_ms": 40, "sustain": 0.0, "release_ms": 4, "curve": 2.0}
+    },
+    {
+      "wave": "noise", "seed": 3301, "freq_hz": 8000,
+      "start_ms": 0, "length_ms": 3, "gain": 0.2,
+      "env": {"attack_ms": 0.2, "decay_ms": 2.6, "sustain": 0.0, "release_ms": 0.2, "curve": 2.0}
+    },
+    {
+      "wave": "square", "duty": 0.125, "freq_hz": 1371,
+      "start_ms": 52, "length_ms": 60, "gain": 0.45,
+      "env": {"attack_ms": 0.5, "decay_ms": 56, "sustain": 0.0, "release_ms": 6, "curve": 1.8},
+      "sweep": {"to_hz": 1318.5, "time_ms": 10, "shape": "exp"}
+    },
+    {
+      "wave": "triangle", "freq_hz": 659.25,
+      "start_ms": 52, "length_ms": 56, "gain": 0.55,
+      "env": {"attack_ms": 0.5, "decay_ms": 52, "sustain": 0.0, "release_ms": 4, "curve": 2.0}
+    },
+    {
+      "wave": "noise", "seed": 3302, "freq_hz": 8000,
+      "start_ms": 52, "length_ms": 3, "gain": 0.2,
+      "env": {"attack_ms": 0.2, "decay_ms": 2.6, "sustain": 0.0, "release_ms": 0.2, "curve": 2.0}
+    }
+  ]
+}

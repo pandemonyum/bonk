@@ -25,7 +25,8 @@ compagni mostriciattolo **originali** in pixel art. Rust + Bevy 0.20, nativo Win
 | Avvio gioco | `cargo run` | `cargo run` |
 | Avvio (ricarica a caldo di `assets/` e `game-data/` attiva in debug) | `cargo run` (`-- --no-watch` per spegnerla) | idem |
 | Rigenera placeholder pixel art | `python scripts/build-assets.py` | idem |
-| Valida asset | `python scripts/validate-assets.py` | idem |
+| Rigenera gli effetti sonori dalle patch (`--check`: solo controllo) | `python -I scripts/audio_sfx.py` | idem |
+| Valida asset (anche audio) | `python scripts/validate-assets.py` | idem |
 | Prova automatica con screenshot | `cargo run -- --autoplay --screenshot screenshots/s.png --screenshot-after 4 --exit-after 5` | idem |
 | Minuti di gioco in pochi secondi | `cargo run -- --autoplay --god --time-scale 4 --overlay` | idem |
 | Sonde di bilanciamento e prestazioni | `cargo test --test sim balance -- --ignored --nocapture --test-threads 1` | idem |

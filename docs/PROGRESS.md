@@ -13,6 +13,71 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "audio, riproduzione e Opzioni" (2026-10-31)
+
+```text
+Task: AUDIO-2 - riproduzione, impostazioni nel profilo, cursori nelle Opzioni, fuoco della finestra,
+  protezione dell'AudioContext, primi due effetti sintetizzati (D-069, D-070)
+Owner: gameplay-engineer (src/audio/playback*, focus.rs, test; src/profile.rs,
+  src/presentation/{options_audio.rs, options_menu*, menu_list.rs, fonts.rs, mod.rs}, ARCHITECTURE)
+  + pixel-art-director (scripts/audio_sfx.py, audio_common.py, assets-src/audio/sfx/, assets/audio/
+  sfx/ui/{tick,toggle}.wav, valori di catalog.ron, manifest, validate-assets.py, build-assets.py,
+  ASSET_LICENSES.md, docs/audio/AUDIO_BIBLE.md) + web-release (web/index.html, RELEASE.md) +
+  qa-performance (tests/sim/audio/) + code-reviewer (ACCETTATA; rilievi chiusi dopo) +
+  orchestrator (.gitignore, AGENTS.md, progetto, backlog, prova nel browser)
+Stato: DONE
+Assunzioni:
+  - patch degli effetti in JSON (solo libreria standard di Python) invece di .sfx.ron;
+  - salvataggio a ogni cambio, come le altre opzioni (§ 3.10 aggiornato);
+  - silenzio e finestra senza fuoco azzerano il volume, senza mettere in pausa
+Comandi eseguiti (risultato):
+  python -I scripts/audio_sfx.py     tick.wav 37,9 ms, toggle.wav 108,8 ms, picco -3 dBFS; tre
+                                     generazioni identiche al byte; --check: 0 file diversi
+  python scripts/validate-assets.py  OK: 220 PNG, 2 WAV, 2 citati nel catalogo, 0 errori; 7 casi
+                                     negativi (pixel-art-director) e 14 (code-reviewer) respinti
+  ./scripts/check.ps1 (orchestratore, codice finale)  exit 0: lib 356 ok (325 prima), sim 109 ok +
+                                     7 ignorati (107 prima), asset 0 errori
+  cargo clippy --target wasm32-unknown-unknown --lib -- -D warnings   OK
+  ./scripts/build-web.ps1            OK: wasm in dist 23,6 MiB (gzip 6,3), dist 25,4 MiB
+  cargo run -- --menu-screen options a 1024x768, 1280x720, 1920x1080   pannello intero, barre su
+                                     unità pari (misurato a 1280x720)
+  cargo run -- --no-audio / --mute   exit 0; "riproduzione spenta"; profilo vero identico (sha256)
+  Chromium del pannello su dist/ (?menu-screen=options, tasti mandati al canvas):
+    contesto "running" a 44100 Hz dopo il clic; "audio: primo suono di ui.tick" e "di ui.toggle";
+    profilo nel localStorage con la sezione audio (rimesso ai valori iniziali); scheda nascosta
+    simulata: "suspended" con currentTime fermo, poi "running"; ?no-audio: nessun contesto;
+    console senza errori
+Comportamento verificato:
+  - Voci: Start pronto → entità; non pronto → scartata; Stop → despawn; sink nato → playing (prima
+    del mixer, così un fotogramma lungo non taglia un suono); fine o despawn → finished.
+    Senza dispositivo le voci scadono, nessuna entità resta e c'è un solo avviso (test).
+  - Volume per voce a ogni fotogramma (generale × bus × trim × guadagno × fuoco); un cambio delle
+    Opzioni arriva alle voci vive; dissolvenza di 0,25 s alla perdita del fuoco (funzione pura).
+  - Profilo: sezione audio con serde(default), un profilo vecchio si legge; --mute mai salvato;
+    salvataggio su file temporaneo e rename (test: un salvataggio rotto lascia intero il precedente).
+  - Opzioni: frecce/A/D, Invio, clic sinistro su una tacca (test con un PointerClick vero: un solo
+    tick); il clic destro non fa nulla; ui.toggle sugli interruttori.
+  - Test di decodifica: 2 file su 2, durata e picco entro i limiti.
+  - Separazione:
+    - la simulazione non può usare nemmeno i tipi audio della prelude di Bevy (prova del rosso fatta);
+    - simulazione identica al bit con tutta la riproduzione accesa: 994 voci create e 991 tolte in
+      2 minuti; una terza run che sposta il player di un ulp viene trovata al secondo giusto;
+    - headless senza nessuno dei 18 pezzi dell'audio, e senza risorse in più rispetto a un'app minima.
+Problemi trovati e risolti:
+  - dopo la review: ordine sink/decide, barra a mezzo texel, clic destro che azzerava il volume,
+    controllo "pronto" semplificato, profilo troncabile, contatore delle voci mute;
+  - legatura "fi" di Pixelify ("Anestra"): spenta nelle voci delle liste (debito per gli altri testi)
+Rischi o bug noti:
+  - i suoni li ha sentiti solo il dispositivo: timbro e volume da approvare dall'utente (manifest
+    approved: null, AUDIO-7);
+  - il test di trasparenza dura 7,6-8 s a macchina scarica, 10-18 s con altri agenti che compilano;
+  - un agente ha mandato tasti veri al sistema (SendKeys) per la prova: da non ripetere, oggi c'è il
+    test del clic;
+  - cuffie staccate: Bevy non riapre l'uscita (limite noto)
+Prossimo task: AUDIO-3 (musica) o AUDIO-4 (ambienti della home), in sequenza perché toccano
+  entrambi src/audio/; servono le richieste di musica e ambienti per l'handoff manuale (D-070)
+```
+
 ## Report tranche "audio, fondamenta" (2026-10-31)
 
 ```text

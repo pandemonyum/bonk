@@ -523,7 +523,8 @@ Progetto approvato dall'utente il 2026-10-31: `docs/design/AUDIO_SYSTEM.md`, con
   - Costo misurato (build web da `6cba164` senza audio, poi con AUDIO-1): `.wasm` grezzo 25,8 →
     26,4 MiB; in `dist` 23,0 → 23,5 MiB (24 068 639 → 24 622 601 byte, +541 KiB); gzip 6,1 →
     6,2 MiB; `dist` 24,8 → 25,3 MiB. Build `wasm-release` 5 min 35 s → 7 min 15 s, non a
-    parità di cache.
+    parità di cache. Con la riproduzione e i primi due effetti (AUDIO-2): 23,6 MiB in `dist`
+    (24 706 904 byte), gzip 6,3 MiB, `dist` 25,4 MiB.
 - **Regole delle voci (dopo la review di AUDIO-1):**
   - Cooldown medio, non minimo: `next = max(next + cd, now + cd − frame_dt)`, con `frame_dt`
     limitato a `[0, cd]`. Con il cooldown rigido 35 ms davano 15, 20 e 22 avvii al secondo a 30,

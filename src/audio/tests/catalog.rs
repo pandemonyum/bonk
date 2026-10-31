@@ -22,6 +22,19 @@ fn shot(file: &mut CatalogFile) -> &mut CueData {
     file.cues.get_mut("shot.ember").expect("cue di prova")
 }
 
+/// Un catalogo di prova scritto come il file, con i cue `cues` (testo RON della mappa): non
+/// dipende dai cue del catalogo vero.
+fn text_with_cues(cues: &str) -> String {
+    format!(
+        "(version: 1,          voices: (max: 24, max_web: 16, reserved_critical: 3, starts_per_frame: 6,          starts_per_frame_web: 4, sfx_headroom: 3.0),          trims: (music: 0.8, sfx: 0.8, ambience: 0.7, ui: 0.6),          cues: {cues}, fallbacks: {{}})"
+    )
+}
+
+#[test]
+fn the_test_catalog_text_is_valid() {
+    assert!(AudioCatalog::parse(&text_with_cues("{}")).is_ok());
+}
+
 #[test]
 fn the_real_audio_catalog_is_valid() {
     let catalog = match AudioCatalog::parse(CATALOG_TEXT) {
@@ -152,10 +165,9 @@ fn cue_files_are_wav_files_relative_to_assets() {
 fn cues_play_only_on_the_effects_and_interface_buses() {
     // musica, stinger e ambienti avranno le loro sezioni (AUDIO-3, AUDIO-4)
     for bus in ["Music", "Ambience"] {
-        let text = CATALOG_TEXT.replace(
-            "cues: {}",
-            &format!("cues: {{ \"x\": (bus: {bus}, files: [\"audio/x.ogg\"], gain: 0.5) }}"),
-        );
+        let text = text_with_cues(&format!(
+            "{{ \"x\": (bus: {bus}, files: [\"audio/x.ogg\"], gain: 0.5) }}"
+        ));
         let errors = AudioCatalog::parse(&text).unwrap_err();
         assert!(
             errors[0].starts_with("catalog.ron: ") && errors[0].contains(bus),
@@ -215,13 +227,10 @@ fn every_error_is_reported_not_only_the_first() {
 #[test]
 fn an_unknown_field_inside_boost_is_an_error() {
     let cue = |coalesce: &str| {
-        CATALOG_TEXT.replace(
-            "cues: {}",
-            &format!(
-                "cues: {{ \"x\": (bus: Sfx, files: [\"audio/x.wav\"], gain: 0.5, \
-                 coalesce: {coalesce}) }}"
-            ),
-        )
+        text_with_cues(&format!(
+            "{{ \"x\": (bus: Sfx, files: [\"audio/x.wav\"], gain: 0.5, \
+             coalesce: {coalesce}) }}"
+        ))
     };
     assert!(AudioCatalog::parse(&cue("Boost(max_db: 3.0)")).is_ok());
     let errors = AudioCatalog::parse(&cue("Boost(max_db: 3.0, max_dbb: 6.0)")).unwrap_err();
@@ -235,7 +244,7 @@ fn an_unknown_field_inside_boost_is_an_error() {
 fn syntax_errors_and_unknown_fields_name_the_file() {
     let errors = AudioCatalog::parse("(version: 1,").unwrap_err();
     assert!(errors[0].starts_with("catalog.ron: "), "{errors:?}");
-    let typo = CATALOG_TEXT.replace("sfx_headroom", "sfx_headrom");
+    let typo = text_with_cues("{}").replace("sfx_headroom", "sfx_headrom");
     let errors = AudioCatalog::parse(&typo).unwrap_err();
     assert!(
         errors[0].starts_with("catalog.ron: ") && errors[0].contains("sfx_headrom"),

@@ -2,7 +2,9 @@
 // (gameplay-engineer), valori del proprietario degli asset audio (pixel-art-director, D-070).
 // Incorporato nel binario e validato da un test: un errore qui ferma ./scripts/check.ps1.
 //
-// AUDIO-1: nessun file audio ancora, quindi nessun cue. Valori di partenza del § 3.4 e § 3.5.
+// AUDIO-1: valori di partenza del § 3.4 e § 3.5. AUDIO-2: i due cue delle Opzioni, sintetizzati
+// da assets-src/audio/sfx/ui_*.json con scripts/audio_sfx.py (docs/audio/AUDIO_BIBLE.md). Senza
+// variazione di guadagno né di altezza: la tacca è l'anteprima del volume, deve suonare uguale.
 //
 // Un cue è un one-shot del bus Sfx (gioco) o Ui (interfaccia), con file .wav relativi ad assets/;
 // musica, stinger e ambienti avranno le loro sezioni (AUDIO-3, AUDIO-4). cooldown_ms è un
@@ -24,6 +26,19 @@
         sfx_headroom: 3.0,
     ),
     trims: (music: 0.8, sfx: 0.8, ambience: 0.7, ui: 0.6),
-    cues: {},
+    cues: {
+        // tacca del volume (file di 37,9 ms)
+        "ui.tick": (
+            bus: Ui, files: ["audio/sfx/ui/tick.wav"], gain: 0.55,
+            gain_jitter_db: 0.0, pitch: (1.0, 1.0), priority: High, cooldown_ms: 40,
+            max_instances: 2, length_s: 0.05,
+        ),
+        // interruttore Sì/No (file di 108,8 ms)
+        "ui.toggle": (
+            bus: Ui, files: ["audio/sfx/ui/toggle.wav"], gain: 0.6,
+            gain_jitter_db: 0.0, pitch: (1.0, 1.0), priority: High, cooldown_ms: 40,
+            max_instances: 2, length_s: 0.12,
+        ),
+    },
     fallbacks: {},
 )

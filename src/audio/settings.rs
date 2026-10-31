@@ -1,13 +1,16 @@
 //! Impostazioni dell'audio scelte dal giocatore: un volume a tacche per il generale e per ogni
 //! bus, il muto e l'audio con la finestra non attiva (progetto § 3.4 e § 3.10).
 //!
-//! In AUDIO-1 la risorsa nasce con i predefiniti; in AUDIO-2 si legge e si scrive nel profilo:
-//! per questo è serializzabile e ogni campo ha un default, così i profili salvati prima
-//! dell'audio si leggono. Il muto di `--mute` (`session_muted`) vale per la sessione e non si
-//! serializza: una prova automatica non spegne l'audio del giocatore.
+//! Stanno nel profilo (`ProfileData::audio`): per questo sono serializzabili e ogni campo ha un
+//! default, così i profili salvati prima dell'audio si leggono. All'avvio [`apply_profile`] le
+//! copia nella risorsa; le Opzioni le cambiano e le salvano con [`AudioSettings::store`]. Il muto
+//! di `--mute` (`session_muted`) vale per la sessione e non si serializza: una prova automatica
+//! non spegne l'audio del giocatore, e resta anche quando il profilo sostituisce la risorsa.
 
-use bevy::prelude::Resource;
+use bevy::prelude::{Res, ResMut, Resource};
 use serde::{Deserialize, Serialize};
+
+use crate::profile::{Profile, ProfileData};
 
 /// Tacche di ogni cursore: 0 è il silenzio, `STEPS` è 0 dB.
 pub const STEPS: u8 = 10;
@@ -81,6 +84,79 @@ impl AudioSettings {
             return 0.0;
         }
         step_gain(self.master) * step_gain(self.steps(bus))
+    }
+
+    /// Tacche di un cursore delle Opzioni.
+    pub fn slider(&self, slider: Slider) -> u8 {
+        match slider {
+            Slider::Master => self.master,
+            Slider::Bus(bus) => self.steps(bus),
+        }
+    }
+
+    /// Porta un cursore a `steps` tacche (al massimo [`STEPS`]); `true` se è cambiato.
+    pub fn set_slider(&mut self, slider: Slider, steps: u8) -> bool {
+        let steps = steps.min(STEPS);
+        let field = match slider {
+            Slider::Master => &mut self.master,
+            Slider::Bus(Bus::Music) => &mut self.music,
+            Slider::Bus(Bus::Sfx) => &mut self.sfx,
+            Slider::Bus(Bus::Ambience) => &mut self.ambience,
+        };
+        let changed = *field != steps;
+        *field = steps;
+        changed
+    }
+
+    /// Le impostazioni come vanno nel profilo: senza il muto della sessione.
+    pub fn saved(&self) -> Self {
+        Self {
+            session_muted: false,
+            ..self.clone()
+        }
+    }
+
+    /// Le impostazioni di un profilo, con il muto della sessione di `self` (`--mute`).
+    pub fn with_profile(&self, data: &ProfileData) -> Self {
+        Self {
+            session_muted: self.session_muted,
+            ..data.audio.clone()
+        }
+    }
+
+    /// Le scrive nel profilo e lo salva (se ha un percorso): il muto della sessione non ci va.
+    pub fn store(&self, profile: &mut Profile) {
+        profile.data.audio = self.saved();
+        profile.save();
+    }
+}
+
+/// I quattro cursori delle Opzioni: il volume generale e un bus.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Slider {
+    Master,
+    Bus(Bus),
+}
+
+impl Slider {
+    /// Nell'ordine delle Opzioni.
+    pub const ALL: [Slider; 4] = [
+        Slider::Master,
+        Slider::Bus(Bus::Music),
+        Slider::Bus(Bus::Sfx),
+        Slider::Bus(Bus::Ambience),
+    ];
+}
+
+/// `Startup`: le impostazioni del profilo del dispositivo, tenendo il muto della sessione.
+/// Senza profilo (prove) restano i predefiniti.
+pub fn apply_profile(profile: Option<Res<Profile>>, mut settings: ResMut<AudioSettings>) {
+    let Some(profile) = profile else {
+        return;
+    };
+    let wanted = settings.with_profile(&profile.data);
+    if *settings != wanted {
+        *settings = wanted;
     }
 }
 
@@ -189,5 +265,54 @@ mod tests {
         // un profilo scritto a mano con il campo non lo accende
         let by_hand = ron::from_str::<AudioSettings>("(session_muted: true)");
         assert!(by_hand.is_ok_and(|s| !s.session_muted));
+    }
+
+    #[test]
+    fn every_slider_moves_its_own_field_up_to_the_last_step() {
+        for (k, slider) in Slider::ALL.into_iter().enumerate() {
+            let mut settings = AudioSettings::default();
+            let before = settings.clone();
+            assert!(settings.set_slider(slider, 3));
+            assert_eq!(settings.slider(slider), 3);
+            assert!(
+                !settings.set_slider(slider, 3),
+                "stesso valore: nessun cambio"
+            );
+            assert!(settings.set_slider(slider, STEPS + 4));
+            assert_eq!(settings.slider(slider), STEPS, "oltre l'ultima tacca");
+            for (j, other) in Slider::ALL.into_iter().enumerate() {
+                if j != k {
+                    assert_eq!(settings.slider(other), before.slider(other), "{slider:?}");
+                }
+            }
+        }
+        let settings = AudioSettings::default();
+        assert_eq!(settings.slider(Slider::Master), settings.master);
+        assert_eq!(settings.slider(Slider::Bus(Bus::Music)), settings.music);
+        assert_eq!(settings.slider(Slider::Bus(Bus::Sfx)), settings.sfx);
+        assert_eq!(
+            settings.slider(Slider::Bus(Bus::Ambience)),
+            settings.ambience
+        );
+    }
+
+    #[test]
+    fn the_profile_replaces_the_settings_but_not_the_session_mute() {
+        let mut data = ProfileData::default();
+        data.audio.music = 2;
+        data.audio.play_unfocused = true;
+        let session = AudioSettings {
+            session_muted: true,
+            ..AudioSettings::default()
+        };
+        let loaded = session.with_profile(&data);
+        assert_eq!(loaded.music, 2);
+        assert!(loaded.play_unfocused && loaded.session_muted && loaded.is_muted());
+        // e il muto della sessione non torna nel profilo
+        let mut profile = Profile::default();
+        loaded.store(&mut profile);
+        assert_eq!(profile.data.audio, data.audio);
+        assert!(!profile.data.audio.session_muted);
+        assert_eq!(loaded.saved(), data.audio);
     }
 }

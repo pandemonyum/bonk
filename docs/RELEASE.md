@@ -54,7 +54,7 @@ Le opzioni della riga di comando passano dall'indirizzo: `?autoplay&seed=3&time-
 ## La pagina (`web/index.html`)
 
 - "Clicca per giocare": il `.wasm` si scarica e parte solo dopo il clic (avanzamento in MB),
-  così il canvas ha il fuoco della tastiera (e l'audio, quando ci sarà, può partire);
+  così il canvas ha il fuoco della tastiera e l'audio può partire (sotto);
 - senza WebGL2 un messaggio chiaro invece di uno schermo nero;
 - errori della pagina o del gioco nel pannello; l'eccezione con cui winit esce da `init()`
   ("Using exceptions for control flow") non è un errore e viene ignorata;
@@ -64,6 +64,88 @@ Le opzioni della riga di comando passano dall'indirizzo: `?autoplay&seed=3&time-
   lo concede solo dopo un clic o un tasto veri; un rifiuto resta un avviso nel log (la promessa
   ha il suo `catch`, altrimenti il pannello degli errori la mostrerebbe) e il valore mostrato è
   lo stato vero della pagina (D-063).
+
+### Audio nella pagina (AUDIO-2, D-069)
+
+Il gioco suona con `bevy_audio` → `rodio` → `cpal`, che sul web apre un `AudioContext` (Web
+Audio) dentro `init()`. Uno script della pagina avvolge il costruttore `AudioContext` (e
+`webkitAudioContext`, se c'è) in un `Proxy`: il contesto resta un `AudioContext` vero, la pagina
+ne tiene l'elenco e fa seguire il suo stato alla scheda. Nessun cambiamento in Rust.
+
+- **Lo script deve restare prima dell'`import` di `game.js`**: il codice di `wasm-bindgen` legge
+  il costruttore globale una sola volta, quando il modulo viene valutato
+  (`const lAudioContext = …`); avvolto dopo, il gioco userebbe quello originale senza errori.
+- **Autoplay.** I browser fanno partire un `AudioContext` solo dopo un'interazione con la
+  pagina. Il contesto nasce dentro `init()`, cioè dopo il clic su "Clicca per giocare": Chrome,
+  Edge e Firefox lo avviano.
+- **Scheda nascosta = audio sospeso.** Con la scheda nascosta Bevy non aggiorna più
+  (`requestAnimationFrame` è fermo), ma cpal chiede i campioni dai callback `ended` dei suoi
+  `AudioBufferSourceNode`, che non dipendono dai fotogrammi: senza la pagina la musica
+  continuerebbe da sola. Su `visibilitychange` la pagina chiama `suspend()` (nascosta) e
+  `resume()` (visibile). Se il contesto diventa `running` con la scheda nascosta (cpal chiama
+  `resume()` appena lo crea, e il download può finire con la scheda in secondo piano), la pagina
+  lo sospende di nuovo al suo `statechange`. Una finestra senza fuoco ma ancora visibile non
+  conta come nascosta: lì decide il gioco.
+- **Safari** non è un obiettivo della P1. Se un contesto resta sospeso, lo riprende il primo
+  `pointerdown`, `keydown` o `touchend` con la pagina visibile (ascoltati in cattura su
+  `window`, prima del gioco).
+- **Promesse.** `resume()` e `suspend()` hanno il loro `catch`: un rifiuto è un avviso
+  `audio: … rifiutato` nella console, non un errore nel pannello (come lo schermo intero).
+- **`?mute`**: il contesto si apre e gira, il gioco tiene il volume a zero per la sessione senza
+  salvarlo nel profilo. **`?no-audio`**: niente `AudioPlugin`, nessun `AudioContext` nasce. Si
+  combinano con le altre opzioni (`?autoplay&mute`).
+- **Per le prove:** righe `console.info` con il prefisso `audio:` e `window.__pmsAudio.contexts`
+  (sola lettura), che a ogni lettura restituisce `[{ state, sampleRate, currentTime }]`.
+
+**Prova nel browser** (`python -m http.server 8080 -d dist`, poi `http://localhost:8080/`):
+
+1. Prima del clic: `__pmsAudio.contexts` è `[]`, nessuna riga `audio:`.
+2. Clic su "Clicca per giocare". Finito il download, in console (filtro `audio:`):
+
+   ```text
+   audio: contesto 0 creato (running, 44100 Hz)
+   audio: contesto 0: running
+   ```
+
+   In Firefox la prima riga può dire `suspended`: conta che arrivi `running`. Il pannello degli
+   errori resta nascosto. `__pmsAudio.contexts` ha un elemento con `state: "running"` e
+   `currentTime` che cresce tra due letture.
+3. Scheda nascosta (un'altra scheda in primo piano):
+
+   ```text
+   audio: contesto 0 suspend() (visibilitychange)
+   audio: contesto 0: suspended
+   ```
+
+   `currentTime` resta fermo tra due letture a un secondo di distanza.
+4. Di nuovo sulla scheda del gioco:
+
+   ```text
+   audio: contesto 0 resume() (visibilitychange)
+   audio: contesto 0: running
+   ```
+
+5. Se il browser automatico non cambia la visibilità cambiando scheda (headless), simularla:
+
+   ```js
+   Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true });
+   document.dispatchEvent(new Event("visibilitychange"));   // righe del passo 3
+   delete document.visibilityState;                         // torna lo stato vero
+   document.dispatchEvent(new Event("visibilitychange"));   // righe del passo 4
+   ```
+
+6. `http://localhost:8080/?no-audio`: il gioco parte, nessuna riga `audio:`, `contexts` è `[]`.
+   `?mute`: come il passo 2, senza suono.
+7. Facoltativo, `instanceof` su un contesto creato dal `Proxy`. Prima del clic, in console:
+
+   ```js
+   (() => { const c = new AudioContext(); c.close();
+     return [c instanceof AudioContext, Object.getPrototypeOf(c) === AudioContext.prototype]; })()
+   ```
+
+   dà `[true, true]`, con le righe `audio: contesto 0 creato (suspended, …)` e
+   `audio: contesto 0: closed` (e l'avviso di Chrome sull'autoplay: nessun clic ancora). Poi
+   ricaricare la pagina, altrimenti quel contesto resta nell'elenco come numero 0.
 
 ## Salvataggi sul web
 

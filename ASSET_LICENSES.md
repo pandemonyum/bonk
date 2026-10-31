@@ -2,7 +2,8 @@
 
 Ogni asset distribuito con il gioco deve comparire qui: origine, autore, licenza, condizioni.
 `python scripts/validate-assets.py` verifica che ogni PNG in `assets/` abbia una licenza nel
-manifest `assets/manifest.json`.
+manifest `assets/manifest.json`, e che ogni file audio di `assets/audio/` abbia una voce nel
+manifest con una licenza ammessa e una riga nella sezione "Audio" qui sotto.
 
 ## Asset originali del progetto
 
@@ -307,6 +308,24 @@ Come si compila:
 |---|---|---|
 | `assets/ui/home_ambient/*.png` (maschere RGB di portale, cascate, fiume, fiamma e lucciole, ognuna grande quanto il suo rettangolo dell'illustrazione) e `assets/ui/home_ambient.ron` (layout) | ricavati da `scripts/art_home_ambient.py` dall'illustrazione `assets-src/illustrations/home_background.png`: zone scritte nello script, pixel scelti dal colore. Nessun pixel dipinto nuovo | gli stessi dell'illustrazione da cui vengono (ART-HOME-001 v1, D-065): nel manifest la `license` è quella della sua `.license.txt` |
 | `assets/ui/home_ambient/portal_vortex.png` (il vortice del portale completo, 195×240) | stesso script: i pixel del vortice dell'illustrazione come la mostra il gioco (`assets/ui/home_background.png`); dietro le rovine e negli angoli, il colore dei texel visibili più vicini sulla stessa orbita di rotazione | come sopra |
+
+## Audio
+
+Regole in `docs/audio/AUDIO_BIBLE.md`; origine e licenze ammesse in D-070. Gli effetti sono
+sintetizzati nel progetto da patch testuali (`assets-src/audio/sfx/*.json`) con
+`scripts/audio_sfx.py`, solo libreria standard di Python: nessun campione, download o
+generatore IA, nessuna imitazione di suoni o jingle di altri giochi. La stessa patch dà lo
+stesso file al byte (lo `sha256` è nel manifest). Nel manifest: `kind: "sfx"`, licenza
+`original, project-owned (synthesized from assets-src)`, `approved: null` finché l'utente non li
+ha ascoltati e approvati (AUDIO-7).
+
+| Asset | Origine | Licenza | Data | Note |
+|---|---|---|---|---|
+| `assets/audio/sfx/ui/tick.wav` (cue `ui.tick`, tacca del volume nelle Opzioni; 37,9 ms, PCM 16 bit mono 44 100 Hz, picco −3,00 dBFS) | patch `assets-src/audio/sfx/ui_tick.json` → `scripts/audio_sfx.py`: quadra al 25% da 1320 a 990 Hz, triangolo all'ottava sotto, clic di rumore (seed 2117) | originale, proprietà del progetto | 2026-10-31 | provvisorio (AUDIO-2), non ancora approvato dall'utente |
+| `assets/audio/sfx/ui/toggle.wav` (cue `ui.toggle`, interruttore Sì/No nelle Opzioni; 108,8 ms, PCM 16 bit mono 44 100 Hz, picco −3,00 dBFS) | patch `assets-src/audio/sfx/ui_toggle.json` → `scripts/audio_sfx.py`: due note brevi Do6 e Mi6 (quadra al 12,5% con triangolo all'ottava sotto), clic di rumore (seed 3301 e 3302) | originale, proprietà del progetto | 2026-10-31 | provvisorio (AUDIO-2), non ancora approvato dall'utente |
+
+Musica e ambienti (da AUDIO-3) arrivano con l'handoff manuale di D-070 (`docs/audio/requests/`,
+`.audio-inbox/`): qui andranno autore, licenza, URL se esterni e attribuzione se richiesta.
 
 ## Asset vietati
 

@@ -17,17 +17,31 @@ OFL.txt e una riga in ASSET_LICENSES.md. Avvisi (non errori) se un
 upgrade di game-data/upgrades.ron non ha l'icona ui/upgrade_<id>.png o un compagno di
 game-data/companions.ron non ha il ritratto ui/portrait_<id>.png.
 
+Audio (D-070, docs/audio/AUDIO_BIBLE.md; solo libreria standard, via audio_common): in
+assets/audio/ solo catalog.ron, .wav e .ogg; ogni file con nome ^[a-z0-9_]+\\.(wav|ogg)$, una
+voce audio nel manifest (sfx, music, ambience: cartella e formato del tipo), una licenza
+ammessa, una riga in ASSET_LICENSES.md e la sorgente se è in assets-src/. Gli effetti sono WAV
+PCM 16 bit mono 44 100 Hz, al massimo 1,5 s, con il picco entro -1 dBFS, e coincidono con la
+voce del manifest (durata, canali, frequenza, sha256); gli Ogg hanno l'header Vorbis. Ogni
+percorso "audio/...wav|ogg" citato in assets/audio/catalog.ron è nel manifest.
+
 Uso: python scripts/validate-assets.py   (exit code 1 se ci sono errori)
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
 from pathlib import Path
 
 from PIL import Image
+
+# audio_common sta accanto a questo file (python -I non mette la cartella dello script nel path).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import audio_common as audio  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
@@ -135,19 +149,117 @@ def check_overlay(path: str, entry: dict, img: Image.Image, entries: dict) -> li
     return errors
 
 
+def check_audio_file(rel: str, entry: dict, licenses: str) -> list[str]:
+    """Un file di assets/audio/ con la sua voce del manifest (tipo audio)."""
+    errors: list[str] = []
+    kind = entry["kind"]
+    folder, extension = audio.AUDIO_KINDS[kind]
+    if not rel.startswith(folder) or not rel.endswith(extension):
+        errors.append(f"{rel}: il tipo {kind!r} vuole un file {extension} in assets/{folder}")
+    license = entry.get("license", "")
+    if not license:
+        errors.append(f"{rel}: licenza mancante")
+    elif not audio.LICENSE_RE.match(license):
+        errors.append(f"{rel}: licenza {license!r} fuori elenco {list(audio.LICENSES)}")
+    elif license.startswith("CC-BY-4.0") and not entry.get("attribution"):
+        errors.append(f"{rel}: CC-BY-4.0 senza 'attribution'")
+    source = entry.get("source", "")
+    if source.startswith("assets-src/") and not (ROOT / source).is_file():
+        errors.append(f"{rel}: sorgente {source!r} assente")
+    if f"assets/{rel}" not in licenses:
+        errors.append(f"{rel}: file audio senza riga in ASSET_LICENSES.md")
+
+    path = ASSETS / rel
+    if rel.endswith(".ogg"):
+        try:
+            channels, rate = audio.read_ogg_vorbis(path)
+        except audio.AudioFileError as e:
+            return errors + [f"{rel}: Ogg Vorbis non valido: {e}"]
+        found = {"channels": channels, "sample_rate": rate}
+    else:
+        try:
+            info = audio.read_wav(path)
+        except audio.AudioFileError as e:
+            return errors + [f"{rel}: WAV non leggibile: {e}"]
+        if info.format_tag != audio.WAVE_FORMAT_PCM:
+            errors.append(f"{rel}: WAV non PCM (formato {info.format_tag})")
+        if info.bits != audio.SFX_BITS:
+            errors.append(f"{rel}: {info.bits} bit, gli effetti sono PCM {audio.SFX_BITS} bit")
+        if info.channels != audio.SFX_CHANNELS:
+            errors.append(f"{rel}: {info.channels} canali, gli effetti sono mono")
+        if info.sample_rate != audio.SAMPLE_RATE:
+            errors.append(f"{rel}: {info.sample_rate} Hz, gli effetti sono a {audio.SAMPLE_RATE} Hz")
+        if info.frames == 0:
+            errors.append(f"{rel}: nessun campione")
+        elif info.duration_s > audio.MAX_SFX_S:
+            errors.append(f"{rel}: {info.duration_s:.3f} s, gli effetti stanno entro "
+                          f"{audio.MAX_SFX_S} s")
+        if info.peak and info.peak_dbfs > audio.MAX_PEAK_DBFS:
+            errors.append(f"{rel}: picco {info.peak_dbfs:.2f} dBFS, oltre {audio.MAX_PEAK_DBFS} dBFS")
+        found = {"channels": info.channels, "sample_rate": info.sample_rate}
+        if "duration_s" in entry and abs(entry["duration_s"] - info.duration_s) > 0.0005:
+            errors.append(f"{rel}: durata {info.duration_s:.4f} s diversa dal manifest "
+                          f"{entry['duration_s']}")
+        if "sha256" in entry and hashlib.sha256(path.read_bytes()).hexdigest() != entry["sha256"]:
+            errors.append(f"{rel}: contenuto diverso dallo sha256 del manifest "
+                          "(rigenera con scripts/audio_sfx.py)")
+    for field, value in found.items():
+        if field in entry and entry[field] != value:
+            errors.append(f"{rel}: {field} {value} diverso dal manifest {entry[field]}")
+    return errors
+
+
+def check_audio(entries: dict, licenses: str) -> tuple[list[str], list[str], int]:
+    """Errori, file audio su disco e numero di percorsi citati in catalog.ron."""
+    errors: list[str] = []
+    voices = {p: e for p, e in entries.items() if audio.is_audio(e)}
+    found: list[str] = []
+    for file in sorted(p for p in audio.AUDIO.rglob("*") if p.is_file()):
+        rel = file.relative_to(ASSETS).as_posix()
+        if file == audio.CATALOG:
+            continue
+        if file.suffix.lower() not in audio.AUDIO_EXTENSIONS:
+            errors.append(f"{rel}: formato non abilitato (in assets/audio/ solo .wav e .ogg)")
+            continue
+        found.append(rel)
+        folders = rel.split("/")[1:-1]
+        if not audio.AUDIO_NAME_RE.match(file.name) or not all(
+            audio.FOLDER_RE.match(f) for f in folders
+        ):
+            errors.append(f"{rel}: nome fuori da {audio.AUDIO_NAME_RE.pattern} "
+                          "(anche le cartelle: minuscole, cifre e _)")
+        if rel not in voices:
+            what = "voce non audio" if rel in entries else "nessuna voce"
+            errors.append(f"{rel}: file audio senza voce audio nel manifest ({what})")
+            continue
+        errors += check_audio_file(rel, voices[rel], licenses)
+    for missing in sorted(voices.keys() - set(found)):
+        errors.append(f"{missing}: nel manifest ma file assente")
+
+    cited = []
+    if audio.CATALOG.is_file():
+        cited = audio.catalog_files(audio.CATALOG.read_text(encoding="utf-8"))
+    for line_no, path in cited:
+        if path not in voices:
+            errors.append(f"assets/audio/catalog.ron:{line_no}: \"{path}\" assente dal manifest")
+    return errors, found, len(cited)
+
+
 def main() -> int:
     errors: list[str] = []
     manifest = json.loads((ASSETS / "manifest.json").read_text(encoding="utf-8"))
     entries = {e["path"]: e for e in manifest["assets"]}
+    # le voci audio (D-070) hanno i loro controlli, in fondo
+    images = {p: e for p, e in entries.items() if not audio.is_audio(e)}
     on_disk = {p.relative_to(ASSETS).as_posix() for p in ASSETS.rglob("*.png")}
 
-    for missing in sorted(on_disk - entries.keys()):
+    for missing in sorted(on_disk - images.keys()):
         errors.append(f"{missing}: PNG non presente nel manifest")
-    for missing in sorted(entries.keys() - on_disk):
+    for missing in sorted(images.keys() - on_disk):
         errors.append(f"{missing}: nel manifest ma file assente")
 
     colors = palette_colors()
-    for path in sorted(on_disk & entries.keys()):
+    for path in sorted(on_disk & images.keys()):
         entry = entries[path]
         img = Image.open(ASSETS / path).convert("RGBA")
         if not NAME_RE.match(Path(path).name):
@@ -227,6 +339,10 @@ def main() -> int:
         if f"assets/{rel}" not in licenses:
             errors.append(f"{rel}: font senza riga in ASSET_LICENSES.md")
 
+    audio_errors, audio_files, cited = check_audio(entries, licenses)
+    errors += audio_errors
+    wavs = sum(1 for f in audio_files if f.endswith(".wav"))
+
     # Icone attese dall'interfaccia per ogni upgrade e ritratti per ogni compagno: solo avvisi,
     # così un upgrade nuovo nei dati non blocca nessuno finché l'icona non è disegnata.
     warnings: list[str] = []
@@ -242,7 +358,9 @@ def main() -> int:
         print("ERRORE:", e)
     print(
         f"{'FALLITO' if errors else 'OK'}: {len(on_disk)} PNG e {len(fonts)} font controllati, "
-        f"{referenced} sprite citati in game-data/, {len(errors)} errori"
+        f"{referenced} sprite citati in game-data/, {len(audio_files)} file audio "
+        f"({wavs} WAV, {len(audio_files) - wavs} Ogg), {cited} citati in catalog.ron, "
+        f"{len(errors)} errori"
     )
     return 1 if errors else 0
 
