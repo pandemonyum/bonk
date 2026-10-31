@@ -564,6 +564,34 @@ D-063). La home nel gioco con lo sfondo di ART-HOME-001: `docs/evidence/home_pag
   concept provvisorio di D-063 (`.webp` 4:3, 1448×1086, con logo e menu dipinti), che resta nella
   storia di git.
 
+**Animazioni ambientali della home** (D-067, `scripts/art_home_ambient.py` →
+`assets/ui/home_ambient/*.png` e `assets/ui/home_ambient.ron`):
+- **Niente pixel nuovi:** il gioco anima i pixel dell'illustrazione. Le maschere dicono solo
+  *dove*: un PNG RGB per effetto, ritagliato sul suo rettangolo agli stessi pixel
+  dell'illustrazione (tipo `mask` del manifest, con `origin` e `of`). Il vortice completo del
+  portale (`portal_vortex.png`, tipo `plate`) è l'unica immagine a colori. Ha i colori del fondo
+  come lo mostra il gioco (`assets/ui/home_background.png`, a 256 colori), così fermo coincide al
+  texel. Dietro le rovine, negli angoli e sul texel di bordo, che resta fermo, ha i colori dei
+  texel interni più vicini sulla stessa orbita di rotazione.
+- **Zone e colori:** le zone sono scritte nello script in pixel dell'illustrazione. Dentro una
+  zona i pixel li sceglie il colore: vortice azzurro saturo, rune ciano sulla pietra dell'arco,
+  acqua che cade azzurra o bianca, schiuma quasi bianca, lago azzurro (le rocce azzurrine hanno
+  verde e blu troppo vicini al rosso), fiamma arancio e gialla.
+- **Regole:**
+  - un pixel è al più di un effetto (il build si ferma);
+  - personaggi, compagni e bolle davanti all'acqua non sono mai di nessuno;
+  - la pietra del portale non si muove: la luce delle rune e l'alone schiariscono i pixel e
+    non li spostano.
+- **Movimento coerente con la pixel art:**
+  - strisce, riflessi e particelle stanno a texel interi;
+  - nessuna sfocatura: lo shader legge l'illustrazione con lo stesso campionatore del fondo e
+    nello stesso punto, al pixel (prova di allineamento nel report di D-067);
+  - ogni ciclo è periodico e non salta mai.
+- **Se l'illustrazione cambia** (misura diversa dal layout): le animazioni non compaiono finché non
+  si rigenerano zone e maschere.
+- **Arte nuova** solo per ciò che i pixel dell'illustrazione non hanno (nuvole che scorrono):
+  `docs/art/requests/HOME_AMBIENT_ART_REQUEST.md`.
+
 **Bottoni della home** (`ui/menu_<azione>.png`, 16×16, palette del progetto):
 - **Stile:** quello delle icone dell'HUD (simbolo con contorno `k`, luce da nord-ovest, senza
   telaio).
@@ -594,7 +622,7 @@ Altri pezzi del pannello:
    `columns:`, `rows:` (e `anchor:`) nell'intestazione e un blocco `@ <riga> <colonna>` per
    fotogramma; il build li affianca in un solo PNG.
 2. `python scripts/build-assets.py` → PNG in `assets/` + `assets/manifest.json` (tipo `sprite`,
-   `ui`, `tileset`, `logo` o `illustration`; per i fogli anche `frame`, `frames`, `columns`,
+   `ui`, `tileset`, `logo`, `illustration`, `mask` o `plate`; per i fogli anche `frame`, `frames`, `columns`,
    `rows`, `anchor`; per il logo `palette` e `font`; per le illustrazioni `encoding`,
    `indexed-256` o `rgb`). Due sorgenti con la stessa uscita fermano il build. Il codice sta
    in `scripts/build-assets.py` (sorgenti `.px`, fogli animati, manifest) e nei moduli

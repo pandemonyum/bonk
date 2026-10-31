@@ -24,6 +24,8 @@ Uso: pixel-monster-survivor [opzioni]
                            build di sviluppo, spenta in release; non disponibile sul web)
   --menu-screen <nome>     apre il menu su: home (default), select (selezione del compagno
                            iniziale, anche companions) o options (prove e screenshot)
+  --ambient <nomi>         solo queste animazioni della home, separate da virgole (portal,
+                           river, ...; none = nessuna; default tutte)
   -h, --help               mostra questo aiuto";
 
 /// Schermata del menu su cui si apre il gioco (`--menu-screen`).
@@ -73,6 +75,8 @@ pub struct LaunchOptions {
     pub watch: Option<bool>,
     /// Schermata del menu all'avvio (con `--autoplay` il menu non si vede).
     pub menu_screen: MenuPage,
+    /// Animazioni della home da mostrare (`None` = tutte, vuoto = nessuna).
+    pub ambient: Option<Vec<String>>,
 }
 
 impl Default for LaunchOptions {
@@ -91,6 +95,7 @@ impl Default for LaunchOptions {
             time_scale: 1.0,
             watch: None,
             menu_screen: MenuPage::Home,
+            ambient: None,
         }
     }
 }
@@ -167,6 +172,9 @@ impl LaunchOptions {
                 "--menu-screen" => {
                     options.menu_screen = value::<String>(&mut args, &flag)?.parse()?
                 }
+                "--ambient" => {
+                    options.ambient = Some(ambient_list(&value::<String>(&mut args, &flag)?))
+                }
                 "-h" | "--help" => return Ok(None),
                 other => return Err(format!("opzione sconosciuta: {other}")),
             }
@@ -181,6 +189,18 @@ fn value<T: FromStr>(args: &mut impl Iterator<Item = String>, flag: &str) -> Res
         .ok_or_else(|| format!("{flag} richiede un valore"))?;
     raw.parse()
         .map_err(|_| format!("{flag}: valore non valido '{raw}'"))
+}
+
+/// `none` = nessuna animazione, altrimenti i nomi separati da virgole.
+fn ambient_list(raw: &str) -> Vec<String> {
+    if raw == "none" {
+        return Vec::new();
+    }
+    raw.split(',')
+        .map(str::trim)
+        .filter(|n| !n.is_empty())
+        .map(String::from)
+        .collect()
 }
 
 fn window_size(raw: &str) -> Result<(u32, u32), String> {
@@ -226,6 +246,17 @@ mod tests {
         assert_eq!(o.screenshot, Some(PathBuf::from("out/s.png")));
         assert_eq!(o.screenshot_after_secs, 1.5);
         assert_eq!(o.exit_after_secs, Some(4.0));
+    }
+
+    #[test]
+    fn parses_the_ambient_animations() {
+        assert_eq!(parse(&[]).unwrap().unwrap().ambient, None);
+        let o = parse(&["--ambient", "portal, river"]).unwrap().unwrap();
+        assert_eq!(o.ambient, Some(vec!["portal".into(), "river".into()]));
+        let none = parse(&["--ambient", "none"]).unwrap().unwrap();
+        assert_eq!(none.ambient, Some(Vec::new()));
+        assert!(parse(&["--ambient"]).is_err());
+        assert!(USAGE.contains("--ambient"));
     }
 
     #[test]

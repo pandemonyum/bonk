@@ -1,4 +1,5 @@
-//! Opzioni (dalla pagina iniziale, `MenuScreen::Options`): per ora lo schermo intero. W/S o
+//! Opzioni (dalla pagina iniziale, `MenuScreen::Options`): schermo intero e animazioni della
+//! pagina iniziale (`home_ambient`, salvate nel profilo anche sul web). W/S o
 //! frecce per la voce, Invio, spazio, A/D o clic per cambiarla, Esc o "Indietro" per tornare.
 //! Sul desktop la scelta si salva nel profilo e vale anche dall'avvio dopo. Nel browser vale per
 //! la visita (lo schermo intero si può chiedere solo subito dopo un clic o un tasto) e il valore
@@ -11,6 +12,7 @@ use bevy::window::{MonitorSelection, PrimaryWindow, WindowMode};
 
 use super::fonts;
 use super::home::MenuScreen;
+use super::home_ambient::HomeAmbient;
 use super::menu::GOLD;
 use super::menu_list::{
     ListKeys, ListSelection, TEXT, confirmed, panel_node, spawn_list_button, spawn_panel,
@@ -21,12 +23,17 @@ use crate::options::LaunchOptions;
 use crate::profile::Profile;
 
 const FULLSCREEN: usize = 0;
-const BACK: usize = 1;
-const ENTRIES: usize = 2;
+const ANIMATIONS: usize = 1;
+const BACK: usize = 2;
+const ENTRIES: usize = 3;
 
 /// Il "Sì"/"No" accanto a "Schermo intero".
 #[derive(Component)]
 struct FullscreenValue;
+
+/// Il "Sì"/"No" accanto ad "Animazioni".
+#[derive(Component)]
+struct AnimationsValue;
 
 pub fn window_mode(fullscreen: bool) -> WindowMode {
     if fullscreen {
@@ -77,6 +84,7 @@ impl Plugin for OptionsMenuPlugin {
                         .before(talent_keys)
                         .in_set(ListKeys),
                     show_value,
+                    show_animations,
                 )
                     .run_if(in_state(MenuScreen::Options)),
             );
@@ -156,6 +164,29 @@ fn spawn_options(
         .entity(fullscreen)
         .add_child(value)
         .observe(|_: On<Activate>, mut actions: OptionsActions| actions.activate(FULLSCREEN));
+    let animations = spawn_list_button(
+        &mut commands,
+        &assets,
+        ANIMATIONS,
+        Some("ui/menu_talents.png"),
+        "Animazioni",
+    );
+    let animations_value = commands
+        .spawn((
+            AnimationsValue,
+            Text::new(""),
+            fonts::ui(22.0),
+            TextColor(TEXT),
+            Node {
+                margin: UiRect::left(Val::Auto),
+                ..default()
+            },
+        ))
+        .id();
+    commands
+        .entity(animations)
+        .add_child(animations_value)
+        .observe(|_: On<Activate>, mut actions: OptionsActions| actions.activate(ANIMATIONS));
     let back = spawn_list_button(
         &mut commands,
         &assets,
@@ -168,7 +199,7 @@ fn spawn_options(
         .observe(|_: On<Activate>, mut actions: OptionsActions| actions.activate(BACK));
     commands
         .entity(panel)
-        .add_children(&[title, fullscreen, back]);
+        .add_children(&[title, fullscreen, animations, back]);
     commands.entity(root).add_child(panel);
 }
 
@@ -176,6 +207,7 @@ fn spawn_options(
 struct OptionsActions<'w, 's> {
     windows: Query<'w, 's, &'static mut Window, With<PrimaryWindow>>,
     profile: Option<ResMut<'w, Profile>>,
+    ambient: Option<ResMut<'w, HomeAmbient>>,
     screen: ResMut<'w, NextState<MenuScreen>>,
 }
 
@@ -188,6 +220,12 @@ impl OptionsActions<'_, '_> {
                 };
                 let on = !fullscreen_now(&window);
                 toggle_fullscreen(&mut window, self.profile.as_deref_mut(), on);
+            }
+            ANIMATIONS => {
+                if let Some(ambient) = self.ambient.as_deref_mut() {
+                    let on = !ambient.enabled;
+                    set_animations(ambient, self.profile.as_deref_mut(), on);
+                }
             }
             _ => self.screen.set(MenuScreen::Home),
         }
@@ -210,6 +248,15 @@ fn toggle_fullscreen(_: &mut Window, _: Option<&mut Profile>, on: bool) {
     crate::web::set_fullscreen(on);
 }
 
+/// Accende o spegne le animazioni della home e lo salva nel profilo (anche sul web).
+fn set_animations(ambient: &mut HomeAmbient, profile: Option<&mut Profile>, on: bool) {
+    ambient.enabled = on;
+    if let Some(profile) = profile {
+        profile.data.still_home = !on;
+        profile.save();
+    }
+}
+
 fn options_keys(
     mut keys: ResMut<ButtonInput<KeyCode>>,
     mut selection: ResMut<ListSelection>,
@@ -227,7 +274,7 @@ fn options_keys(
         KeyCode::ArrowLeft,
         KeyCode::ArrowRight,
     ];
-    let toggle = selection.0 == FULLSCREEN && keys.any_just_pressed(sideways);
+    let toggle = selection.0 != BACK && keys.any_just_pressed(sideways);
     if confirmed(keys.bypass_change_detection()) || toggle {
         actions.activate(selection.0);
     }
@@ -242,6 +289,20 @@ fn show_value(
         return;
     };
     let wanted = if fullscreen_now(window) { "Sì" } else { "No" };
+    for mut text in &mut values {
+        if text.0 != wanted {
+            text.0 = wanted.to_string();
+        }
+    }
+}
+
+/// "Sì" o "No" come le animazioni della home adesso.
+fn show_animations(
+    ambient: Option<Res<HomeAmbient>>,
+    mut values: Query<&mut Text, With<AnimationsValue>>,
+) {
+    let on = ambient.is_some_and(|a| a.enabled);
+    let wanted = if on { "Sì" } else { "No" };
     for mut text in &mut values {
         if text.0 != wanted {
             text.0 = wanted.to_string();
@@ -283,9 +344,22 @@ mod tests {
     }
 
     #[test]
+    fn the_animations_switch_follows_the_profile() {
+        let mut ambient = HomeAmbient::default();
+        let mut profile = Profile::default();
+        set_animations(&mut ambient, Some(&mut profile), false);
+        assert!(!ambient.enabled && profile.data.still_home);
+        set_animations(&mut ambient, Some(&mut profile), true);
+        assert!(ambient.enabled && !profile.data.still_home);
+        set_animations(&mut ambient, None, false);
+        assert!(!ambient.enabled);
+    }
+
+    #[test]
     fn profiles_saved_before_the_option_still_load() {
         let old: ProfileData = ron::from_str("(version: 1, companions: [])").unwrap();
         assert!(!old.fullscreen);
+        assert!(!old.still_home, "le animazioni restano accese");
         assert_eq!(
             window_mode(true),
             WindowMode::BorderlessFullscreen(MonitorSelection::Current)

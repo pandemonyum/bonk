@@ -13,6 +13,67 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "home animata" (2026-10-31)
+
+```text
+Task: HOME-AMBIENT - portale, cascate, fiume e fiamma animati dai pixel dell'illustrazione (D-067)
+Owner: orchestrator (codice in src/presentation/home_ambient/; righe in home.rs, mod.rs,
+  options_menu.rs, profile.rs, options.rs aggiunte dopo il via della sessione di U-SELECT) +
+  pixel-art-director (scripts/art_home_ambient.py, build-assets.py, validate-assets.py, maschere,
+  manifest, ART_BIBLE, ASSET_LICENSES, richiesta HOME_AMBIENT_ART_REQUEST.md) + code-reviewer
+  (nessun bloccante; suggerimenti 1-8 applicati, sotto)
+Stato: DONE (P1 portale, P2 cascate e fiume, P3 fiamma); nuvole e fronde rimandate (servono livelli
+  separati: ART-HOME-002 proposta, non richiesta)
+Assunzioni: nessun pixel dipinto nuovo; zone a mano nello script, pixel scelti dal colore; tempo reale
+  (--time-scale non accelera il menu); personaggi non animati
+File nuovi: src/presentation/home_ambient/{mod,layout,material,tests}.rs, home_ambient.wesl,
+  scripts/art_home_ambient.py, assets/ui/home_ambient/*.png (9 maschere + portal_vortex.png),
+  assets/ui/home_ambient.ron, docs/art/requests/HOME_AMBIENT_ART_REQUEST.md,
+  docs/evidence/home_ambient_*
+File modificati: src/presentation/{home.rs (BackdropImage pub(crate)), mod.rs, options_menu.rs
+  (Animazioni Sì/No)}, src/profile.rs (still_home), src/options.rs (--ambient), scripts/
+  {build,validate}-assets.py (tipi mask e plate), assets/manifest.json, docs/{ART_BIBLE,
+  ARCHITECTURE,DECISIONS,BACKLOG,PROGRESS}.md, ASSET_LICENSES.md
+Comandi eseguiti (risultato):
+  python scripts/build-assets.py      OK: 212 asset (10 nuovi della home), nessun pixel conteso
+  python scripts/validate-assets.py   OK: 212 PNG e 2 font, 0 errori
+  ./scripts/check.ps1                 OK: fmt, clippy -D warnings, 258 test lib (11 nuovi) e 101
+                                      di integrazione, asset (rieseguito dopo la review)
+  cargo clippy --target wasm32-unknown-unknown --lib --locked -- -D warnings   OK
+  ./scripts/build-web.ps1             OK: wasm in dist 22,9 MiB (gzip 6,1), dist 24,7 MiB
+  Chromium del pannello su dist/ (WebGL 2.0, ANGLE/D3D11): portale e cascata cambiano tra due
+    istantanee, staccionata e montagne identiche (differenza 0), console senza avvisi
+  gioco vero a 1920x1080 (raffica di 50 screenshot in 5 s), 1280x720, 1024x768, --menu-screen
+    options e select: nessun errore nel log; --ambient portale avvisa del nome sbagliato
+  prova di allineamento (shader che ridisegna l'illustrazione così com'è su tutto il nodo, contro
+    --ambient none): 0 pixel diversi oltre 2/255 a 1024x768, 1280x720, 1366x768, 1920x1080
+  vortice fermo contro il fondo del gioco: differenza 0 su tutti i 7127 texel ridisegnati
+Comportamento verificato: il vortice gira attorno all'occhio con i bracci che scendono verso il
+  centro, la pietra non si muove; rune e alone pulsano; particelle ogni tanto; acqua che scende in
+  sei cascate, schiuma, cerchi, riflessi sul lago; la fiamma guizza; tutto solo dentro le maschere
+  (mappa delle differenze); Opzioni → Animazioni mostra Sì; selezione del compagno e opzioni con le
+  animazioni sotto
+Problemi trovati e risolti: superellisse 2,6 che squadrava la spirale ruotata (ora ellisse);
+  bordo scuro delle rovine nel vortice ricostruito (ora quel texel resta fermo); verso di rotazione
+  (i bracci salivano); sfasamento di frazioni di pixel perché NodeImageMode::Auto centra l'immagine
+  nel nodo arrotondato (drawn_rect); il PNG in un'app senza render non ha caricatore (test).
+  Dalla review: il vortice prendeva i colori pieni della sorgente invece del fondo a 256 colori;
+  fiume e falls_arch si toccavano al bordo del rettangolo; base delle cascate e x della fiamma
+  inutilizzate; periodo dell'acqua duplicato nello shader (ora uniform); test della visibilità che
+  passava con un solo effetto; nessun avviso per --ambient sbagliato; occhio del vortice non
+  controllato; conteggi sbagliati nei documenti
+Screenshot/log: docs/evidence/home_ambient_1920x1080_t0.jpg e _t5s.jpg (due istanti),
+  home_ambient_1280x720.jpg, home_ambient_1024x768.jpg, home_ambient_options_1280x720.jpg,
+  home_ambient_portal_fermo_t0_t5s.jpg, home_ambient_cascate_fermo_t0_t5s.jpg,
+  home_ambient_portal.gif e home_ambient_cascate.gif (5 s)
+Rischi o bug noti: FPS non misurati (l'overlay c'è solo nelle run; nel browser il pannello era
+  nascosto durante la misura); costo stimato basso (9 nodi, ≈ 1,5 MiB di texture). "Animazioni"
+  usa l'icona del libro dei Talenti (manca un'icona sua). Un worktree di prova ha condiviso target/
+  con il checkout principale e ha fatto girare all'altra sessione un binario sbagliato: worktree
+  rimosso, cargo clean -p del crate, da non ripetere
+Prossimo task: via dell'utente per ART-HOME-002 (nuvole), lucciole procedurali se le vuole
+```
+
 ## Report tranche "selezione del compagno iniziale" (2026-10-31)
 
 ```text

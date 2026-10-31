@@ -85,8 +85,9 @@ const FOCUS: Vec2 = Vec2::new(0.65, 0.75);
 #[derive(Component)]
 struct Backdrop;
 
+/// L'immagine dell'illustrazione: le animazioni della home (`home_ambient`) le sono figlie.
 #[derive(Component)]
-struct BackdropImage;
+pub(crate) struct BackdropImage;
 
 /// Misura e angolo in alto a sinistra dell'immagine `image` che copre tutta `area` senza
 /// deformarsi; quello che avanza si taglia secondo `focus`.

@@ -49,6 +49,9 @@ pub struct ProfileData {
     /// senza doppioni. Quelli `Start` nei dati non ci sono: lo sono per tutti.
     #[serde(default)]
     pub unlocked: Vec<String>,
+    /// Pagina iniziale senza animazioni (Opzioni → Animazioni, D-067).
+    #[serde(default)]
+    pub still_home: bool,
 }
 
 impl Default for ProfileData {
@@ -58,6 +61,7 @@ impl Default for ProfileData {
             companions: Vec::new(),
             fullscreen: false,
             unlocked: Vec::new(),
+            still_home: false,
         }
     }
 }

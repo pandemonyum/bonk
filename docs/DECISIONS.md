@@ -498,6 +498,48 @@ sull'anteprima. Nei dati: `frame` 28×24, partenza della palla di fuoco e del fu
 piedi (erano 16), compagni a 19–22 px dietro al player (erano 26–30). I ritratti del menu (40×36)
 restano quelli grandi.
 
+## D-067 Home animata con i pixel dell'illustrazione *(utente)*
+Richiesta dell'utente del 2026-10-30: la home diventa una scena viva. Stessa illustrazione,
+stessa composizione, animazioni ambientali delicate, niente video al posto del fondo.
+
+- **Come:** ogni effetto è un nodo UI figlio dell'illustrazione, messo sul suo rettangolo in
+  percentuale dell'immagine. Il nodo ha un `UiMaterial` con uno shader WESL
+  (`src/presentation/home_ambient/`) che ridisegna solo i pixel della sua maschera, a partire
+  dai pixel dell'illustrazione stessa. Dove la maschera è zero, resta il fondo.
+- **Allineamento:** lo shader legge l'illustrazione dal rettangolo in cui il fondo la disegna
+  davvero (`NodeImageMode::Auto` la centra nel nodo arrotondato), con lo stesso campionatore.
+  Disegnata così, l'illustrazione coincide col fondo al pixel a 1024×768, 1280×720, 1366×768 e
+  1920×1080.
+- **Maschere e layout dalla pipeline:** `scripts/art_home_ambient.py` li ricava
+  dall'illustrazione: le zone sono scritte a mano in pixel, i pixel giusti li sceglie il colore.
+  Escono `assets/ui/home_ambient/*.png` (tipi `mask` e `plate` del manifest) e
+  `assets/ui/home_ambient.ron`, che il gioco incorpora e valida nei test. Nessun pixel dipinto
+  nuovo. Il vortice dietro le rovine è ricostruito lungo le orbite di rotazione
+  (`portal_vortex.png`), così il vortice fermo e quello che gira non si vedono mai insieme. Il
+  vortice da far girare ha i colori del fondo del gioco (a 256 colori): fermo coincide al texel.
+  Il texel di bordo, scuro sul profilo delle rovine, resta quello fermo del fondo.
+- **Effetti:**
+  - portale: vortice che gira e scende verso l'occhio (P1), bracci di luce, rune che pulsano,
+    alone, particelle;
+  - sei cascate: acqua che scende con due letture sfalsate, strisce, schiuma, cerchi;
+  - fiume: riflessi e ondeggiare (P2);
+  - fiamma di Fiammetto (P3).
+  Le fasi del tempo sono periodiche: nessun salto nel ciclo. Ogni effetto entra con una
+  dissolvenza di 0,8 s.
+- **Interruttori:**
+  - Opzioni → Animazioni, salvato nel profilo (`still_home`, anche sul web);
+  - `--ambient <nomi|none>` per accendere un effetto alla volta;
+  - un effetto compare solo con le sue maschere caricate e l'illustrazione della misura del
+    layout. Altrimenti resta il fondo fermo.
+- **Costo:** 10 PNG (9 maschere e il vortice, ≈ 115 KiB nel build), ≈ 1,5 MiB di texture,
+  9 nodi. Tempo reale
+  (`Time<Real>`), solo in `AppState::MainMenu`. Nessuna dipendenza nuova.
+- **Non animati:** player e compagni (servono sprite e approvazione). Nuvole e fronde servono
+  livelli separati: proposta ART-HOME-002 in `docs/art/requests/HOME_AMBIENT_ART_REQUEST.md`,
+  non richiesta.
+- **Se l'illustrazione cambia:** si riscrivono le zone dello script e si rigenera. Fino ad allora
+  le animazioni restano spente da sole.
+
 ## D-066 Selezione del compagno iniziale e compagni da sbloccare *(utente)*
 Richiesta dell'utente del 2026-10-30, con un mockup fatto con ChatGPT (solo reference: la
 schermata è fatta di nodi UI veri). Il flusso diventa Nuova Partita → selezione → Inizia

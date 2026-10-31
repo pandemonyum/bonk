@@ -13,10 +13,12 @@
   antialiasing), con la palette e le decorazioni di assets-src/logo/ (vedi build_logo).
 - Illustrazioni fornite dall'utente: assets-src/illustrations/<nome>.png|.webp ->
   assets/ui/<nome>.png a piena risoluzione, a 256 colori se non si vede la differenza (D-063).
+- Animazioni ambientali della home (D-067): maschere e vortice del portale ricavati
+  dall'illustrazione della home -> assets/ui/home_ambient/*.png, layout assets/ui/home_ambient.ron.
 - Scrive assets/manifest.json con dimensioni, sorgente e licenza di ogni PNG.
 
 Moduli accanto a questo script: art_common (percorsi, palette, griglie), art_tileset,
-art_logo, art_illustration.
+art_logo, art_illustration, art_home_ambient.
 
 Uso: python scripts/build-assets.py
 Richiede: Python 3.10+ e Pillow (10.1+ per la misura frazionaria del font).
@@ -32,6 +34,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from art_common import OUT, ROOT, SRC, load_palette, render_grid  # noqa: E402
+from art_home_ambient import ILLUSTRATION_OUT, build_home_ambient, write_home_ambient  # noqa: E402
 from art_illustration import build_illustrations  # noqa: E402
 from art_logo import LOGO_OUT, build_logo  # noqa: E402
 from art_tileset import TILE, TILE_NAMES, TILESET_SEED, build_tileset  # noqa: E402
@@ -136,6 +139,13 @@ def main() -> None:
         if path in taken:
             sys.exit(f"{entry['source']}: {path} è già l'uscita di un altro asset")
         taken.add(path)
+    # le maschere hanno gli stessi diritti dell'illustrazione da cui vengono
+    home = next(((d, e) for p, d, e in illustrations if p == ILLUSTRATION_OUT), None)
+    ambient, ambient_layout = build_home_ambient(home[1]["license"], home[0]) if home else ([], None)
+    for path, _, entry in ambient:
+        if path in taken:
+            sys.exit(f"{entry['generator']}: {path} è già l'uscita di un altro asset")
+        taken.add(path)
 
     for folder, kind in PX_KINDS:
         for src in sorted((SRC / folder).glob("*.px")):
@@ -192,6 +202,9 @@ def main() -> None:
     for path, data, entry in illustrations:
         (OUT / path).write_bytes(data)
         manifest.append(entry)
+    if ambient_layout is not None:
+        write_home_ambient(ambient, ambient_layout)
+        manifest.extend(entry for _, _, entry in ambient)
 
     (OUT / "manifest.json").write_text(
         json.dumps({"version": 1, "assets": manifest}, indent=2) + "\n", encoding="utf-8"

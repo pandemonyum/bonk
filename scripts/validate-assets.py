@@ -8,7 +8,9 @@ toccata se l'ancora è in basso al centro), solo
 colori della palette per gli asset generati (quella propria dell'asset se il manifest ha
 "palette", come il logo), licenza presente. Le illustrazioni fornite dall'utente (tipo
 "illustration", D-063) non sono pixel art del progetto: niente controllo di palette e alpha, ma
-limiti propri di misura e di peso e la sorgente in assets-src/; ogni font ha accanto il suo
+limiti propri di misura e di peso e la sorgente in assets-src/. Le maschere e il vortice delle
+animazioni della home (tipi "mask" e "plate", D-067) stanno dentro l'illustrazione da cui
+vengono ("of", "origin"), senza trasparenza; ogni font ha accanto il suo
 OFL.txt e una riga in ASSET_LICENSES.md. Avvisi (non errori) se un
 upgrade di game-data/upgrades.ron non ha l'icona ui/upgrade_<id>.png o un compagno di
 game-data/companions.ron non ha il ritratto ui/portrait_<id>.png.
@@ -82,6 +84,23 @@ def check_sheet(path: str, entry: dict, img: Image.Image) -> list[str]:
     return errors
 
 
+def check_overlay(path: str, entry: dict, img: Image.Image, entries: dict) -> list[str]:
+    """Maschera o vortice delle animazioni della home: dentro l'illustrazione, opachi."""
+    errors = []
+    of = entries.get(entry.get("of", ""))
+    if not of or of["kind"] != "illustration":
+        return [f"{path}: illustrazione {entry.get('of')!r} assente dal manifest"]
+    x, y = entry.get("origin", (-1, -1))
+    w, h = img.size
+    if x < 0 or y < 0 or x + w > of["size"][0] or y + h > of["size"][1]:
+        errors.append(f"{path}: {w}x{h} in {x},{y} esce dall'illustrazione {of['size']}")
+    if img.getchannel("A").getextrema()[0] != 255:
+        errors.append(f"{path}: trasparenza in una maschera (i canali sono RGB)")
+    if not (ROOT / entry.get("source", "")).is_file():
+        errors.append(f"{path}: sorgente {entry.get('source')!r} assente")
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     manifest = json.loads((ASSETS / "manifest.json").read_text(encoding="utf-8"))
@@ -126,6 +145,9 @@ def main() -> int:
                 errors.append(f"{path}: {weight / 2**20:.2f} MiB, oltre {limit:g} MiB")
             if not (ROOT / entry.get("source", "")).is_file():
                 errors.append(f"{path}: sorgente {entry.get('source')!r} assente")
+            continue
+        elif entry["kind"] in ("mask", "plate"):
+            errors += check_overlay(path, entry, img, entries)
             continue
         # Asset generati da assets-src (anche quelli con licenza propria, per esempio forniti
         # dall'utente e ridisegnati qui): solo colori della loro palette, alpha 0 o 255.

@@ -17,7 +17,7 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `app` | `AppState` (`Loading`, `MainMenu`, `InRun`), sottostato `RunPhase` (`Playing`, `Paused`, `LevelUp`, `Defeated`, `Victory`), `RunSeed`, `RunSetup` (compagno scelto), `AfterLoading` (menu o run dopo il caricamento), `restart_run`, `back_to_menu`, `try_start_run` (avvio dal menu solo con un compagno iniziale disponibile, altrimenti `StartRefused` e nulla cambia), `SimulationPlugin` | no |
 | `data` | schema dei file `game-data/*.ron`, `GameConfig` validata, `DataStatus`, `DataId`, copia incorporata per headless | no |
 | `data::loader` | sorgente `data://`, loader di testo, primo caricamento e ricarica a caldo | AssetServer (client) |
-| `options` | parsing CLI (`--seed`, `--autoplay`, `--overlay`, `--screenshot*`, `--exit-after`, `--window`, `--scale-factor`, `--god`, `--time-scale`, `--watch`, `--menu-screen home/select/options`) | no |
+| `options` | parsing CLI (`--seed`, `--autoplay`, `--overlay`, `--screenshot*`, `--exit-after`, `--window`, `--scale-factor`, `--god`, `--time-scale`, `--watch`, `--menu-screen home/select/options`, `--ambient <nomi|none>`) | no |
 | `profile` | profilo sul dispositivo: esperienza e talenti dei compagni, schermo intero, compagni iniziali sbloccati (`unlocked`); esperienza a fine run | no |
 | `profile::unlocks` | regole degli sblocchi (D-066) in un solo posto: `unlock` dei dati (`Start`/`Locked`) più `unlocked` del profilo → `UnlockStatus`; `first_unlocked`, `proposed_starter`, `Profile::grant`. Nessuna run sblocca nulla | no |
 | `rng` | PCG32, SplitMix64, `hash2` per coordinate | no |
@@ -54,9 +54,10 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `presentation::boss_pointer` | teschio al bordo della vista nella direzione del boss fuori schermo | sì |
 | `presentation::status` | in alto a sinistra cuori (20 HP l'uno) con HP, barra XP e il contenitore della fila delle abilità; in alto a destra livello e teschio con le uccisioni | sì |
 | `presentation::home` | pagina iniziale (D-063): illustrazione a tutto schermo ("cover"), logo, voci Nuova partita (apre la selezione), Talenti, Opzioni, Esci; sottostato `MenuScreen` (`Home`, `Select`, `Options`) di `MainMenu`; `--menu-screen` apre il menu su una schermata | sì |
+| `presentation::home_ambient` | animazioni della home (D-067): un nodo figlio dell'illustrazione per effetto del layout incorporato (`assets/ui/home_ambient.ron`), con un `UiMaterial` (`home_ambient.wesl`) che ridisegna i pixel della sua maschera; portale, cascate, fiume, fiamma; `HomeAmbient` (Opzioni → Animazioni, `--ambient`) | sì |
 | `presentation::menu_list` | pannello con il bordo di bronzo e lista di pulsanti con la voce evidenziata (`ListSelection`), per pagina iniziale e opzioni | no |
 | `presentation::menu` | selezione del compagno iniziale (D-066): `MenuChoice`, `StartRun` (passa da `try_start_run`); `select` (layout, Indietro, Inizia Partita spento per un bloccato), `cards` (griglia dai dati su 2 colonne che scorre, ritratto, stato, lucchetto), `details` (testi di `companions.ron` e `attacks.ron`, statistiche), `stats` (danno al secondo, cadenza, portata dall'attacco, barre relative), `keys` (frecce/WASD, 1–9, Invio, Esc/Backspace). Al centro niente | sì |
-| `presentation::options_menu` | opzioni: schermo intero, salvato nel profilo e ripreso all'avvio sul desktop | sì |
+| `presentation::options_menu` | opzioni: schermo intero, salvato nel profilo e ripreso all'avvio sul desktop; animazioni della home sì/no, salvate nel profilo | sì |
 | `presentation::results` | risultati di sconfitta (dopo la caduta del player) e vittoria: tempo, livello, nemici, danni, squadra, potenziamenti | sì |
 | `presentation::boss_bar` | conto alla rovescia al centro in alto, poi nome e barra HP del boss | sì |
 | `presentation::telegraphs` | punti rossi in fila o in cerchio, figli del `Telegraph`, che lampeggiano verso lo scadere | sì |

@@ -77,6 +77,13 @@ opzioni, browser, release candidate).
 |---|---|---|---|
 | ~~U-SELECT~~ **DONE** | Nuova Partita → selezione del compagno iniziale → Inizia Partita; griglia dai dati con i bloccati oscurati e il lucchetto, niente al centro, dettagli dai dati, sblocchi persistenti (solo Fiammetto su un profilo nuovo), avvio rifiutato per un bloccato | gameplay-engineer (`src/presentation/`, `src/app.rs`, `src/profile.rs`, `src/data/`, `src/options.rs`, campi di testo e `unlock` in `game-data/companions.ron` e `attacks.ron`, assegnati dall'orchestratore) + code-reviewer + orchestrator (decisione, backlog, progress, build web) | test: profilo nuovo, selezione iniziale, bloccato non avviabile, avvio con Fiammetto, Indietro, persistenza, profilo vecchio, nessuna run che sblocca, schermata aperta e chiusa più volte senza duplicati; `./scripts/check.ps1` e clippy wasm verdi; build web; screenshot a 1280×720, 1920×1080 e 1024×768 |
 
+## Home animata (2026-10-30, D-067)
+
+| ID | Task | Owner | Criteri di done |
+|---|---|---|---|
+| ~~HOME-AMBIENT~~ **DONE** | Home animata dai pixel dell'illustrazione: portale (P1), cascate e fiume (P2), fiamma di Fiammetto (P3); opzione Animazioni; spegnimento per effetto con `--ambient` | orchestrator (codice in `src/presentation/home_ambient/`, righe in `home.rs`, `mod.rs`, `options_menu.rs`, `profile.rs`, `options.rs`, dopo U-SELECT) + pixel-art-director (`scripts/art_home_ambient.py`, maschere, manifest, validatore, ART_BIBLE, ASSET_LICENSES, richiesta) | allineamento al pixel a 1024×768, 1280×720, 1366×768 e 1920×1080; loop senza salti e nessuna entità duplicata (test); fondo fermo senza maschere o con l'interruttore spento; WebGL2 nel browser; `./scripts/check.ps1` verde; screenshot di due istanti e GIF |
+| ART-HOME-002 | Nuvole che scorrono: cielo pulito e nuvole separate da ChatGPT (`docs/art/requests/HOME_AMBIENT_ART_REQUEST.md`) | pixel-art-director + utente | proposta: serve il via dell'utente |
+
 ## Arte con ChatGPT, handoff manuale (2026-10-30, D-065)
 
 | ID | Task | Owner | Criteri di done |

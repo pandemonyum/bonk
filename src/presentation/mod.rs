@@ -13,6 +13,7 @@ pub mod enemy_anim;
 pub mod fonts;
 pub mod health_bar;
 pub mod home;
+pub mod home_ambient;
 pub mod horde_banner;
 pub mod hud;
 pub mod icons;
@@ -72,6 +73,7 @@ impl Plugin for PresentationPlugin {
             talent_art::TalentArtPlugin,
             talents_menu::TalentsMenuPlugin,
             home::HomePlugin,
+            home_ambient::HomeAmbientPlugin,
             menu_list::MenuListPlugin,
             options_menu::OptionsMenuPlugin,
         ));
