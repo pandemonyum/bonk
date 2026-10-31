@@ -58,5 +58,17 @@
             rect: (1418, 672, 64, 92),
             kind: Flame(base: 757.0),
         ),
+        (
+            name: "motes_left",
+            mask: "ui/home_ambient/motes_left.png",
+            rect: (140, 610, 408, 290),
+            kind: Motes(cell: 36.0, share: 0.35),
+        ),
+        (
+            name: "motes_right",
+            mask: "ui/home_ambient/motes_right.png",
+            rect: (1470, 770, 200, 110),
+            kind: Motes(cell: 36.0, share: 0.45),
+        ),
     ],
 )

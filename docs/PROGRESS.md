@@ -13,6 +13,35 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "lucciole della home" (2026-10-31)
+
+```text
+Task: HOME-AMBIENT, P3 - lucciole vicino alla vegetazione (D-067), su richiesta dell'utente
+Owner: orchestrator (tipo Motes in src/presentation/home_ambient/) + pixel-art-director (zone
+  motes_left e motes_right in scripts/art_home_ambient.py, maschere, ART_BIBLE)
+Stato: DONE
+Assunzioni: solo vegetazione a fuoco; mai sotto il testo del menu né sulle scritte in basso
+File: scripts/art_home_ambient.py, src/presentation/home_ambient/{layout,material,tests}.rs,
+  home_ambient.wesl, assets/ui/home_ambient/motes_{left,right}.png, home_ambient.ron,
+  manifest.json, docs/{ART_BIBLE,ARCHITECTURE,BACKLOG,DECISIONS,PROGRESS}.md,
+  ASSET_LICENSES.md, docs/art/requests/HOME_AMBIENT_ART_REQUEST.md,
+  docs/evidence/home_ambient_lucciole_fermo_accese.jpg
+Comandi eseguiti (risultato):
+  python scripts/build-assets.py / validate-assets.py   OK: 214 PNG, 0 errori, nessun pixel conteso
+  ./scripts/check.ps1                 OK: 258 test lib, 101 di integrazione, clippy, fmt, asset
+  gioco vero a 1920x1080 (raffica di 50 in 5 s), 1280x720, 1024x768: a sinistra 6-10 lucciole
+    accese per volta, a destra 1-3; pannello e scritte leggibili
+  ./scripts/build-web.ps1             OK: wasm in dist 22,9 MiB (gzip 6,1)
+  Chromium del pannello su dist/ (WebGL2): lucciole e portale cambiano tra due istantanee,
+    montagne e cielo identici, console senza errori
+Problemi trovati e risolti: la prima versione (un texel con la croce tenue, chiara su foglie
+  chiare) quasi non si vedeva: ora stellina 5x5 con centro crema e braccia color miele, accesa
+  più a lungo, celle da 36 texel
+Rischi o bug noti: a 1280x720 e meno sono piccole (circa 4 px) e si notano soprattutto in
+  movimento
+Prossimo task: nessuno; ART-HOME-002 (nuvole) resta una proposta
+```
+
 ## Report tranche "home animata" (2026-10-31)
 
 ```text

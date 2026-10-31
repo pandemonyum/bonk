@@ -34,6 +34,8 @@ const SPARK: vec3<f32> = vec3<f32>(0.8, 1.0, 1.0);
 const FOAM: vec3<f32> = vec3<f32>(0.92, 0.97, 1.0);
 const GLINT: vec3<f32> = vec3<f32>(0.95, 1.0, 1.0);
 const EMBER: vec3<f32> = vec3<f32>(1.0, 0.75, 0.25);
+const MOTE_CORE: vec3<f32> = vec3<f32>(1.0, 1.0, 0.8);
+const MOTE_GLOW: vec3<f32> = vec3<f32>(1.0, 0.78, 0.22);
 
 fn art(p: vec2<f32>) -> vec3<f32> {
     return textureSampleLevel(art_texture, art_sampler, p / params.image.xy, 0.0).rgb;
@@ -262,6 +264,61 @@ fn flame(p: vec2<f32>) -> vec4<f32> {
     return vec4<f32>(color, m.r);
 }
 
+// --- Lucciole ----------------------------------------------------------------------------------
+// shape.x: lato della cella in texel, shape.y: quota delle celle con una lucciola.
+
+// Al più una lucciola per cella: gira piano attorno al suo punto, si accende e si spegne, e si
+// vede solo dove la maschera dice che ci sono foglie vicine. Stellina di pixel 5x5 (centro e
+// croce pieni, diagonali e punte più tenui): pixel art, non un alone sfumato.
+fn motes(p: vec2<f32>) -> vec4<f32> {
+    let m = mask(p);
+    if m.r <= 0.001 {
+        return vec4<f32>(0.0);
+    }
+    let size = params.shape.x;
+    let share = params.shape.y;
+    let ph = params.phases;
+    let texel = floor(p);
+    let home = floor(p / size);
+    // centro chiaro e braccia color miele, separati: sul verde chiaro si staccano meglio
+    var core = 0.0;
+    var glow = 0.0;
+    for (var j = -1; j <= 1; j += 1) {
+        for (var i = -1; i <= 1; i += 1) {
+            let cell = home + vec2<f32>(f32(i), f32(j));
+            let h = hash12(cell + 0.37);
+            if h > share {
+                continue;
+            }
+            let k = 1.0 + floor(hash12(cell + 3.1) * 2.0);
+            let a = hash12(cell + 5.7);
+            let b = hash12(cell + 9.2);
+            let center = (cell + vec2<f32>(0.25 + 0.5 * a, 0.25 + 0.5 * b)) * size;
+            let drift = vec2<f32>(sin(TAU * (ph.x * k + a)), cos(TAU * (ph.y * k + b)));
+            let at = floor(center + drift * size * vec2<f32>(0.22, 0.15));
+            if mask(at + 0.5).r < 0.5 {
+                continue;
+            }
+            let on = clamp(0.4 + 0.9 * sin(TAU * (ph.z * k + 7.0 * h)), 0.0, 1.0);
+            let d = abs(texel - at);
+            let s = d.x + d.y;
+            if s < 0.5 {
+                core = max(core, on);
+            } else if s < 1.5 {
+                glow = max(glow, 0.8 * on);
+            } else if d.x < 1.5 && d.y < 1.5 {
+                glow = max(glow, 0.35 * on);
+            } else if s < 2.5 && min(d.x, d.y) < 0.5 {
+                glow = max(glow, 0.3 * on);
+            }
+        }
+    }
+    if max(core, glow) <= 0.002 {
+        return vec4<f32>(0.0);
+    }
+    return vec4<f32>(mix(mix(art(p), MOTE_GLOW, glow), MOTE_CORE, core), 1.0);
+}
+
 @fragment
 fn fragment(in: UiVertexOutput) -> @location(0) vec4<f32> {
     let uv = params.node_uv.xy + in.uv * params.node_uv.zw;
@@ -274,8 +331,10 @@ fn fragment(in: UiVertexOutput) -> @location(0) vec4<f32> {
         out = waterfall(p);
     } else if kind < 2.5 {
         out = river(p);
-    } else {
+    } else if kind < 3.5 {
         out = flame(p);
+    } else {
+        out = motes(p);
     }
     let alpha = clamp(out.a * params.image.w, 0.0, 1.0);
     if alpha <= 0.002 {

@@ -576,7 +576,11 @@ D-063). La home nel gioco con lo sfondo di ART-HOME-001: `docs/evidence/home_pag
 - **Zone e colori:** le zone sono scritte nello script in pixel dell'illustrazione. Dentro una
   zona i pixel li sceglie il colore: vortice azzurro saturo, rune ciano sulla pietra dell'arco,
   acqua che cade azzurra o bianca, schiuma quasi bianca, lago azzurro (le rocce azzurrine hanno
-  verde e blu troppo vicini al rosso), fiamma arancio e gialla.
+  verde e blu troppo vicini al rosso), fiamma arancio e gialla, foglie ed erba (verde sopra
+  rosso e blu) per le lucciole.
+- **Lucciole:** stelline 5×5 a texel interi, centro crema e braccia color miele (non un alone
+  sfumato), al più una per cella di 36 texel. Solo su vegetazione a fuoco, mai sotto il testo
+  del menu né sulle scritte in basso.
 - **Regole:**
   - un pixel è al più di un effetto (il build si ferma);
   - personaggi, compagni e bolle davanti all'acqua non sono mai di nessuno;

@@ -24,7 +24,7 @@ fn the_layout_matches_the_illustration_and_its_masks() {
     let layout = layout();
     assert_eq!(layout.image, png_size("ui/home_background.png"));
     let names: Vec<_> = layout.effects.iter().map(|e| e.name.as_str()).collect();
-    for wanted in ["portal", "falls_right", "river", "flame"] {
+    for wanted in ["portal", "falls_right", "river", "flame", "motes_left"] {
         assert!(names.contains(&wanted), "{wanted} manca: {names:?}");
     }
     for effect in &layout.effects {

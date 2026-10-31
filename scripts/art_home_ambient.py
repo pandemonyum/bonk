@@ -45,6 +45,7 @@ CHANNELS = {
     "waterfall": "R acqua che cade, G schiuma, B pozza delle increspature",
     "river": "R acqua, G interno (lontano dalla riva), B creste chiare",
     "flame": "R fiamma e margine in cui guizza, G nucleo chiaro",
+    "motes": "R foglie e erba vicine (dove una lucciola può accendersi)",
 }
 
 Box = tuple[int, int, int, int]  # x0, y0, x1, y1 (x1 e y1 esclusi), pixel dell'illustrazione
@@ -137,6 +138,13 @@ FLAME = {
     "base": 757.0,  # riga dove la fiamma esce dalla coda: sopra guizza sempre di più
     "region": [(1426, 674), (1482, 674), (1482, 758), (1441, 758), (1430, 742)],
 }
+# Lucciole: zone di vegetazione a fuoco, lontane dal testo del menu e sopra le scritte in basso
+# (y < 900); cell = lato in texel della cella con al più una lucciola, share = quota di celle che
+# ne hanno una.
+MOTES = [
+    {"name": "motes_left", "rect": (140, 610, 408, 290), "cell": 36.0, "share": 0.35},
+    {"name": "motes_right", "rect": (1470, 770, 200, 110), "cell": 36.0, "share": 0.45},
+]
 # Personaggi e bolle davanti all'acqua: nessuna maschera li tocca mai (rettangoli o cerchi).
 OBSTRUCTIONS: list[tuple] = [
     ("rect", (998, 522, 1138, 941)),  # player
@@ -188,6 +196,10 @@ def is_flame(r: int, g: int, b: int) -> bool:
 
 def is_flame_core(r: int, g: int, b: int) -> bool:
     return r >= 240 and g >= 190
+
+
+def is_leaf(r: int, g: int, b: int) -> bool:
+    return g > r + 12 and g > b + 12
 
 
 # --- Maschere (immagini "L" grandi quanto il rettangolo dell'effetto) --------------------------
@@ -403,6 +415,13 @@ def flame_mask(art: Image.Image) -> Image.Image:
     return merge(ImageChops.multiply(grow(flame, 5), region), core, blank(rect))
 
 
+def motes_mask(art: Image.Image, mote: dict) -> Image.Image:
+    rect = mote["rect"]
+    leaves = classify(art, rect, (0, 0, 10**4, 10**4), is_leaf)
+    near = without(grow(leaves, 7), grow(obstruction_mask(rect), 5))
+    return merge(near, blank(rect), blank(rect))
+
+
 def claimed_in(rect: tuple, masks: list[tuple[tuple, Image.Image]]) -> Image.Image:
     """Pixel già usati da altri effetti, riportati nel rettangolo `rect`."""
     out = blank(rect)
@@ -459,6 +478,9 @@ def layout_text(size: tuple[int, int]) -> str:
     effects.append(
         ron_effect(FLAME["name"], FLAME["rect"], f"Flame(base: {ron_float(FLAME['base'])})")
     )
+    for mote in MOTES:
+        kind = f"Motes(cell: {ron_float(mote['cell'])}, share: {mote['share']:.2f})"
+        effects.append(ron_effect(mote["name"], mote["rect"], kind))
     return (
         "// Generato da scripts/art_home_ambient.py (D-067): non modificare a mano.\n"
         "// Animazioni ambientali della home: rettangoli in pixel dell'illustrazione.\n"
@@ -477,7 +499,8 @@ def png_bytes(img: Image.Image) -> bytes:
 def build_masks(art: Image.Image) -> list[tuple[str, str, tuple, Image.Image]]:
     """(nome, tipo, rettangolo, maschera) di ogni effetto, nell'ordine del layout; il vortice
     completo del portale è a parte (`portal_plate`)."""
-    for rect in [PORTAL["rect"], RIVER["rect"], FLAME["rect"], *(f["rect"] for f in WATERFALLS)]:
+    rects = [PORTAL["rect"], RIVER["rect"], FLAME["rect"], *(f["rect"] for f in WATERFALLS)]
+    for rect in rects + [m["rect"] for m in MOTES]:
         x, y, w, h = rect
         if x < 0 or y < 0 or x + w > art.width or y + h > art.height:
             sys.exit(f"home_ambient: rettangolo {rect} fuori dall'illustrazione {art.size}")
@@ -495,6 +518,8 @@ def build_masks(art: Image.Image) -> list[tuple[str, str, tuple, Image.Image]]:
     claimed = grow(wide, 2 * pad + 1).crop((pad, pad, pad + w, pad + h))
     built.append((RIVER["name"], "river", RIVER["rect"], river_mask(art, claimed)))
     built.append((FLAME["name"], "flame", FLAME["rect"], flame_mask(art)))
+    for mote in MOTES:
+        built.append((mote["name"], "motes", mote["rect"], motes_mask(art, mote)))
     check_disjoint(built)
     return built
 

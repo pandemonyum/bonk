@@ -126,5 +126,5 @@ PNG in `.art-inbox/ART-HOME-002/` e poi scrivimi `ART-HOME-002 pronto`".
 - **Fronde che oscillano:** l'albero grande è in alto a sinistra, dietro logo e pannello. Farlo
   muovere distrarrebbe dal menu, e uno spostamento dei pixel dipinti senza un livello separato
   sembrerebbe gelatina. Si riprende solo con un livello delle fronde fatto apposta.
-- **Lucciole vicino alla vegetazione:** si possono fare con lo shader, senza arte, come le
-  particelle del portale. Restano come passo successivo.
+- **Lucciole vicino alla vegetazione:** fatte con lo shader, senza arte (D-067): stelline di
+  pixel sopra foglie ed erba, maschere `motes_left` e `motes_right`.

@@ -86,6 +86,8 @@ pub fn rates(kind: AmbientKind) -> [f64; 4] {
         AmbientKind::River => [1.0 / 9.0, 0.18, 0.12, 0.0],
         // guizzi (due rumori a velocità diverse) e respiro della luce
         AmbientKind::Flame { .. } => [1.1, 1.7, 0.6, 0.0],
+        // giro lento in orizzontale e in verticale (un'ellisse storta), accendersi e spegnersi
+        AmbientKind::Motes { .. } => [1.0 / 11.0, 1.0 / 13.0, 1.0 / 7.0, 0.0],
     }
 }
 

@@ -523,7 +523,10 @@ stessa composizione, animazioni ambientali delicate, niente video al posto del f
     alone, particelle;
   - sei cascate: acqua che scende con due letture sfalsate, strisce, schiuma, cerchi;
   - fiume: riflessi e ondeggiare (P2);
-  - fiamma di Fiammetto (P3).
+  - fiamma di Fiammetto (P3);
+  - lucciole sopra foglie ed erba (P3): stelline di pixel 5×5 che girano piano, si accendono e si
+    spengono. Stanno a sinistra fra staccionata e fiori, sotto il pannello opaco e sopra le
+    scritte in basso, e in basso a destra fra i ciuffi d'erba.
   Le fasi del tempo sono periodiche: nessun salto nel ciclo. Ogni effetto entra con una
   dissolvenza di 0,8 s.
 - **Interruttori:**
@@ -531,8 +534,8 @@ stessa composizione, animazioni ambientali delicate, niente video al posto del f
   - `--ambient <nomi|none>` per accendere un effetto alla volta;
   - un effetto compare solo con le sue maschere caricate e l'illustrazione della misura del
     layout. Altrimenti resta il fondo fermo.
-- **Costo:** 10 PNG (9 maschere e il vortice, ≈ 115 KiB nel build), ≈ 1,5 MiB di texture,
-  9 nodi. Tempo reale
+- **Costo:** 12 PNG (11 maschere e il vortice, ≈ 120 KiB nel build), ≈ 2 MiB di texture,
+  11 nodi. Tempo reale
   (`Time<Real>`), solo in `AppState::MainMenu`. Nessuna dipendenza nuova.
 - **Non animati:** player e compagni (servono sprite e approvazione). Nuvole e fronde servono
   livelli separati: proposta ART-HOME-002 in `docs/art/requests/HOME_AMBIENT_ART_REQUEST.md`,

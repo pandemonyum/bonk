@@ -301,7 +301,7 @@ Come si compila:
 
 | Asset | Origine | Diritti e licenza |
 |---|---|---|
-| `assets/ui/home_ambient/*.png` (maschere RGB di portale, cascate, fiume e fiamma, ognuna grande quanto il suo rettangolo dell'illustrazione) e `assets/ui/home_ambient.ron` (layout) | ricavati da `scripts/art_home_ambient.py` dall'illustrazione `assets-src/illustrations/home_background.png`: zone scritte nello script, pixel scelti dal colore. Nessun pixel dipinto nuovo | gli stessi dell'illustrazione da cui vengono (ART-HOME-001 v1, D-065): nel manifest la `license` è quella della sua `.license.txt` |
+| `assets/ui/home_ambient/*.png` (maschere RGB di portale, cascate, fiume, fiamma e lucciole, ognuna grande quanto il suo rettangolo dell'illustrazione) e `assets/ui/home_ambient.ron` (layout) | ricavati da `scripts/art_home_ambient.py` dall'illustrazione `assets-src/illustrations/home_background.png`: zone scritte nello script, pixel scelti dal colore. Nessun pixel dipinto nuovo | gli stessi dell'illustrazione da cui vengono (ART-HOME-001 v1, D-065): nel manifest la `license` è quella della sua `.license.txt` |
 | `assets/ui/home_ambient/portal_vortex.png` (il vortice del portale completo, 195×240) | stesso script: i pixel del vortice dell'illustrazione come la mostra il gioco (`assets/ui/home_background.png`); dietro le rovine e negli angoli, il colore dei texel visibili più vicini sulla stessa orbita di rotazione | come sopra |
 
 ## Asset vietati

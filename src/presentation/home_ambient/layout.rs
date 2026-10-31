@@ -53,6 +53,9 @@ pub enum AmbientKind {
     River,
     /// Fiamma che guizza verso l'alto, di più quanto più è sopra la riga `base`.
     Flame { base: f32 },
+    /// Lucciole sopra foglie ed erba: al più una per cella di lato `cell` texel, in una quota
+    /// `share` (0..1) delle celle.
+    Motes { cell: f32, share: f32 },
 }
 
 impl AmbientKind {
@@ -63,6 +66,7 @@ impl AmbientKind {
             Self::Waterfall { .. } => 1.0,
             Self::River => 2.0,
             Self::Flame { .. } => 3.0,
+            Self::Motes { .. } => 4.0,
         }
     }
 
@@ -89,6 +93,7 @@ impl AmbientKind {
             ],
             Self::River => [Vec4::ZERO; 2],
             Self::Flame { base } => [Vec4::new(0.0, base, 0.0, 0.0), Vec4::ZERO],
+            Self::Motes { cell, share } => [Vec4::new(cell, share, 0.0, 0.0), Vec4::ZERO],
         }
     }
 }
