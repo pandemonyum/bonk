@@ -9,6 +9,8 @@
   di default nel manifest (per esempio un asset fornito dall'utente e ridisegnato qui).
 - Icone e ritratti dell'interfaccia: file assets-src/ui/*.px, stesso formato.
 - Tileset dell'arena: generato proceduralmente con seed fisso (riproducibile).
+- Bosco Ombroso (D-068): tileset del terreno generato con seed fisso e tileset delle decorazioni
+  con trasparenza (tipo "decor") da assets-src/biomes/, con la palette del bioma (art_forest).
 - Logo ui/logo.png: scritte dal font Pixelify Sans portate sulla sua griglia di pixel (niente
   antialiasing), con la palette e le decorazioni di assets-src/logo/ (vedi build_logo).
 - Illustrazioni fornite dall'utente: assets-src/illustrations/<nome>.png|.webp ->
@@ -18,7 +20,7 @@
 - Scrive assets/manifest.json con dimensioni, sorgente e licenza di ogni PNG.
 
 Moduli accanto a questo script: art_common (percorsi, palette, griglie), art_tileset,
-art_logo, art_illustration, art_home_ambient.
+art_forest, art_logo, art_illustration, art_home_ambient.
 
 Uso: python scripts/build-assets.py
 Richiede: Python 3.10+ e Pillow (10.1+ per la misura frazionaria del font).
@@ -34,6 +36,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from art_common import OUT, ROOT, SRC, load_palette, render_grid  # noqa: E402
+from art_forest import (  # noqa: E402
+    FOREST_DECOR_NAMES,
+    FOREST_DECOR_SOURCE,
+    FOREST_PALETTE,
+    FOREST_SEED,
+    FOREST_TILE_NAMES,
+    build_forest_decor,
+    build_forest_tileset,
+)
 from art_home_ambient import ILLUSTRATION_OUT, build_home_ambient, write_home_ambient  # noqa: E402
 from art_illustration import build_illustrations  # noqa: E402
 from art_logo import LOGO_OUT, build_logo  # noqa: E402
@@ -195,6 +206,32 @@ def main() -> None:
             "license": LICENSE,
         }
     )
+
+    # Bosco Ombroso (D-068): terreno opaco e decorazioni con trasparenza, palette del bioma.
+    forest_palette = FOREST_PALETTE.relative_to(ROOT).as_posix()
+    forest = (
+        ("tiles/forest_tileset.png", "tileset", build_forest_tileset(), FOREST_TILE_NAMES,
+         "scripts/art_forest.py (procedural, seed %d)" % FOREST_SEED),
+        ("tiles/forest_decor.png", "decor", build_forest_decor(), FOREST_DECOR_NAMES,
+         FOREST_DECOR_SOURCE.relative_to(ROOT).as_posix()),
+    )
+    for path, kind, sheet, names, source in forest:
+        if path in taken or path == tileset_path:
+            sys.exit(f"{source}: {path} è già l'uscita di un altro asset")
+        taken.add(path)
+        sheet.save(OUT / path)
+        manifest.append(
+            {
+                "path": path,
+                "kind": kind,
+                "size": [sheet.width, sheet.height],
+                "tile_size": TILE,
+                "tiles": names,
+                "palette": forest_palette,
+                "source": source,
+                "license": LICENSE,
+            }
+        )
 
     (OUT / "ui").mkdir(parents=True, exist_ok=True)
     logo.save(OUT / LOGO_OUT)

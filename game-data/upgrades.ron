@@ -3,7 +3,7 @@
 // Nomi e testi sono originali e provvisori. Lettere accentate e segni come « » – … × vanno
 // bene: i font dell'interfaccia li disegnano (D-044); la validazione rifiuta il resto.
 (
-    version: 6,
+    version: 7,
     upgrades: [
         (
             id: "ember_damage",

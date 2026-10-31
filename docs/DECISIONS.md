@@ -498,6 +498,48 @@ sull'anteprima. Nei dati: `frame` 28×24, partenza della palla di fuoco e del fu
 piedi (erano 16), compagni a 19–22 px dietro al player (erano 26–30). I ritratti del menu (40×36)
 restano quelli grandi.
 
+## D-068 Mappe a più biomi: tre livelli, un solo generatore, stage scelto a parte *(utente)*
+Richiesta dell'utente del 2026-10-31: sei ambientazioni (Prateria Verde, Bosco Ombroso, Canyon
+Arido, Cime Glaciali, Vulcano Infernale, Rovine Arcane), sempre nella visuale top-down del
+gameplay; prima la struttura e il Bosco Ombroso.
+
+- **Biomi nei dati:** `stages.ron` ha `biomes` oltre a `stages` (schema 7). Un bioma è
+  l'aspetto della mappa in tre livelli separati: *terreno* (tileset opaco a colonna, tile di
+  base con pesi, macchie a rumore con i bordi a maschera, muro di bordo, varianti solo
+  grafiche, gruppi a macchie), *decorazioni calpestabili* (tileset con alpha 0/255 e regole
+  con densità, terreno e macchie) e *ostacoli* (tipi con sprite, raggio dell'impronta e pesi
+  sul terreno di base e sulle macchie). Uno stage sceglie il bioma per id e tiene densità e
+  zona libera: stage diversi possono combinare lo stesso bioma con ostacoli, nemici, orde e
+  boss diversi.
+- **Nomi, non indici:** i tile si nominano come nel manifest; `world::biome::Biome::compile` li
+  traduce in indici (i 15 bordi di un materiale si chiamano `<nome>_<lati>` come in
+  `scripts/art_tileset.py`) e i pesi in soglie del tiro. `compile` è anche la validazione dei
+  biomi; un test confronta nomi, misure e sprite di ogni bioma con `assets/manifest.json`.
+- **Un generatore e un renderer:** `generation` e `obstacles` ricevono il bioma compilato, il
+  terreno si cuoce nei pezzi da 512 px come prima (D-061) e le decorazioni si cuociono sopra il
+  terreno, tranne sotto un ostacolo: nessuna entità in più, nessun costo per fotogramma. Lo
+  sprite di un ostacolo viene dal bioma (`Biome` è una risorsa inserita con gli ostacoli).
+- **Prateria invariata:** stessi sali, stesso rumore, soglie ricavate dai pesi in f64 (0,42 +
+  0,42 + 0,09 dà esattamente le soglie di prima). Due test con impronte calcolate prima della
+  modifica (tile di tutta l'arena e ostacoli, seed 1, 7 e quello di default) lo garantiscono.
+- **Regole degli ostacoli uguali per tutti:** impronta circolare centrata nel tile (altezza
+  fissa nel codice, non nei dati: un'altezza per tipo avrebbe spostato i centri e ridotto i
+  varchi), raggio validato tra 4 e 7 px, mai due ostacoli adiacenti, due tile dal muro, zona
+  libera attorno alla partenza. I test di varchi, raggiungibilità, zone di esclusione e griglia
+  girano su ogni stage. Arena, limiti e prestazioni non cambiano.
+- **Scelta dello stage:** `--stage <id>` (sul web `?stage=`) va in `RunSetup::stage`, che il
+  loader dei dati applica a ogni caricamento (anche alla ricarica a caldo); uno stage che non
+  esiste è un errore dei dati a schermo. È indipendente dal compagno: la scelta del compagno
+  resta in `RunSetup::companion` e `starting_companion` dello stage è solo il default senza
+  menu. Ogni stage è validato come stage giocato.
+- **Bosco Ombroso (primo incremento):** stessi nemici, run e forzieri della prateria, ostacoli
+  un terzo più fitti (densità 0,016: alberi, ceppi, tronchi, rocce, colonne spezzate), radure
+  più larghe, foglie a macchie, funghi, felci e lastre di rovine come decorazioni. Asset
+  provvisori procedurali nella pipeline; quelli definitivi con ChatGPT (ART-FOREST-001, D-065).
+- **Dopo il bosco verificato, non prima:** selezione della mappa nel menu (la struttura c'è:
+  `RunSetup::stage` + `GameConfig::with_stage`), effetti ambientali e pericoli del bioma (nuovi
+  campi del bioma), gruppi di nemici e boss per stage (già nei campi dello stage).
+
 ## D-067 Home animata con i pixel dell'illustrazione *(utente)*
 Richiesta dell'utente del 2026-10-30: la home diventa una scena viva. Stessa illustrazione,
 stessa composizione, animazioni ambientali delicate, niente video al posto del fondo.

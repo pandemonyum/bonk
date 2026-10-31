@@ -7,7 +7,9 @@
 //! orbita, slot dei compagni nel player, carte che aggiungono un compagno) → 5 (P0.6: durata
 //! della run, difficoltà per minuto, élite e boss negli stage, cariche e colpi ad area
 //! telegrafati nei nemici) → 6 (U-SELECT, D-066: `description` e `unlock` dei compagni,
-//! `display_name` e `description` degli attacchi, per la selezione del compagno iniziale).
+//! `display_name` e `description` degli attacchi, per la selezione del compagno iniziale) → 7
+//! (D-068: biomi in `stages.ron` con terreno, decorazioni e tipi di ostacolo; `biome` dello stage
+//! al posto di `obstacles.tree_chance`).
 
 use serde::Deserialize;
 
@@ -16,14 +18,16 @@ mod companions;
 mod run;
 mod talents;
 mod treasure;
+mod world;
 pub use attacks::*;
 pub use companions::*;
 pub use run::*;
 pub use talents::*;
 pub use treasure::*;
+pub use world::*;
 
 /// Versione dello schema supportata da questo codice.
-pub const SCHEMA_VERSION: u32 = 6;
+pub const SCHEMA_VERSION: u32 = 7;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -255,7 +259,8 @@ pub struct EnemiesFile {
     pub enemies: Vec<EnemyData>,
 }
 
-/// Ostacoli dello stage. La distanza minima tra ostacoli (attraversabilità) resta nel codice.
+/// Quanti ostacoli ha lo stage; quali tipi e dove li sceglie il bioma (`BiomeData`). La
+/// distanza minima tra ostacoli (attraversabilità) resta nel codice.
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ObstacleParams {
@@ -263,8 +268,6 @@ pub struct ObstacleParams {
     pub density: f32,
     /// Raggio libero attorno al punto di partenza del player.
     pub safe_radius: f32,
-    /// Probabilità che un ostacolo sull'erba sia un albero invece di una roccia.
-    pub tree_chance: f32,
 }
 
 /// Un'ondata dello spawn director: un archetipo che entra in scena da `start_s` con un ritmo
@@ -302,7 +305,10 @@ pub struct SpawnPlan {
 pub struct StageData {
     pub id: String,
     pub display_name: String,
-    /// Compagno proposto per primo nel menu e usato senza menu (headless, autoplay).
+    /// Id del bioma in `biomes`: l'aspetto della mappa, indipendente dal compagno.
+    pub biome: String,
+    /// Compagno proposto per primo nel menu e usato senza menu (headless, autoplay). Non dipende
+    /// dal bioma e non lo sceglie.
     pub starting_companion: String,
     pub spawns: SpawnPlan,
     pub run: RunPlan,
@@ -342,5 +348,6 @@ pub struct ElitePlan {
 #[serde(deny_unknown_fields)]
 pub struct StagesFile {
     pub version: u32,
+    pub biomes: Vec<BiomeData>,
     pub stages: Vec<StageData>,
 }

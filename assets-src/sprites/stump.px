@@ -1,0 +1,25 @@
+# Ceppo tagliato (ostacolo, Bosco Ombroso, D-068), 20x16: faccia del taglio ellittica in luce con
+# il bordo di corteccia e gli anelli (7/d, cuore D), fianco di corteccia a strisce verticali con
+# la luce a sinistra (d/D/8), quattro radici che si allargano a terra, ciuffo di muschio sul
+# fianco sinistro. Contorno k, ombra a terra 9, luce da nord-ovest.
+# Impronta: r=6 a 4 px sopra la base, sul fusto e sulle radici (righe 7-13, colonne 3-16).
+# Abbozzato con forme ombreggiate (script usa e getta) e rifinito.
+out: sprites/stump.png
+palette: ../biomes/forest.palette.txt
+---
+.....kkkkkkkkkk.....
+....kdd777777DDk....
+...kd7dd7777dd7Dk...
+..kd77d77DD77d77Dk..
+..kdD7dd7777dd7D8k..
+..kddDD777777DD88k..
+..kddDDD8DDD88888k..
+..kLdDDD8DDD88888k..
+..klLDDD8DDD88888k..
+.kdmlDDD8DDD88888dk.
+kdD8dDDD8DDD88888Ddk
+kD88kkkd8DDDD8kkk88k
+k88k9kdD8kkkk88k9k8k
+.kk99kD8k9999kk999k.
+......kk999999......
+.......999999.......

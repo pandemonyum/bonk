@@ -1,0 +1,38 @@
+# Colonna spezzata delle rovine (ostacolo, Bosco Ombroso, D-068), 16x28: fusto scanalato largo
+# 10 px su un plinto largo 14, rotto in cima con la faccia della rottura in luce e il labbro
+# scuro sotto, crepa diagonale, muschio sulla rottura e sul plinto. Pietra grigio caldo d'oliva
+# (R/r/j/J della palette del bosco): ne' il grigio-blu della roccia del prato ne' il viola dei
+# nemici. Luce da nord-ovest, contorno k, ombra a terra 9.
+# Impronta: r=6 a 4 px sopra la base, sul plinto (righe 19-24, colonne 1-14). Abbozzata con
+# forme ombreggiate (script usa e getta) e rifinita a mano.
+out: sprites/ruin_pillar.png
+palette: ../biomes/forest.palette.txt
+---
+................
+................
+................
+.....kk...k.....
+....kRRk.kRk....
+...kRRRRkRRrk...
+..kLRRRRRRrrrk..
+..kLlRRRRrrrjk..
+..klLjRjrjjrJk..
+..kRRrRrrjrjJk..
+..kRRrRrrjrjJk..
+..kRRrJrrjrjJk..
+..kRRrRJrjrjJk..
+..kRRrRJrjrjJk..
+..kRRrRrJjrjJk..
+..kRRrRrrJrjJk..
+..kRRrRrrjrjJk..
+..klRrRrrjrjJk..
+.kkLlrRrrjrjJkk.
+kLLlLrRrrjrjJrrk
+klLlRRRRrrrjjjjk
+kRRRRrrrrrrrjjjk
+krrrrjjjjjjjJJJk
+krrrrjjjjjjjJJJk
+krrrrjjjjjjjJJJk
+9kkkkkkkkkkkkkk9
+.99999999999999.
+.....999999.....

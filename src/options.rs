@@ -10,6 +10,8 @@ pub const DEFAULT_SEED: u64 = 0x5EED_2026;
 pub const USAGE: &str = "\
 Uso: pixel-monster-survivor [opzioni]
   --seed <u64>             seed della run (default 1592598566)
+  --stage <id>             stage da giocare, per id di game-data/stages.ron (default il
+                           primo, meadow; es. forest). Non cambia il compagno scelto
   --autoplay               il personaggio si muove da solo (prove e screenshot)
   --overlay                mostra subito l'overlay di debug (F3)
   --screenshot <file.png>  salva uno screenshot della finestra
@@ -56,6 +58,8 @@ impl FromStr for MenuPage {
 #[derive(Resource, Debug, Clone, PartialEq)]
 pub struct LaunchOptions {
     pub seed: u64,
+    /// Stage da giocare (`None` = il primo di `stages.ron`); lo controlla il loader dei dati.
+    pub stage: Option<String>,
     pub autoplay: bool,
     pub show_overlay: bool,
     pub screenshot: Option<PathBuf>,
@@ -83,6 +87,7 @@ impl Default for LaunchOptions {
     fn default() -> Self {
         Self {
             seed: DEFAULT_SEED,
+            stage: None,
             autoplay: false,
             show_overlay: false,
             screenshot: None,
@@ -146,6 +151,7 @@ impl LaunchOptions {
         while let Some(flag) = args.next() {
             match flag.as_str() {
                 "--seed" => options.seed = value(&mut args, &flag)?,
+                "--stage" => options.stage = Some(value(&mut args, &flag)?),
                 "--autoplay" => options.autoplay = true,
                 "--overlay" => options.show_overlay = true,
                 "--screenshot" => options.screenshot = Some(value(&mut args, &flag)?),
@@ -238,10 +244,15 @@ mod tests {
             "1.5",
             "--exit-after",
             "4",
+            "--stage",
+            "forest",
         ])
         .unwrap()
         .unwrap();
         assert_eq!(o.seed, 42);
+        assert_eq!(o.stage.as_deref(), Some("forest"));
+        assert_eq!(LaunchOptions::default().stage, None);
+        assert!(USAGE.contains("--stage"));
         assert!(o.autoplay && o.show_overlay);
         assert_eq!(o.screenshot, Some(PathBuf::from("out/s.png")));
         assert_eq!(o.screenshot_after_secs, 1.5);

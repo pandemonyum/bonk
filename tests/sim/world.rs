@@ -1,15 +1,20 @@
-//! P0.1 headless: ostacoli generati dal seed, collisioni di player e nemici.
+//! P0.1 headless: ostacoli generati dal seed, collisioni di player e nemici. D-068: gli stessi
+//! controlli sul Bosco Ombroso e una run vera nel bosco.
 
-use crate::common::{config, count, god, player_position, run_steps};
+use crate::common::{config, count, god, player_position, progression, run_steps};
 use bevy::prelude::*;
+use pixel_monster_survivor::app::RunSetup;
+use pixel_monster_survivor::data::{DataId, GameConfig};
 use pixel_monster_survivor::gameplay::collision::Footprint;
+use pixel_monster_survivor::gameplay::companions::Companion;
 use pixel_monster_survivor::gameplay::enemies::Enemy;
 use pixel_monster_survivor::gameplay::kinematics::{Position, PreviousPosition};
 use pixel_monster_survivor::gameplay::player::{MoveIntent, Player};
-use pixel_monster_survivor::headless_app;
+use pixel_monster_survivor::world::biome::Biome;
 use pixel_monster_survivor::world::obstacles::{
     Obstacle, ObstacleField, ObstacleSpec, generate_obstacles,
 };
+use pixel_monster_survivor::{headless_app, headless_app_with};
 
 fn field(app: &App) -> ObstacleField {
     app.world().resource::<ObstacleField>().clone()
@@ -42,8 +47,11 @@ fn the_run_spawns_the_seeded_obstacles() {
     let mut app = headless_app(21);
     app.update();
     let field = field(&app);
-    let params = config(&app).stage.obstacles;
-    assert_eq!(field.obstacles, generate_obstacles(21, &params));
+    let config = config(&app);
+    let biome = Biome::of_stage(&config);
+    assert_eq!(*app.world().resource::<Biome>(), biome);
+    let expected = generate_obstacles(21, &biome, &config.stage.obstacles);
+    assert_eq!(field.obstacles, expected);
     assert_eq!(count::<Obstacle>(&mut app), field.obstacles.len());
 }
 
@@ -85,14 +93,87 @@ fn a_player_aimed_at_the_center_stops_at_the_edge() {
     assert!((at.distance(center) - expected).abs() < 1e-3, "{at:?}");
 }
 
-/// Tutti gli archetipi (lo sciame entra al minuto 1), con lo spawn director attivo.
+/// Tutti gli archetipi con lo spawn director attivo: 160 s, perché lo sciame entra a 2:00 e
+/// corazzati ed élite a 2:30.
 #[test]
 fn enemies_stay_out_of_obstacles_within_the_documented_bound() {
     let mut app = headless_app(8);
+    enemies_stay_out_of_obstacles(&mut app, 60 * 160);
+}
+
+/// Nel bosco gli ostacoli sono più fitti e di cinque tipi: le stesse garanzie, stessi 160 s.
+#[test]
+fn forest_enemies_stay_out_of_obstacles_within_the_documented_bound() {
+    let mut app = headless_app_with(8, forest());
+    enemies_stay_out_of_obstacles(&mut app, 60 * 160);
+}
+
+fn forest() -> GameConfig {
+    GameConfig::embedded().with_stage("forest").unwrap()
+}
+
+/// D-068: una run vera nel Bosco Ombroso. Il bioma e gli ostacoli sono quelli del bosco, i
+/// nemici arrivano e muoiono, il compagno è quello scelto (non dipende dallo stage) e attacca,
+/// la XP cresce, il player non entra negli ostacoli.
+#[test]
+fn a_forest_run_has_its_map_enemies_companion_and_xp() {
+    let config = forest();
+    let chosen = (config.companions.iter())
+        .map(|c| c.id.clone())
+        .find(|id| *id != config.stage.starting_companion)
+        .expect("un compagno diverso da quello dello stage");
+    let mut app = headless_app_with(5, config.clone());
+    app.insert_resource(RunSetup {
+        companion: Some(chosen.clone()),
+        stage: None,
+    });
     god(&mut app);
     app.update();
+    let biome = app.world().resource::<Biome>().clone();
+    assert_eq!(biome.id, "forest");
     let field = field(&app);
-    for step in 0..60 * 80 {
+    assert_eq!(
+        field.obstacles,
+        generate_obstacles(5, &biome, &config.stage.obstacles)
+    );
+    let kinds: Vec<&str> = biome.obstacles.iter().map(|k| k.id.as_str()).collect();
+    assert!(kinds.contains(&"forest_tree") && kinds.contains(&"ruin_pillar"));
+    let world = app.world_mut();
+    let party: Vec<String> = world
+        .query_filtered::<&DataId, With<Companion>>()
+        .iter(world)
+        .map(|id| id.0.clone())
+        .collect();
+    assert_eq!(party, vec![chosen]);
+    // un minuto e mezzo a spasso fra gli alberi
+    let mut defeated = false;
+    for step in 0..60 * 90 {
+        if step % 45 == 0 {
+            let t = step as f32 / 60.0;
+            app.insert_resource(MoveIntent(Vec2::from_angle(t * 1.3)));
+        }
+        app.update();
+        let at = player_position(&mut app);
+        let radius = config.player.footprint_radius;
+        for obstacle in field.near(at, radius) {
+            let d = at.distance(obstacle.footprint_center());
+            assert!(
+                d >= obstacle.footprint_radius() + radius - 1e-3,
+                "passo {step}"
+            );
+        }
+        defeated |= progression(&app).total_xp > 0;
+    }
+    assert!(count::<Enemy>(&mut app) > 0, "nessun nemico nel bosco");
+    assert!(defeated, "nessuna XP raccolta in 90 s");
+    assert!(progression(&app).level > 1, "{:?}", progression(&app));
+}
+
+fn enemies_stay_out_of_obstacles(app: &mut App, steps: usize) {
+    god(app);
+    app.update();
+    let field = field(app);
+    for step in 0..steps {
         if step % 30 == 0 {
             let t = step as f32 / 60.0;
             app.insert_resource(MoveIntent(Vec2::from_angle(t * 0.7)));

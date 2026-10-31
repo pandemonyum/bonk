@@ -1,6 +1,6 @@
 //! Aggancia gli sprite alle entità di gioco e ne sincronizza la posizione a schermo.
-//! Gli sprite di attori e proiettili vengono dai percorsi in `game-data/` (via `DataId`);
-//! quelli degli ostacoli sono parte del mondo e restano qui.
+//! Gli sprite di attori e proiettili vengono dai percorsi in `game-data/` (via `DataId`), quelli
+//! degli ostacoli dal bioma della run (`stages.ron: biomes`, D-068).
 
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
@@ -13,7 +13,8 @@ use crate::gameplay::kinematics::{Position, PreviousPosition};
 use crate::gameplay::progression::XpGem;
 use crate::gameplay::pulse::Slowed;
 use crate::gameplay::talent_effects::Burning;
-use crate::world::obstacles::{Obstacle, ObstacleKind};
+use crate::world::biome::Biome;
+use crate::world::obstacles::Obstacle;
 
 /// Profondità per pixel di y: chi sta più in basso è disegnato davanti.
 const Y_SORT: f32 = 1.0e-4;
@@ -23,12 +24,6 @@ pub(super) const HIT_TINT: Color = Color::srgb(1.0, 0.45, 0.45);
 const SLOW_TINT: Color = Color::srgb(0.6, 0.85, 1.0);
 /// Tinta di un nemico che brucia (talenti): arancio, dopo il colpo e prima del rallentamento.
 const BURN_TINT: Color = Color::srgb(1.0, 0.7, 0.4);
-
-#[derive(Resource)]
-pub struct SpriteAssets {
-    pub rock: Handle<Image>,
-    pub tree: Handle<Image>,
-}
 
 /// Livello di profondità di base di uno sprite (default: `Z_ACTORS`).
 #[derive(Component, Debug, Clone, Copy, PartialEq)]
@@ -42,13 +37,7 @@ pub struct SpritesPlugin;
 
 impl Plugin for SpritesPlugin {
     fn build(&self, app: &mut App) {
-        let assets = app.world().resource::<AssetServer>();
-        let sprites = SpriteAssets {
-            rock: assets.load("sprites/rock.png"),
-            tree: assets.load("sprites/tree.png"),
-        };
-        app.insert_resource(sprites)
-            .add_observer(attach_projectile_sprite)
+        app.add_observer(attach_projectile_sprite)
             .add_observer(attach_gem_sprite)
             .add_observer(attach_obstacle_sprite)
             .add_systems(Update, tint_hit_enemies)
@@ -121,23 +110,31 @@ fn attach_gem_sprite(
         .insert((actor_sprite(image), DepthBase(Z_PICKUPS)));
 }
 
-/// Gli ostacoli condividono il y-sort degli attori: chi passa dietro un albero ne è coperto.
+/// Gli ostacoli condividono il y-sort degli attori: chi passa dietro un albero ne è coperto. Il
+/// mondo inserisce il bioma prima degli ostacoli (`world::setup_world`).
 fn attach_obstacle_sprite(
     add: On<Add<Obstacle>>,
     mut commands: Commands,
-    art: Res<SpriteAssets>,
+    assets: Res<AssetServer>,
+    biome: Option<Res<Biome>>,
     obstacles: Query<&Obstacle>,
 ) {
     let Ok(obstacle) = obstacles.get(add.entity) else {
         return;
     };
-    let image = match obstacle.kind {
-        ObstacleKind::Rock => &art.rock,
-        ObstacleKind::Tree => &art.tree,
+    let kind = biome
+        .as_ref()
+        .and_then(|b| b.obstacles.get(obstacle.kind as usize));
+    let Some(kind) = kind else {
+        warn!(
+            "ostacolo di tipo {} senza bioma: niente sprite",
+            obstacle.kind
+        );
+        return;
     };
     commands
         .entity(add.entity)
-        .insert(actor_sprite(image.clone()));
+        .insert(actor_sprite(assets.load(kind.sprite.clone())));
 }
 
 /// Tinta di colpo sui nemici (stesso segnale del player, che la riceve in `player_anim`),

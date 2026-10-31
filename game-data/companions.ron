@@ -9,7 +9,7 @@
 // non ancora (si sblocca solo con una condizione futura, salvata nel profilo). Serve almeno un
 // Start e lo stage deve partire con uno Start.
 (
-    version: 6,
+    version: 7,
     companions: [
         (
             id: "ember",

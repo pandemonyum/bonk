@@ -1,0 +1,26 @@
+# Tronco caduto corto e muschioso (ostacolo, Bosco Ombroso, D-068), 24x16, orizzontale: faccia
+# del taglio a sinistra con gli anelli, corteccia con le scanalature lungo il tronco (luce in
+# alto d, ombra in basso 8), cuscini di muschio sopra (L/l), estremo destro arrotondato.
+# Contorno k, ombra a terra 9, luce da nord-ovest.
+# Impronta: r=7 a 4 px sopra la base: copre i 14 px centrali del tronco (colonne 5-18); le
+# punte, 3-4 px per lato, restano attraversabili come la chioma degli alberi. Abbozzato con
+# forme ombreggiate (script usa e getta) e rifinito.
+out: sprites/log.png
+palette: ../biomes/forest.palette.txt
+---
+........................
+........................
+...kkkkkkkkkkkkkkkkkk...
+..kddddLLLLLldLLLLlLlk..
+.kd777dLllllldLllllLldk.
+kd7ddd7dldmDdDdlmdDdmDdk
+kd77777dDDDDDDDDDDDDDDDk
+kDd7D7dDDDDDDDDDDDDDDDDk
+kDd7D7dDD8D88D8D88D8D88k
+kD77777DDDDDDDDDDDDDDDDk
+kD7ddd7D888888888888888k
+.kD777D888888888888888k.
+..kDDD888888888888888k..
+..9kkkkkkkkkkkkkkkkkk99.
+...9999999999999999999..
+.........9999999........

@@ -181,6 +181,18 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/forest_tree.png",
+      "kind": "sprite",
+      "size": [
+        40,
+        48
+      ],
+      "frames": 1,
+      "palette": "assets-src/biomes/forest.palette.txt",
+      "source": "assets-src/sprites/forest_tree.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "sprites/leaf.png",
       "kind": "sprite",
       "size": [
@@ -192,6 +204,18 @@
       "license": "original, project-owned (generated from assets-src)"
     },
     {
+      "path": "sprites/log.png",
+      "kind": "sprite",
+      "size": [
+        24,
+        16
+      ],
+      "frames": 1,
+      "palette": "assets-src/biomes/forest.palette.txt",
+      "source": "assets-src/sprites/log.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
       "path": "sprites/rock.png",
       "kind": "sprite",
       "size": [
@@ -200,6 +224,18 @@
       ],
       "frames": 1,
       "source": "assets-src/sprites/rock.px",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "sprites/ruin_pillar.png",
+      "kind": "sprite",
+      "size": [
+        16,
+        28
+      ],
+      "frames": 1,
+      "palette": "assets-src/biomes/forest.palette.txt",
+      "source": "assets-src/sprites/ruin_pillar.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {
@@ -262,6 +298,18 @@
       "palette": "assets-src/sprites/companions.palette.txt",
       "source": "assets-src/sprites/sprout_sheet.px",
       "license": "user-provided (rights declared by the user, D-052), redrawn and cleaned in assets-src"
+    },
+    {
+      "path": "sprites/stump.png",
+      "kind": "sprite",
+      "size": [
+        20,
+        16
+      ],
+      "frames": 1,
+      "palette": "assets-src/biomes/forest.palette.txt",
+      "source": "assets-src/sprites/stump.px",
+      "license": "original, project-owned (generated from assets-src)"
     },
     {
       "path": "sprites/summoner_sheet.png",
@@ -2397,6 +2445,83 @@
         "hedge_nesw"
       ],
       "source": "scripts/build-assets.py (procedural, seed 20261022)",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "tiles/forest_tileset.png",
+      "kind": "tileset",
+      "size": [
+        16,
+        656
+      ],
+      "tile_size": 16,
+      "tiles": [
+        "moss_a",
+        "moss_b",
+        "moss_leaves",
+        "moss_roots",
+        "clearing",
+        "thicket",
+        "moss_c",
+        "moss_twigs",
+        "clearing_b",
+        "leaves_a",
+        "leaves_b",
+        "clearing_n",
+        "clearing_e",
+        "clearing_ne",
+        "clearing_s",
+        "clearing_ns",
+        "clearing_es",
+        "clearing_nes",
+        "clearing_w",
+        "clearing_nw",
+        "clearing_ew",
+        "clearing_new",
+        "clearing_sw",
+        "clearing_nsw",
+        "clearing_esw",
+        "clearing_nesw",
+        "thicket_n",
+        "thicket_e",
+        "thicket_ne",
+        "thicket_s",
+        "thicket_ns",
+        "thicket_es",
+        "thicket_nes",
+        "thicket_w",
+        "thicket_nw",
+        "thicket_ew",
+        "thicket_new",
+        "thicket_sw",
+        "thicket_nsw",
+        "thicket_esw",
+        "thicket_nesw"
+      ],
+      "palette": "assets-src/biomes/forest.palette.txt",
+      "source": "scripts/art_forest.py (procedural, seed 20261031)",
+      "license": "original, project-owned (generated from assets-src)"
+    },
+    {
+      "path": "tiles/forest_decor.png",
+      "kind": "decor",
+      "size": [
+        16,
+        128
+      ],
+      "tile_size": 16,
+      "tiles": [
+        "fern",
+        "mushrooms_tan",
+        "mushrooms_white",
+        "stones_moss",
+        "ruin_slab",
+        "ruin_rubble",
+        "twigs",
+        "flowers_shade"
+      ],
+      "palette": "assets-src/biomes/forest.palette.txt",
+      "source": "assets-src/biomes/forest_decor.px",
       "license": "original, project-owned (generated from assets-src)"
     },
     {

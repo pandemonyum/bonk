@@ -69,7 +69,11 @@ pub fn client_app(options: LaunchOptions) -> App {
         presentation::PresentationPlugin,
         diagnostics::DiagnosticsPlugin,
     ))
-    .insert_resource(GodMode(options.god));
+    .insert_resource(GodMode(options.god))
+    .insert_resource(app::RunSetup {
+        companion: None,
+        stage: options.stage.clone(),
+    });
     // il profilo del dispositivo; le run automatiche, invulnerabili o accelerate non lo salvano
     if let Some(path) = profile::default_path() {
         let saves = !options.autoplay && !options.god && options.time_scale == 1.0;

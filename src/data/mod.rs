@@ -107,8 +107,11 @@ pub struct GameConfig {
     pub companions: Vec<CompanionData>,
     pub attacks: Vec<AttackData>,
     pub enemies: Vec<EnemyData>,
-    /// Lo stage giocato: il primo di `stages.ron`.
+    /// Lo stage giocato: il primo di `stages.ron`, o quello scelto con [`GameConfig::with_stage`].
     pub stage: StageData,
+    /// Tutti gli stage di `stages.ron`, nell'ordine del file.
+    pub stages: Vec<StageData>,
+    pub biomes: Vec<BiomeData>,
     pub progression: ProgressionFile,
     pub upgrades: Vec<UpgradeData>,
 }
@@ -162,7 +165,7 @@ impl GameConfig {
                 ));
             }
         }
-        let Some(stage) = stages.stages.into_iter().next() else {
+        let Some(stage) = stages.stages.first().cloned() else {
             errors.push("stages.ron: serve almeno uno stage".into());
             return Err(errors);
         };
@@ -172,10 +175,22 @@ impl GameConfig {
             attacks: attacks.attacks,
             enemies: enemies.enemies,
             stage,
+            stages: stages.stages,
+            biomes: stages.biomes,
             progression,
             upgrades: upgrades.upgrades,
         };
-        errors.extend(validate::validate(&config));
+        // Ogni stage va validato come stage giocato; gli errori che non dipendono dallo stage
+        // escono uguali per tutti e si riportano una volta.
+        for stage in &config.stages {
+            let mut as_played = config.clone();
+            as_played.stage = stage.clone();
+            for error in validate::validate(&as_played) {
+                if !errors.contains(&error) {
+                    errors.push(error);
+                }
+            }
+        }
         if errors.is_empty() {
             Ok(config)
         } else {
@@ -189,6 +204,29 @@ impl GameConfig {
             Ok(config) => config,
             Err(errors) => panic!("game-data/ non valido:\n{}", errors.join("\n")),
         }
+    }
+
+    /// La stessa configurazione con `id` come stage giocato; errore leggibile se non esiste.
+    pub fn with_stage(mut self, id: &str) -> Result<Self, String> {
+        let Some(stage) = self.stages.iter().find(|s| s.id == id) else {
+            let known: Vec<&str> = self.stages.iter().map(|s| s.id.as_str()).collect();
+            return Err(format!(
+                "stages.ron: lo stage \"{id}\" non esiste (ci sono: {})",
+                known.join(", ")
+            ));
+        };
+        self.stage = stage.clone();
+        Ok(self)
+    }
+
+    pub fn find_biome(&self, id: &str) -> Option<&BiomeData> {
+        self.biomes.iter().find(|b| b.id == id)
+    }
+
+    /// Bioma dello stage giocato (esiste: verificato dalla validazione).
+    pub fn biome(&self) -> &BiomeData {
+        self.find_biome(&self.stage.biome)
+            .expect("riferimento validato in GameConfig::parse")
     }
 
     pub fn companion(&self, id: &str) -> Option<&CompanionData> {
@@ -253,73 +291,4 @@ fn parse_file<T: serde::de::DeserializeOwned>(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_real_data_files_are_valid() {
-        // Tutti i riferimenti tra file si risolvono (gli accessori non vanno in panic).
-        let config = GameConfig::embedded();
-        let companion = config.starting_companion();
-        assert_eq!(config.companion_attack(companion).id, companion.attack);
-        for wave in &config.stage.spawns.waves {
-            assert_eq!(config.wave_enemy(wave).id, wave.enemy);
-        }
-        assert_eq!(
-            config.first_wave_enemy().id,
-            config.stage.spawns.waves[0].enemy
-        );
-    }
-
-    #[test]
-    fn syntax_errors_name_the_file_and_position() {
-        let broken = DataSources {
-            enemies: "(version: 1, enemies: [ (id: \"blob\" ",
-            ..EMBEDDED
-        };
-        let errors = GameConfig::parse(&broken).unwrap_err();
-        assert_eq!(errors.len(), 1, "{errors:?}");
-        assert!(errors[0].starts_with("enemies.ron: 1:"), "{}", errors[0]);
-    }
-
-    #[test]
-    fn unknown_fields_are_rejected() {
-        let typo = EMBEDDED.player.replace("speed:", "sped:");
-        let errors = GameConfig::parse(&DataSources {
-            player: &typo,
-            ..EMBEDDED
-        })
-        .unwrap_err();
-        assert!(
-            errors[0].contains("player.ron") && errors[0].contains("sped"),
-            "{errors:?}"
-        );
-    }
-
-    #[test]
-    fn every_broken_file_is_reported_at_once() {
-        let errors = GameConfig::parse(&DataSources {
-            player: "(",
-            stages: "[",
-            ..EMBEDDED
-        })
-        .unwrap_err();
-        assert_eq!(errors.len(), 2, "{errors:?}");
-    }
-
-    #[test]
-    fn unsupported_versions_are_rejected() {
-        let future = EMBEDDED
-            .attacks
-            .replace(&format!("version: {SCHEMA_VERSION}"), "version: 99");
-        let errors = GameConfig::parse(&DataSources {
-            attacks: &future,
-            ..EMBEDDED
-        })
-        .unwrap_err();
-        assert!(
-            errors.iter().any(|e| e.contains("attacks.ron: version 99")),
-            "{errors:?}"
-        );
-    }
-}
+mod tests;

@@ -264,8 +264,8 @@ pub(super) fn validate(config: &GameConfig) -> Vec<String> {
     }
     r.probability(&at("obstacles.density"), s.obstacles.density);
     r.non_negative(&at("obstacles.safe_radius"), s.obstacles.safe_radius);
-    r.probability(&at("obstacles.tree_chance"), s.obstacles.tree_chance);
 
+    world::check(&mut r, config);
     progression::check(&mut r, config);
     run::check(&mut r, config);
     talents::check(&mut r, config);
@@ -279,3 +279,4 @@ mod run;
 mod talents;
 #[cfg(test)]
 mod tests;
+mod world;

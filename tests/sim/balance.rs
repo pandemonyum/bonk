@@ -265,7 +265,7 @@ fn veteran_profile(config: &GameConfig) -> pixel_monster_survivor::profile::Prof
 /// Run vera (danni attivi) del "giocatore medio" (`bot`): come finisce, livello a 5:00 e a
 /// 10:00, compagni, durata dello scontro con il boss e danni subiti. È il termine di paragone
 /// per la difficoltà (GDD, obiettivi di bilanciamento): l'autoplay cieco muore presto, il bot
-/// che scappa da tutto non cresce. `PMS_SEEDS=1,2` sceglie le seed, `PMS_START=tide` il
+/// che scappa da tutto non cresce. `PMS_STAGE=forest` lo stage, `PMS_SEEDS=1,2` le seed, `PMS_START=tide` il
 /// compagno iniziale.
 #[test]
 #[ignore = "sonda manuale di bilanciamento"]
@@ -278,10 +278,17 @@ fn print_survival_medium_player() {
         .unwrap_or_else(|| (1..=8).collect());
     // `PMS_START=tide` (o un altro id di companions.ron) cambia il compagno iniziale
     let mut config = GameConfig::embedded();
+    // `PMS_STAGE=forest` (o un altro id di stages.ron) cambia lo stage (D-068)
+    if let Ok(stage) = std::env::var("PMS_STAGE") {
+        config = config.with_stage(&stage).unwrap();
+    }
     if let Ok(start) = std::env::var("PMS_START") {
         config.stage.starting_companion = start;
     }
-    println!("compagno iniziale: {}", config.stage.starting_companion);
+    println!(
+        "stage: {}, compagno iniziale: {}",
+        config.stage.id, config.stage.starting_companion
+    );
     let mut wins = 0;
     // `PMS_TALENTS=1`: tutti i compagni con l'albero completo (il veterano dopo ~20 run)
     let veteran = std::env::var("PMS_TALENTS").is_ok();

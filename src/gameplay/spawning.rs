@@ -257,6 +257,7 @@ pub(super) fn run_director(
 mod tests {
     use super::*;
     use crate::data::GameConfig;
+    use crate::world::biome::Biome;
     use crate::world::obstacles::generate_obstacles;
 
     fn wave(start_s: f32, rate: f32, growth: f32) -> WaveData {
@@ -292,33 +293,40 @@ mod tests {
         }
     }
 
+    /// Su ogni stage (D-068: il bosco ha più ostacoli).
     #[test]
     fn spawn_points_are_off_screen_inside_the_arena_and_out_of_obstacles() {
-        let config = GameConfig::embedded();
+        let embedded = GameConfig::embedded();
         let arena = ArenaBounds::default();
-        let field = ObstacleField::new(generate_obstacles(3, &config.stage.obstacles));
-        let ring = config.stage.spawns.ring;
-        let mut rng = Pcg32::new(5, SPAWN_STREAM);
-        // al centro, vicino a un bordo e in un angolo (la camera lì non è centrata sul player)
-        for player in [
-            Vec2::ZERO,
-            Vec2::new(1990.0, 0.0),
-            Vec2::new(-2000.0, -2000.0),
-        ] {
-            let mut found = 0;
-            for _ in 0..300 {
-                if let Some(at) =
-                    find_spawn_point(&mut rng, player, ring, &arena, Some(&field), 8.0)
-                {
-                    found += 1;
-                    assert!(!view_rect(player).inflate(SPAWN_VIEW_MARGIN).contains(at));
-                    assert!(arena.contains(at));
-                    for o in field.near(at, 8.0) {
-                        assert!(o.footprint_center().distance(at) >= o.footprint_radius() + 8.0);
+        for stage in &embedded.stages {
+            let config = embedded.clone().with_stage(&stage.id).unwrap();
+            let biome = Biome::of_stage(&config);
+            let field = ObstacleField::new(generate_obstacles(3, &biome, &config.stage.obstacles));
+            let ring = config.stage.spawns.ring;
+            let mut rng = Pcg32::new(5, SPAWN_STREAM);
+            // al centro, vicino a un bordo e in un angolo (la camera lì non è centrata sul player)
+            for player in [
+                Vec2::ZERO,
+                Vec2::new(1990.0, 0.0),
+                Vec2::new(-2000.0, -2000.0),
+            ] {
+                let mut found = 0;
+                for _ in 0..300 {
+                    if let Some(at) =
+                        find_spawn_point(&mut rng, player, ring, &arena, Some(&field), 8.0)
+                    {
+                        found += 1;
+                        assert!(!view_rect(player).inflate(SPAWN_VIEW_MARGIN).contains(at));
+                        assert!(arena.contains(at));
+                        for o in field.near(at, 8.0) {
+                            let clear = o.footprint_radius() + 8.0;
+                            assert!(o.footprint_center().distance(at) >= clear, "{}", stage.id);
+                        }
                     }
                 }
+                let at = (&stage.id, player);
+                assert!(found > 200, "{at:?}: solo {found} spawn su 300");
             }
-            assert!(found > 200, "player {player:?}: solo {found} spawn su 300");
         }
     }
 }

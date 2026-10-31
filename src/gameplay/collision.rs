@@ -42,7 +42,7 @@ pub fn resolve_against_obstacles(point: Vec2, radius: f32, field: &ObstacleField
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::obstacles::{ObstacleKind, ObstacleSpec};
+    use crate::world::obstacles::ObstacleSpec;
 
     #[test]
     fn push_outside_only_moves_points_inside_the_circle() {
@@ -61,9 +61,10 @@ mod tests {
     #[test]
     fn bodies_are_kept_out_of_obstacle_footprints() {
         let rock = ObstacleSpec {
-            kind: ObstacleKind::Rock,
+            kind: 0,
             tile: UVec2::new(140, 140),
             base: Vec2::new(200.0, 200.0),
+            radius: 7.0,
         };
         let field = ObstacleField::new(vec![rock]);
         let center = rock.footprint_center();

@@ -91,6 +91,19 @@ opzioni, browser, release candidate).
 | ~~ART-BRIDGE~~ **DONE** | Workflow manuale con ChatGPT: decisione, procedura, template delle richieste, `.art-inbox/` ignorata, istruzioni del pixel-art-director e skill di Claude Code; dry run con ART-HOME-001 | orchestrator (D-065, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.gitignore`, backlog e progress) + pixel-art-director (`docs/art/`, `docs/ART_BIBLE.md`, `ASSET_LICENSES.md`, `scripts/art_illustration.py`) | richiesta ART-HOME-001 con prompt autosufficiente, reference da allegare e percorso di ritorno; `.art-inbox/` ignorata e `assets-src/` no; build e validazione degli asset passano senza cambiare `assets/`; nessuna immagine generata dal progetto |
 | ~~ART-HOME-001~~ **DONE** | Illustrazione della home nativa 16:9 senza logo, menu né testo, dal concept approvato di D-063 | pixel-art-director (richiesta, controllo, promozione) + utente (generazione e approvazione in ChatGPT) + gameplay-engineer (`FOCUS` della home, se serve) | PNG approvato dall'utente in `.art-inbox/ART-HOME-001/`; promosso come `assets-src/illustrations/home_background.*` con licenza e provenienza; build e validazione; home nel gioco vero a 1280×720, 1920×1080 e 1024×768 senza player o compagni tagliati né coperti dalla UI. Fatto il 2026-10-30: v1 approvata dall'utente, 1672×941, `FOCUS` invariato |
 
+## Mappe a più biomi (2026-10-31, D-068)
+
+Richiesta dell'utente: sei ambientazioni (Prateria Verde, Bosco Ombroso, Canyon Arido, Cime
+Glaciali, Vulcano Infernale, Rovine Arcane), sempre top-down 2D come il gameplay attuale. Prima
+la struttura e il Bosco Ombroso; mappe selezionabili, effetti ambientali, pericoli e boss
+dedicati solo dopo che il bosco è verificato.
+
+| ID | Task | Owner | Criteri di done |
+|---|---|---|---|
+| ~~MAP-BIOMES~~ **DONE** | Generazione del mondo configurabile per stage: biomi in `stages.ron` con tre livelli (terreno a tileset con bordi, decorazioni calpestabili cotte nel terreno, ostacoli con collisione e sprite dai dati); un solo generatore e un solo renderer; stage scelto con `--stage` indipendente dal compagno; prateria identica a prima | orchestrator (codice in `src/world/`, `src/data/`, `src/presentation/sprites.rs`, `src/app.rs`, `src/options.rs`, `src/lib.rs`, `src/gameplay/{collision,spawning}.rs` (solo test), `tests/sim/{world,run}.rs`; schema e valori in `game-data/*.ron`, assegnati dall'orchestratore) + code-reviewer | prateria identica al pixel e agli ostacoli di prima (test con impronte calcolate prima della modifica); stessa seed = stessa mappa per ogni bioma; ogni bioma carica i suoi tileset e sprite (test sul manifest); regole degli ostacoli (zona libera, varchi, raggiungibilità, margini) per ogni stage; validazione dei biomi con errori leggibili; `./scripts/check.ps1` verde |
+| ~~MAP-FOREST~~ **DONE** (asset provvisori) | Stage Bosco Ombroso: terreno verde scuro, radure, alberi, ceppi, tronchi, funghi, piccole rovine; asset provvisori procedurali nella pipeline esistente | pixel-art-director (tileset, decorazioni, sprite degli ostacoli, manifest, validatore, ART_BIBLE) + orchestrator (stage in `stages.ron`) | asset validati (dimensioni, alpha 0/255, palette, allineamento a 16 px); run vera con `--stage forest`: nemici, compagno, XP, collisioni; screenshot del gioco vero senza overlay; sonda di bilanciamento sul bosco |
+| ART-FOREST-001 (REQUESTED, parte A; B e C dopo A) | Richiesta ChatGPT per tileset e oggetti definitivi del bosco (D-065) | pixel-art-director + utente | richiesta in `docs/art/requests/` con dimensioni native, bordi ripetibili, oggetti separati con trasparenza; nessuna immagine generata dal progetto |
+
 ## Debito tecnico e idee registrate
 
 - Player (D-050): somiglianza con personaggi Nintendo accettata dall'utente, **da rivalutare

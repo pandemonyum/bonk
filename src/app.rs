@@ -38,11 +38,14 @@ pub enum RunPhase {
 #[derive(Resource, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RunSeed(pub u64);
 
-/// Scelte fatte nel menu per le prossime run. Senza scelta (headless, autoplay) vale il
-/// compagno iniziale dello stage.
+/// Scelte per le prossime run, indipendenti fra loro. Senza scelta (headless, autoplay) vale il
+/// compagno iniziale dello stage; senza stage, il primo di `stages.ron`.
 #[derive(Resource, Debug, Clone, PartialEq, Eq, Default)]
 pub struct RunSetup {
     pub companion: Option<String>,
+    /// Stage da giocare (`--stage`, D-068): il loader dei dati lo rende lo stage della
+    /// `GameConfig` a ogni caricamento. Non dipende dal compagno e non lo cambia.
+    pub stage: Option<String>,
 }
 
 impl RunSetup {

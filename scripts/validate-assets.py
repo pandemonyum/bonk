@@ -2,7 +2,9 @@
 """Valida gli asset in assets/ contro manifest e ART_BIBLE.
 
 Controlli: ogni PNG è nel manifest (e viceversa), dimensioni dichiarate = reali, nomi
-snake_case, tileset multipli di 16 px, sprite e icone UI entro i limiti di dimensione (i fogli
+snake_case, tileset a colonna di tile 16x16 con un nome snake_case unico per tile (il terreno
+opaco; le decorazioni, tipo "decor" di D-068, con almeno un pixel per tile e il bordo di 1 px
+trasparente), sprite e icone UI entro i limiti di dimensione (i fogli
 animati fotogramma per fotogramma: misura multipla del fotogramma, nessun fotogramma vuoto, base
 toccata se l'ancora è in basso al centro), solo
 colori della palette per gli asset generati (quella propria dell'asset se il manifest ha
@@ -32,8 +34,10 @@ ASSETS = ROOT / "assets"
 GAME_DATA = ROOT / "game-data"
 PALETTE = ROOT / "assets-src" / "palette.txt"
 NAME_RE = re.compile(r"^[a-z0-9_]+\.png$")
-# Campi sprite nei file RON di game-data/ (es. sprite: "sprites/x.png").
-DATA_SPRITE_RE = re.compile(r'\b(?:sprite|projectile_sprite)\s*:\s*"([^"]+)"')
+# Campi sprite e tileset nei file RON di game-data/ (es. sprite: "sprites/x.png").
+DATA_SPRITE_RE = re.compile(r'\b(?:sprite|projectile_sprite|tileset)\s*:\s*"([^"]+)"')
+TILE_SIZE = 16  # lato dei tile dei tileset (ART_BIBLE, "Griglia e dimensioni")
+TILE_NAME_RE = re.compile(r"^[a-z0-9_]+$")
 MAX_SPRITE = 64  # sprite singoli; vedi docs/ART_BIBLE.md
 MAX_FRAME = 96  # fotogrammi dei fogli animati (il boss e' 96x80)
 MAX_UI = 40  # icone e ritratti dell'interfaccia (i ritratti dei compagni sono 40x36)
@@ -84,6 +88,36 @@ def check_sheet(path: str, entry: dict, img: Image.Image) -> list[str]:
     return errors
 
 
+def check_tileset(path: str, entry: dict, img: Image.Image) -> list[str]:
+    """Tileset a colonna (D-068): tile 16x16, un nome per tile nell'ordine dei tile. Il terreno
+    ("tileset") è opaco; le decorazioni ("decor") hanno almeno un pixel per tile e il bordo di
+    1 px trasparente, così si cuociono sopra qualunque terreno senza toccare i tile vicini."""
+    errors: list[str] = []
+    t, names = entry.get("tile_size"), entry.get("tiles", [])
+    if t != TILE_SIZE:
+        return [f"{path}: tile_size {t}, atteso {TILE_SIZE}"]
+    if img.width != t or img.height != t * len(names):
+        return [f"{path}: atteso {t}x{t * len(names)} ({len(names)} tile in colonna)"]
+    bad = [n for n in names if not TILE_NAME_RE.match(n)]
+    if bad:
+        errors.append(f"{path}: nomi di tile non snake_case {bad}")
+    if len(set(names)) != len(names):
+        errors.append(f"{path}: nomi di tile ripetuti")
+    alpha = img.getchannel("A")
+    if entry["kind"] == "tileset":
+        if alpha.getextrema()[0] != 255:
+            errors.append(f"{path}: il terreno deve essere opaco (alpha 255 ovunque)")
+        return errors
+    for i, name in enumerate(names):
+        tile = alpha.crop((0, i * t, t, (i + 1) * t))
+        box = tile.getbbox()
+        if box is None:
+            errors.append(f"{path}: tile {name} vuoto")
+        elif box[0] < 1 or box[1] < 1 or box[2] > t - 1 or box[3] > t - 1:
+            errors.append(f"{path}: tile {name} tocca il bordo (serve 1 px trasparente)")
+    return errors
+
+
 def check_overlay(path: str, entry: dict, img: Image.Image, entries: dict) -> list[str]:
     """Maschera o vortice delle animazioni della home: dentro l'illustrazione, opachi."""
     errors = []
@@ -122,10 +156,8 @@ def main() -> int:
             errors.append(f"{path}: dimensione {img.size} diversa dal manifest {entry['size']}")
         if not entry.get("license"):
             errors.append(f"{path}: licenza mancante")
-        if entry["kind"] == "tileset":
-            t = entry["tile_size"]
-            if img.width != t or img.height != t * len(entry["tiles"]):
-                errors.append(f"{path}: tileset atteso {t}x{t * len(entry['tiles'])}")
+        if entry["kind"] in ("tileset", "decor"):
+            errors += check_tileset(path, entry, img)
         elif entry["kind"] == "sprite" and "frame" in entry:
             errors += check_sheet(path, entry, img)
         elif entry["kind"] == "sprite" and max(img.size) > MAX_SPRITE:

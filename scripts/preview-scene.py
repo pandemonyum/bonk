@@ -11,7 +11,11 @@ e i testi usano un carattere 3x5 provvisorio solo per l'anteprima, non una propo
 Il player è un fotogramma del foglio animato (`art("foglio.png#riga:colonna")`); il foglio
 intero è in docs/evidence/art-preview-player-sheet.png (x4).
 
-Uso: python scripts/build-assets.py && python scripts/preview-scene.py
+Il Bosco Ombroso (D-068) ha la sua anteprima, art-preview-forest.png: scena di gioco sopra,
+mappa di prova con radure, bordi, muro, decorazioni e ostacoli più i tileset sotto.
+
+Uso: python scripts/build-assets.py && python scripts/preview-scene.py [anteprima ...]
+(senza argomenti tutte; per esempio `python scripts/preview-scene.py forest`)
 Richiede: Python 3.10+ e Pillow.
 """
 
@@ -20,6 +24,7 @@ from __future__ import annotations
 import json
 import math
 import random
+import sys
 from pathlib import Path
 
 from PIL import Image
@@ -132,7 +137,7 @@ EDGE_BITS = ((1, (0, -1)), (2, (1, 0)), (4, (0, 1)), (8, (-1, 0)))
 
 
 def tile_names() -> dict[str, int]:
-    sheet = next(e for e in manifest_assets() if e["kind"] == "tileset")
+    sheet = next(e for e in manifest_assets() if e["path"] == "tiles/meadow_tileset.png")
     return {name: i for i, name in enumerate(sheet["tiles"])}
 
 
@@ -537,6 +542,229 @@ def scene_player_sheet() -> Image.Image:
     return canvas
 
 
+# --- Bosco Ombroso (D-068) ----------------------------------------------------------------
+# Mappa di prova con le regole che stages.ron darà al bosco (pesi e soglie indicativi: quelli
+# veri sono dei dati): muschio a quattro tile con le varianti, radure a macchie, tappeti di
+# foglie, decorazioni cotte sopra il terreno (mai sul muro né sotto un ostacolo), muro di
+# sottobosco fitto con i bordi.
+
+FOREST_TILESET = "tiles/forest_tileset.png"
+FOREST_DECOR = "tiles/forest_decor.png"
+FOREST_GROUND = (("moss_a", 0.40), ("moss_b", 0.40), ("moss_leaves", 0.12), ("moss_roots", 0.08))
+FOREST_VARIANTS = {"moss_a": ("moss_c", 0.30), "moss_b": ("moss_twigs", 0.18),
+                   "clearing": ("clearing_b", 0.30)}
+# (decorazioni, materiale, densità); le rovine stanno a macchie (rumore a celle di 7 tile)
+FOREST_DECOR_RULES = (
+    (("ruin_slab", "ruin_rubble"), "ruins", 0.35),
+    (("fern",), "moss", 0.04),
+    (("twigs",), "moss", 0.02),
+    (("mushrooms_tan", "mushrooms_white"), "moss", 0.03),
+    (("stones_moss",), "moss", 0.015),
+    (("flowers_shade",), "moss", 0.02),
+    (("flowers_shade", "mushrooms_tan"), "clearing", 0.10),
+)
+
+
+def sheet_names(path: str) -> dict[str, int]:
+    entry = next(e for e in manifest_assets() if e["path"] == path)
+    return {name: i for i, name in enumerate(entry["tiles"])}
+
+
+def sheet_tile(path: str, index: int) -> Image.Image:
+    return art(path).crop((0, index * TILE, TILE, (index + 1) * TILE))
+
+
+def forest_ground(x: int, y: int) -> str:
+    r = random.Random(f"forest:{x},{y}").random()
+    name, total = FOREST_GROUND[-1][0], 0.0
+    for candidate, weight in FOREST_GROUND:
+        total += weight
+        if r < total:
+            name = candidate
+            break
+    roll = random.Random(f"forest-variant:{x},{y}").random()
+    if value_noise(x, y, 5, "forest-leaves") > 0.72 and roll < 0.6:
+        return "leaves_a" if roll < 0.35 else "leaves_b"
+    variant, share = FOREST_VARIANTS.get(name, (name, 0.0))
+    return variant if roll < share else name
+
+
+def forest_decor(x: int, y: int, material: str) -> str | None:
+    roll = random.Random(f"forest-decor:{x},{y}").random()
+    pick = random.Random(f"forest-pick:{x},{y}").random()
+    for tiles, surface, density in FOREST_DECOR_RULES:
+        if surface == "ruins":
+            if material != "moss" or value_noise(x, y, 7, "forest-ruins") < 0.78:
+                continue
+        elif surface != material:
+            continue
+        if roll < density:
+            return tiles[int(pick * len(tiles))]
+        roll -= density
+    return None
+
+
+def draw_forest_map(material_at, cols: int, rows: int, blocked=frozenset()) -> Image.Image:
+    """`material_at(x, y)` -> "moss" | "clearing" | "thicket"; fuori mappa = stesso materiale.
+    `blocked`: tile con un ostacolo, dove non va nessuna decorazione."""
+    names, decor_names = sheet_names(FOREST_TILESET), sheet_names(FOREST_DECOR)
+    img = Image.new("RGBA", (cols * TILE, rows * TILE))
+    for y in range(rows):
+        for x in range(cols):
+            material = material_at(x, y)
+            if material == "moss":
+                name = forest_ground(x, y)
+            else:
+                mask = 0
+                for bit, (dx, dy) in EDGE_BITS:
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx < cols and 0 <= ny < rows and material_at(nx, ny) != material:
+                        mask |= bit
+                name = names_edge(material, mask)
+                if name == "clearing" and random.Random(f"forest:{x},{y}").random() < 0.3:
+                    name = "clearing_b"
+            img.paste(sheet_tile(FOREST_TILESET, names[name]), (x * TILE, y * TILE))
+            decor = forest_decor(x, y, material) if material != "thicket" else None
+            if decor and (x, y) not in blocked:
+                tile = sheet_tile(FOREST_DECOR, decor_names[decor])
+                img.alpha_composite(tile, (x * TILE, y * TILE))
+    return img
+
+
+def names_edge(material: str, mask: int) -> str:
+    if mask == 0:
+        return material
+    return material + "_" + "".join(s for (bit, _), s in zip(EDGE_BITS, "nesw") if mask & bit)
+
+
+def forest_material(x: int, y: int) -> str:
+    """Materiale della scena di gioco del bosco: muro a destra e in basso, due radure."""
+    if x >= 28 or y >= 16:
+        return "thicket"
+    d1 = ((x - 7.5) / 3.6) ** 2 + ((y - 11.5) / 2.4) ** 2
+    d2 = ((x - 21.0) / 2.6) ** 2 + ((y - 3.5) / 2.0) ** 2
+    d3 = ((x - 10.5) / 2.0) ** 2 + ((y - 13.5) / 1.4) ** 2
+    return "clearing" if min(d1, d2, d3) <= 1.0 else "moss"
+
+
+def scene_forest_gameplay() -> Image.Image:
+    canvas = Image.new("RGBA", (W, H))
+    # ostacoli (posizione della base in pixel, sprite): mai a ridosso del muro
+    obstacles = [
+        ((44, 78), "forest_tree"), ((128, 44), "forest_tree"), ((410, 70), "forest_tree"),
+        ((372, 150), "forest_tree"), ((60, 250), "forest_tree"), ((300, 252), "forest_tree"),
+        ((186, 70), "stump"), ((96, 158), "log"), ((332, 206), "stump"), ((250, 92), "log"),
+        ((214, 236), "ruin_pillar"), ((246, 238), "ruin_pillar"), ((420, 214), "rock"),
+    ]
+    blocked = {(bx // TILE, (by - 4) // TILE) for (bx, by), _ in obstacles}
+    world = draw_forest_map(forest_material, 30, 17, frozenset(blocked))
+    canvas.alpha_composite(world.crop((0, 0, W, H)))
+    layer = Layer()
+    for (x, y), sprite in obstacles:
+        layer.actor(f"sprites/{sprite}.png", x, y)
+    px, py = 240, 160
+    layer.actor(f"{PLAYER}#walk_down:0", px, py)
+    layer.actor("sprites/ember_sheet.png#idle:0", px - 24, py - 12)
+    layer.actor("sprites/tide_sheet.png#idle:0", px + 25, py - 12)
+    layer.actor("sprites/sprout_sheet.png#idle:0", px, py - 26)
+    rng = random.Random(11)
+    kinds = ["blob"] * 11 + ["swarm"] * 6 + ["armored"] * 3
+    placed: list[tuple[int, int]] = [(px, py)] + [pos for pos, _ in obstacles]
+    while len(placed) < 45 + len(obstacles):
+        angle = rng.uniform(0, math.tau)
+        dist = rng.uniform(64, 250)
+        x = int(px + math.cos(angle) * dist * 1.25)
+        y = int(py + math.sin(angle) * dist * 0.75)
+        if not (12 < x < W - 40 and 40 < y < H - 20):
+            continue
+        if any((x - ox) ** 2 + (y - oy) ** 2 < 420 for ox, oy in placed):
+            continue
+        placed.append((x, y))
+        layer.actor(enemy(rng.choice(kinds), x, px, rng), x, y)
+    for _ in range(16):
+        layer.ground("sprites/xp_gem.png", rng.randrange(80, 400), rng.randrange(70, 250))
+    for x, y in ((150, 120), (330, 104)):
+        layer.ground("sprites/coin.png#spin:0", x, y)
+    cx, cy = px, py - 8
+    for i in range(3):
+        a = math.radians(30 + i * 120)
+        layer.centered("sprites/leaf.png", int(cx + math.cos(a) * 34), int(cy + math.sin(a) * 34))
+    for i in range(28):
+        a = math.tau * i / 28
+        layer.centered("sprites/droplet.png", int(cx + math.cos(a) * 46),
+                       int(cy + math.sin(a) * 46))
+    for x, y in ((196, 128), (176, 114), (268, 196)):
+        layer.centered("sprites/fireball.png", x, y)
+    for i in range(8):
+        a = math.tau * i / 8
+        layer.centered("sprites/telegraph.png", int(352 + math.cos(a) * 16),
+                       int(186 + math.sin(a) * 10), depth=-1)
+    layer.draw(canvas)
+    hud(canvas, 7, 342, "03:10")
+    return canvas
+
+
+def scene_forest_tiles() -> Image.Image:
+    canvas = Image.new("RGBA", (W, H), PAL["0"])
+
+    def material(x: int, y: int) -> str:
+        if x < 1 or y < 1 or x >= 17 or y >= 15 or (x, y) in ((1, 7), (1, 8), (2, 8), (16, 3)):
+            return "thicket"
+        if ((x - 5) / 3.2) ** 2 + ((y - 5) / 2.3) ** 2 <= 1 or (x == 5 and 6 <= y < 12):
+            return "clearing"
+        if ((x - 12) / 2.6) ** 2 + ((y - 10) / 2.6) ** 2 <= 1 or (x, y) in ((8, 11), (9, 11)):
+            return "clearing"
+        return "moss"
+
+    obstacles = [((12 * TILE + 8, 4 * TILE), "forest_tree"), ((3 * TILE, 13 * TILE), "stump"),
+                 ((10 * TILE, 3 * TILE + 8), "log"),
+                 ((14 * TILE + 8, 14 * TILE + 4), "ruin_pillar"),
+                 ((8 * TILE, 8 * TILE), "rock")]
+    blocked = frozenset((bx // TILE, (by - 4) // TILE) for (bx, by), _ in obstacles)
+    world = draw_forest_map(material, 18, 16, blocked)
+    layer = Layer()
+    for (x, y), sprite in obstacles:
+        layer.actor(f"sprites/{sprite}.png", x, y)
+    layer.draw(world)
+    canvas.alpha_composite(world, (4, 7))
+    sheet = art(FOREST_TILESET)
+    count = sheet.height // TILE
+    for i in range(count):
+        position = (300 + (i % 9) * 19, 7 + (i // 9) * 19)
+        canvas.alpha_composite(sheet_tile(FOREST_TILESET, i), position)
+    text(canvas, 300, 104, f"{count} TILE: 0-10 MUSCHIO, RADURA, MURO,", "4")
+    text(canvas, 300, 112, "FOGLIE. 11-25 BORDI RADURA, 26-40 MURO", "4")
+    names = sheet_names(FOREST_TILESET)
+    for row, ground in enumerate(("moss_a", "clearing")):
+        for i in range(len(sheet_names(FOREST_DECOR))):
+            tile = sheet_tile(FOREST_TILESET, names[ground]).copy()
+            tile.alpha_composite(sheet_tile(FOREST_DECOR, i))
+            canvas.alpha_composite(tile, (300 + i * 19, 124 + row * 19))
+    text(canvas, 300, 164, "8 DECORAZIONI SU MUSCHIO E RADURA", "4")
+    strip = Image.new("RGBA", (176, 56))
+    for tx in range(0, 176, TILE):
+        for ty in range(0, 56, TILE):
+            strip.paste(sheet_tile(FOREST_TILESET, names["moss_a" if (tx + ty) % 3 else "moss_b"]),
+                        (tx, ty))
+    x = 2
+    for sprite in ("forest_tree", "stump", "log", "ruin_pillar", "rock"):
+        img = art(f"sprites/{sprite}.png")
+        strip.alpha_composite(img, (x, 54 - img.height))
+        x += img.width + 6
+    canvas.alpha_composite(strip, (300, 176))
+    text(canvas, 300, 236, "OSTACOLI: ABETE, CEPPO, TRONCO,", "4")
+    text(canvas, 300, 244, "COLONNA, ROCCIA DEL PRATO", "4")
+    return canvas
+
+
+def scene_forest() -> Image.Image:
+    """Scena di gioco del bosco sopra, mappa di prova e tileset sotto."""
+    canvas = Image.new("RGBA", (W, H * 2), PAL["0"])
+    canvas.alpha_composite(scene_forest_gameplay(), (0, 0))
+    canvas.alpha_composite(scene_forest_tiles(), (0, H))
+    return canvas
+
+
 def save(img: Image.Image, name: str, scale: int = SCALE) -> None:
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     big = img.resize((img.width * scale, img.height * scale), Image.NEAREST)
@@ -544,13 +772,27 @@ def save(img: Image.Image, name: str, scale: int = SCALE) -> None:
     print(f"  docs/evidence/{name}  {img.width}x{img.height} x{scale}")
 
 
+# nome sulla riga di comando -> (scena, file, scala)
+SCENES = {
+    "scene": (scene_gameplay, "art-preview-scene.png", SCALE),
+    "draft": (scene_draft, "art-preview-draft.png", SCALE),
+    "select": (scene_select, "art-preview-select.png", SCALE),
+    "boss": (scene_boss, "art-preview-boss.png", SCALE),
+    "tiles": (scene_tiles, "art-preview-tiles.png", SCALE),
+    "player-sheet": (scene_player_sheet, "art-preview-player-sheet.png", 4),
+    "forest": (scene_forest, "art-preview-forest.png", SCALE),
+}
+
+
 def main() -> None:
-    save(scene_gameplay(), "art-preview-scene.png")
-    save(scene_draft(), "art-preview-draft.png")
-    save(scene_select(), "art-preview-select.png")
-    save(scene_boss(), "art-preview-boss.png")
-    save(scene_tiles(), "art-preview-tiles.png")
-    save(scene_player_sheet(), "art-preview-player-sheet.png", 4)
+    """Senza argomenti tutte le anteprime; altrimenti solo quelle nominate (es. `forest`)."""
+    chosen = sys.argv[1:] or list(SCENES)
+    unknown = [name for name in chosen if name not in SCENES]
+    if unknown:
+        sys.exit(f"anteprime sconosciute {unknown}; disponibili: {', '.join(SCENES)}")
+    for name in chosen:
+        scene, filename, scale = SCENES[name]
+        save(scene(), filename, scale)
 
 
 if __name__ == "__main__":

@@ -37,10 +37,12 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `gameplay::progression` | `XpGem`, `Attracted`, `PickupRadius`, `Progression` (livello, XP, livelli in attesa); gemme lasciate dai morti, limite con fusione, attrazione e raccolta | no |
 | `gameplay::upgrades` | `UpgradeStacks`, `Draft`, `ChooseUpgrade`, `AutoPick`; estrazione pesata, apertura del draft, scelta, ricalcolo a caldo, rigenerazione; `upgrades::modifiers`: `Modifiers` (dati base + stack), `pct_factor` | no |
 | `gameplay::input` | tastiera → `MoveIntent`, Esc/P pausa, pausa su perdita focus, 1/2/3 nel draft | input (client) |
-| `world` | costanti arena, `ArenaBounds` (`min`/`max` sui piedi), `inside_arena` (limite proiettili); `generation` (seed → tile, pura); `tiles` (indici); spawn degli ostacoli (`WorldSetup`) | no |
-| `world::obstacles` | rocce/alberi dal seed (pura), `ObstacleField` con griglia spaziale 32 px, entità `Obstacle` | no |
+| `world` | costanti arena, `ArenaBounds` (`min`/`max` sui piedi), `inside_arena` (limite proiettili); bioma della run e ostacoli (`WorldSetup`) | no |
+| `world::biome` | bioma compilato dai dati (D-068): nomi dei tile → indici, pesi → soglie; è anche la validazione dei biomi | no |
+| `world::generation` | seed + bioma → terreno logico (base, macchie, muro), tile grafici con bordi e varianti, decorazioni (pura) | no |
+| `world::obstacles` | ostacoli dal seed e dal bioma (pura), `ObstacleField` con griglia spaziale 32 px e tile occupati, entità `Obstacle` | no |
 | `gameplay::collision` | `Footprint`, `push_outside`, respinta dei corpi dagli ostacoli | no |
-| `world::render` | terreno in pezzi da 512 px cotti sulla CPU e mostrati come sprite attorno alla camera (D-061) | sì |
+| `world::render` | terreno e decorazioni del bioma in pezzi da 512 px cotti sulla CPU e mostrati come sprite attorno alla camera (D-061, D-068) | sì |
 | `world::view` | vista minima 480×270 e più grande 640×360, centro camera; condivisa da camera, spawn director e forzieri, che considerano in vista la più grande (D-062) | no |
 | `presentation::camera` | canvas 480×270, camera mondo/schermo, scala intera, offset mezzo pixel, follow; `UiScale` dalla scala del canvas (D-045) | sì |
 | `presentation::sprites` | observer `On<Add<Enemy/Companion/...>>` → `Sprite`; interpolazione + snap al pixel + y-sort; tinte di colpo e rallentamento | sì |

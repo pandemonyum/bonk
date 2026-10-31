@@ -175,6 +175,7 @@ fn the_companion_chosen_in_the_menu_starts_the_run() {
     let mut app = headless_app_with(1, c.clone());
     app.insert_resource(RunSetup {
         companion: Some(wave.clone()),
+        ..default()
     });
     restart_run(&mut app.world_mut().resource_mut::<NextState<AppState>>());
     run_steps(&mut app, 3);

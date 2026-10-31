@@ -13,6 +13,66 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "mappe a più biomi e Bosco Ombroso" (2026-10-31)
+
+```text
+Task: MAP-BIOMES, MAP-FOREST, ART-FOREST-001 (richiesta) - D-068, su richiesta dell'utente
+Owner: orchestrator (src/world/, src/data/, sprites.rs, app.rs, options.rs, lib.rs, stages.ron e
+  versioni dei .ron, tests/sim/{world,run,balance}.rs) + pixel-art-director (asset del bosco,
+  scripts/art_forest.py, build/validate/preview, ART_BIBLE, ASSET_LICENSES, ART-FOREST-001) +
+  code-reviewer (prima passata RESPINTA: test del loader, pesi a zero, test per ogni campo,
+  commento di un test, file oltre 400 righe; corretti, seconda passata ACCETTATA; corretti
+  anche i residui: test del loader e del render in file propri, soglia delle macchie < 1,
+  muro e macchie che non possono sembrare terreno di base)
+Stato: DONE (asset del bosco provvisori; definitivi con ART-FOREST-001)
+Assunzioni: Bosco con gli stessi nemici, run e forzieri della prateria (gruppi propri dopo);
+  densità degli ostacoli 0,016 contro 0,012; nessun menu di scelta della mappa (dopo la
+  verifica del bosco, come chiesto); stage scelto con --stage / ?stage=.
+File: src/world/{biome.rs, biome/compile.rs, biome/tests.rs, generation.rs, generation/tests.rs,
+  obstacles.rs, obstacles/tests.rs, render.rs, render/tests.rs, mod.rs} (tiles.rs tolto),
+  src/data/{mod.rs, tests.rs, loader.rs, loader/tests.rs, schema.rs, schema/world.rs, validate.rs, validate/world.rs,
+  validate/world/tests.rs, validate/tests.rs}, src/presentation/sprites.rs, src/app.rs,
+  src/options.rs, src/lib.rs, src/gameplay/{collision,spawning}.rs (test), game-data/*.ron
+  (schema 7; stages.ron con biomes e lo stage forest), tests/sim/{world,run,balance}.rs;
+  asset e script del pixel-art-director (sotto); docs/{DECISIONS (D-068), BACKLOG,
+  ARCHITECTURE, PROGRESS}.md, docs/evidence/map-{forest,meadow}-gioco.png
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1 (una passata)          exit 0: fmt ok, clippy -D warnings ok, lib 276 ok,
+                                             sim 103 ok + 7 ignorati, asset "OK: 220 PNG ... 0 errori"
+  python scripts/build-assets.py             OK: 220 asset; PNG esistenti identici al byte
+  cargo run -- --stage forest --autoplay --god --seed 3 --window 1280x720 --screenshot ...
+                                             screenshot a 30 s; check-pixel-grid 100%
+  PMS_STAGE=forest|meadow cargo test --test sim print_survival_medium_player -- --ignored
+                                             bosco 6/8, prateria 6/8 (sotto)
+Comportamento verificato:
+  - Prateria identica: impronte di tutti i tile dell'arena e degli ostacoli (seed 1, 7, default)
+    calcolate col codice di prima; il code-reviewer le ha ricalcolate da HEAD a parte, uguali.
+  - Stessa seed = stessa mappa per ogni bioma (terreno, decorazioni, ostacoli); seed diverse,
+    mappe diverse.
+  - Ogni bioma carica i suoi tileset e sprite: nomi, ordine e misure confrontati con
+    assets/manifest.json; nella run la risorsa Biome è quella dello stage.
+  - Regole degli ostacoli su ogni stage: zona di partenza libera, varchi >= 18 px, ogni tile
+    libero raggiungibile, zone di esclusione dentro i limiti, griglia spaziale esatta, spawn
+    fuori vista e fuori dagli ostacoli; nemici fuori dagli ostacoli per 160 s in tutti e due.
+  - Run vera nel bosco (headless, 90 s): compagno scelto diverso da quello dello stage, nemici,
+    XP, livello > 1, player mai dentro un ostacolo. Nel gioco vero: Lv 2 a 0:30, 5–7
+    sconfitti, compagno che attacca, forziere segnalato, HUD normale, nessun overlay.
+  - --stage: stage scelto al caricamento e dopo una ricarica a caldo; stage inesistente =
+    errore dei dati a schermo.
+Sonda del giocatore medio (8 seed, Fiammetto): prateria 6/8, sconfitte seed 2 (5:16) e 8 (3:55),
+  boss 28–52 s; bosco 6/8, sconfitte seed 2 (5:07) e 8 (3:22), boss 41–95 s, livelli a 5:00 e
+  10:00 uguali (15–17, 34–36). Difficoltà simile; il boss dura di più tra gli ostacoli.
+Screenshot/log: docs/evidence/map-forest-gioco.png, map-meadow-gioco.png,
+  art-preview-forest.png (anteprima del pixel-art-director)
+Rischi o bug noti: asset del bosco provvisori (tappeti di foglie con un leggero effetto griglia,
+  rovine poco leggibili come rovine); il bosco copia i blocchi spawns/run/chests della prateria
+  (una taratura della prateria non passa al bosco da sola); regole di decorazione oscurate da
+  una precedente non sono segnalate; "No previous asset to copy from" all'avvio c'era già
+  (render target del canvas, anche nella prateria).
+Prossimo task: utente, parte A di ART-FOREST-001 (prompt in docs/art/requests/ART-FOREST-001.md);
+  poi la scelta della mappa nel menu e i biomi successivi.
+```
+
 ## Report tranche "lucciole della home" (2026-10-31)
 
 ```text

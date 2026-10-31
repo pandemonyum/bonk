@@ -1,0 +1,41 @@
+# Palette del Bosco Ombroso (D-068): tileset del terreno e delle decorazioni del bosco
+# (scripts/art_forest.py) e sprite degli ostacoli forest_tree, stump, log, ruin_pillar.
+# Formato come assets-src/palette.txt: <carattere> <hex RGB> <ruolo>. '.' e' trasparente.
+#
+# I caratteri sono di questa palette: quelli condivisi con "Germoglio" hanno lo stesso colore
+# e lo stesso ruolo; i nuovi riusano lettere che in "Germoglio" hanno altri ruoli (teal,
+# viola, rosso), che qui non servono. Il bosco non usa mai i colori di ruolo di nemici
+# (viola), pericoli (rosso), gemme XP (blu) e alleati (teal).
+#
+# Condivisi con "Germoglio" (stesso hex)
+k 1b1428 contorno
+w f4f1e8 bianco
+9 3d5235 ombra-a-terra
+y ffd65c giallo-fiore
+b 84c25c erba-luce-della-radura
+a 559c47 erba-della-radura
+A 3c7f3f erba-ombra-della-radura
+B 2a6238 erba-scura-della-radura
+7 e0b27a terra-luce-e-legno-chiaro
+d c08b5a terra-nocciola
+D 8f603d terra-ombra-e-corteccia
+8 5a3a26 terra-scura
+G b8862e ocra-foglia
+h 74491f ocra-scuro
+# Nuovi del bosco. Muschio: verde scuro e freddo (tinta ~135 gradi contro i ~110 del prato),
+# piu' scuro del prato di un terzo; dalla luce filtrata al sottobosco profondo.
+L 6b9455 muschio-sole
+l 4f7d4f muschio-luce
+m 3d6647 muschio
+M 2e5040 muschio-ombra
+n 213c33 muschio-scuro
+Z 162a25 sottobosco-profondo
+# Pietra delle rovine: grigio caldo d'oliva e licheni, mai grigio-blu (roccia del prato) o
+# grigio-viola (nemici).
+R c4bd9a rovina-luce
+r 958f6e rovina
+j 676650 rovina-ombra
+J 434639 rovina-scura
+# Funghi chiari: crema e la sua ombra (niente rosso, viola o blu sui funghi).
+c e8dcc0 crema
+C b5a582 crema-ombra

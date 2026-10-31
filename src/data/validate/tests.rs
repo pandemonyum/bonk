@@ -220,10 +220,6 @@ fn obstacle_parameters_are_checked() {
         &format!("stages.ron: {stage}.obstacles.density deve essere tra 0 e 1"),
     );
     assert_error(
-        |c| c.stage.obstacles.tree_chance = -0.1,
-        "obstacles.tree_chance",
-    );
-    assert_error(
         |c| c.stage.obstacles.safe_radius = -1.0,
         "obstacles.safe_radius",
     );

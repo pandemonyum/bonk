@@ -1,12 +1,14 @@
-//! Arena "Prateria dei Germogli": dimensioni, limiti percorribili, ostacoli, generazione a seed.
+//! Arena: dimensioni, limiti percorribili, ostacoli, generazione a seed.
 //!
 //! Decisione S0 (docs/DECISIONS.md): arena chiusa di 256×256 tile, centrata nell'origine,
-//! divisa in chunk da 64×64 tile. Niente streaming.
+//! divisa in chunk da 64×64 tile. Niente streaming. Dalla D-068 l'aspetto della mappa (terreno,
+//! decorazioni, tipi di ostacolo) è il bioma dello stage giocato (`biome::Biome`); dimensioni,
+//! limiti e regole degli ostacoli sono gli stessi per tutti i biomi.
 
+pub mod biome;
 pub mod generation;
 pub mod obstacles;
 pub mod render;
-pub mod tiles;
 pub mod view;
 
 use bevy::prelude::*;
@@ -14,6 +16,7 @@ use bevy::prelude::*;
 use crate::app::{AppState, RunSeed};
 use crate::data::GameConfig;
 use crate::gameplay::kinematics::body;
+use biome::Biome;
 use obstacles::{Obstacle, ObstacleField, generate_obstacles};
 
 pub const TILE_SIZE: u32 = 16;
@@ -70,8 +73,9 @@ impl ArenaBounds {
     }
 }
 
-/// Set di `OnEnter(AppState::InRun)` che prepara il mondo (ostacoli): chi ne ha bisogno, come
-/// lo spawn director per non far nascere nemici dentro una roccia, va messo `.after(WorldSetup)`.
+/// Set di `OnEnter(AppState::InRun)` che prepara il mondo (bioma e ostacoli): chi ne ha bisogno,
+/// come lo spawn director per non far nascere nemici dentro una roccia o il terreno che legge il
+/// bioma, va messo `.after(WorldSetup)`.
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct WorldSetup;
 
@@ -80,19 +84,22 @@ pub struct WorldPlugin;
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ArenaBounds>()
-            .add_systems(OnEnter(AppState::InRun), spawn_obstacles.in_set(WorldSetup));
+            .add_systems(OnEnter(AppState::InRun), setup_world.in_set(WorldSetup));
     }
 }
 
-/// Genera gli ostacoli della run: la griglia `ObstacleField` per le collisioni e un'entità
-/// per ostacolo per il rendering.
-fn spawn_obstacles(mut commands: Commands, seed: Res<RunSeed>, config: Res<GameConfig>) {
-    let field = ObstacleField::new(generate_obstacles(seed.0, &config.stage.obstacles));
+/// Prepara il mondo della run: il bioma dello stage giocato, la griglia `ObstacleField` per le
+/// collisioni e un'entità per ostacolo per il rendering. Il bioma è inserito prima degli
+/// ostacoli, così chi aggancia lo sprite a un ostacolo nuovo lo trova già.
+fn setup_world(mut commands: Commands, seed: Res<RunSeed>, config: Res<GameConfig>) {
+    let biome = Biome::of_stage(&config);
+    commands.insert_resource(biome.clone());
+    let field = ObstacleField::new(generate_obstacles(seed.0, &biome, &config.stage.obstacles));
     for obstacle in &field.obstacles {
         commands.spawn((
             Name::new(format!(
-                "{:?} {},{}",
-                obstacle.kind, obstacle.tile.x, obstacle.tile.y
+                "{} {},{}",
+                biome.obstacles[obstacle.kind as usize].id, obstacle.tile.x, obstacle.tile.y
             )),
             Obstacle {
                 kind: obstacle.kind,

@@ -58,6 +58,11 @@ sono ancora quelli del codice attuale, le icone nuove non sono collegate).
 | Segno di pericolo | — | **6×6** | anello rosso a terra |
 | Roccia | 16×12 | **20×16** | masso tozzo nello stile del player; impronta r=7 a 4 px sopra la base, sulla parte bassa del masso |
 | Albero | 32×32 | **40×48** | chioma a ciuffi separati per tono, contorno solo sulla sagoma; impronta r=4 a 4 px sopra la base, sul piede del tronco |
+| Tileset del bosco (D-068) | — | **16×656** terreno (41 tile, opaco) e **16×128** decorazioni (8 tile, alpha 0/255) | stessa griglia del prato; nomi e ordine nella sezione "Bosco Ombroso" |
+| Abete del bosco | — | **40×48** | sagoma a punta a quattro palchi, diversa dalla chioma tonda; impronta r=4 a 4 px sopra la base, sul piede del tronco |
+| Ceppo | — | **20×16** | impronta r=6 a 4 px sopra la base, su fusto e radici |
+| Tronco caduto | — | **24×16** | impronta r=7 a 4 px sopra la base: i 14 px centrali, le punte restano attraversabili |
+| Colonna spezzata | — | **16×28** | impronta r=6 a 4 px sopra la base, sul plinto largo 14 |
 
 Massimi: comuni ≤ 20 px, fotogramma dei compagni 28×24, fotogramma del player 36×38, alberi ≤ 32, boss ≤ 64
 (validato; i fogli animati fotogramma per fotogramma, fino a 96 px per fotogramma). A
@@ -298,6 +303,99 @@ sud. Siepe: contorno scuro dei cespugli e ombra portata sull'erba a sud e a est.
 Le varianti sono **solo grafiche** (`visual_tile_at` in `src/world/generation.rs`): `tile_at`,
 gli ostacoli e il gameplay vedono sempre erba, terra o siepe. Niente acqua né scogliere: non
 cambiano il passaggio. I fiori crescono a macchie (rumore a celle di 6 tile).
+
+## Bosco Ombroso (D-068)
+
+Secondo bioma, sempre top-down come il prato (niente isometrico né illustrazioni panoramiche):
+sottobosco di muschio verde scuro, radure al sole, abeti, ceppi, tronchi caduti, funghi e
+piccole rovine. Tre livelli, letti dal codice **per nome** (`game-data/stages.ron`, biome
+`forest`): terreno, decorazioni calpestabili cotte sopra il terreno, ostacoli con collisione.
+
+Gli asset di oggi sono **provvisori** (MAP-FOREST): procedurali con seed fisso e disegnati
+nella griglia, giocabili e coerenti con lo stile v1. I definitivi passano dalla richiesta
+ChatGPT `docs/art/requests/ART-FOREST-001.md` e vanno ridisegnati negli stessi nomi, ordini e
+misure. Anteprima ×3: `docs/evidence/art-preview-forest.png` (`python scripts/preview-scene.py
+forest`): sopra una scena di gioco con player, compagni, orda, gemme, monete e segni di
+pericolo, sotto la mappa di prova con radure, bordi, muro, decorazioni e ostacoli, i 41 tile,
+le 8 decorazioni su muschio e su radura e gli ostacoli.
+
+**Palette del bioma** `assets-src/biomes/forest.palette.txt` (26 colori), usata dai due tileset
+e dai quattro sprite nuovi (`palette:` nell'intestazione dei `.px`, `palette` nel manifest):
+- condivisi con "Germoglio", stesso hex e ruolo: `k`, `w`, `9`, `y`, l'erba `b a A B` (radure),
+  terra e legno `7 d D 8`, ocra `G h` (foglie);
+- muschio, dalla luce filtrata al sottobosco profondo: `L` 6b9455, `l` 4f7d4f, `m` 3d6647
+  (fondo), `M` 2e5040, `n` 213c33, `Z` 162a25. Tinta ~135° contro i ~110° del prato, luminosità
+  del fondo ~0,36 contro ~0,53 dell'erba: più scuro e freddo, sempre più spento degli attori;
+- pietra delle rovine, grigio caldo d'oliva e licheni: `R` c4bd9a, `r` 958f6e, `j` 676650,
+  `J` 434639. Né il grigio-blu della roccia del prato né il grigio-viola dei nemici;
+- funghi chiari: `c` e8dcc0 crema, `C` b5a582.
+
+Le lettere nuove valgono solo in questa palette: in "Germoglio" `L l n c C` sono il teal, `m M`
+i fiori rosa e `R r j` il rosso, ruoli che il bosco non usa; `Z` e `J` non ci sono. Il bosco
+non usa mai viola, rosso, blu XP e teal. "Germoglio" non cambia.
+
+**Terreno** `tiles/forest_tileset.png` (`scripts/art_forest.py`, seed 20261031), colonna di 41
+tile 16×16 opachi. Ordine = indice:
+
+| Indici | Tile | Ruolo |
+|---|---|---|
+| 0–3 | `moss_a`, `moss_b`, `moss_leaves`, `moss_roots` | sottobosco di base (pesi indicativi 40/40/12/8%): cuscinetti di muschio a basso contrasto; `moss_leaves` con due foglie, `moss_roots` con una radice che affiora e rientra prima dei bordi |
+| 4 | `clearing` | radura: erba al sole con la rampa del prato, materiale delle macchie |
+| 5 | `thicket` | muro che chiude l'arena: cespugli di rovo tondi (`l L m M` su `n`) sul fondo `Z`, rami di rovo `8 h` fra i cespugli |
+| 6–7 | `moss_c`, `moss_twigs` | varianti solo grafiche di `moss_a`/`moss_b`: chiazze di luce filtrata (`L`/`l`); rametti e aghi |
+| 8 | `clearing_b` | variante piena della radura: trifoglio e fiorellini bianchi |
+| 9–10 | `leaves_a`, `leaves_b` | foglie cadute (ocra, marrone) sparse sul muschio, più fitte al centro e rade verso i bordi; l'ultimo pixel di ogni lato è muschio |
+| 11–25 | `clearing_<lati>` | radura con il muschio (`moss_a`) che entra dai lati della maschera, indice = 11 + maschera − 1 |
+| 26–40 | `thicket_<lati>` | muro con il pavimento di muschio che entra dai lati, indice = 26 + maschera − 1 |
+
+Bordi: maschera e suffissi come il prato (N=1, E=2, S=4, O=8, suffissi nell'ordine `n e s w`,
+nord = riga 0 = y + 1 nell'arena, bit acceso se il vicino non è dello stesso materiale). Il
+muschio entra di 2–4 px con profili irregolari che valgono **2 px agli estremi** (anche il muro,
+dove la siepe del prato ne aveva 3), angoli esterni arrotondati.
+- **Radura:** il muschio prende luce (`l`) dove confina con l'erba e l'erba passa in ombra
+  (`A`): bordo morbido a due toni, nessun contorno.
+- **Muro:** contorno `k` verso il pavimento come la siepe e gli attori, bordo di luce `l` dentro
+  a nord e a ovest, faccia in ombra `Z` a sud e a est, ombra portata sul muschio a sud (`n`
+  poi `M`) e a est (`M`). Si legge come un muro anche a 1×.
+
+**Decorazioni** `tiles/forest_decor.png`, colonna di 8 tile 16×16 con alpha 0/255, disegnate
+nella griglia in `assets-src/biomes/forest_decor.px` (blocchi `@ <nome>`) e cotte dal codice
+sopra il terreno (mai sul muro né sotto un ostacolo). Dettagli piatti che gli attori calpestano:
+niente parti alte, niente contorno `k`, toni dell'ambiente, ombra `9` di 1 px sotto le cose
+rialzate; ogni tile ha almeno 1 px trasparente sui bordi (controllato dal validatore). Stanno
+bene su muschio e radura.
+
+| Indice | Tile | Disegno |
+|---|---|---|
+| 0 | `fern` | felce a ventaglio, nervature `L` e punte `b`, ombra `M` |
+| 1 | `mushrooms_tan` | tre funghi nocciola (`7 d D`, orlo `8`), gambo crema |
+| 2 | `mushrooms_white` | tre funghi crema (`w c C`, orlo `7`) |
+| 3 | `stones_moss` | tre sassi di pietra delle rovine con il muschio sopra |
+| 4 | `ruin_slab` | lastra di pavimento spezzata, scura (`j` con il bordo `r`), muschio in una crepa e una scheggia staccata |
+| 5 | `ruin_rubble` | quattro macerie di pietra delle rovine con l'ombra |
+| 6 | `twigs` | tre rametti incrociati con l'ombra `9` |
+| 7 | `flowers_shade` | cespo di fiorellini d'ombra bianchi con il cuore giallo |
+
+Funghi nocciola, crema e arancio spento (`d`): mai rossi, viola o blu, i colori di ruolo di
+pericoli, nemici e gemme XP.
+
+**Ostacoli** (`assets-src/sprites/*.px`, palette del bioma, ancora in basso al centro, base a
+1–2 px dal fondo, ombra `9` cotta, contorno `k`, luce da nord-ovest). L'impronta è un cerchio di
+raggio r centrato 4 px sopra il fondo dello sprite:
+
+| Sprite | Misura | r | Disegno |
+|---|---|---|---|
+| `sprites/forest_tree.png` | 40×48 | 4 | abete a quattro palchi con le punte dei rami che pendono, lato sinistro in luce e destro in ombra, ombra tonale sotto ogni palco (niente linee scure fra i rami), ciuffi d'aghi a tratti; tronco corto con radici. La chioma non blocca: gli attori ci passano dietro (y-sort) |
+| `sprites/stump.png` | 20×16 | 6 | ceppo con la faccia del taglio ad anelli, corteccia a strisce, quattro radici, ciuffo di muschio |
+| `sprites/log.png` | 24×16 | 7 | tronco caduto orizzontale, taglio ad anelli a sinistra, scanalature della corteccia, cuscini di muschio sopra, estremo destro arrotondato. Il cerchio copre i 14 px centrali: le punte (3–4 px per lato) restano attraversabili |
+| `sprites/ruin_pillar.png` | 16×28 | 6 | colonna scanalata spezzata in cima (faccia della rottura in luce, labbro scuro), crepa, muschio, plinto largo 14 |
+
+Il bosco usa anche `sprites/rock.png` del prato. Nessuno degli ostacoli usa viola o rosso: non
+si confondono con i nemici; l'abete ha una sagoma che nessun attore ha.
+
+Densità provate nell'anteprima (indicative, i valori veri sono di `stages.ron`): decorazioni
+sparse su circa un tile di muschio su dieci, rovine a macchie. Più fitte, il fondo diventa
+rumore e le gemme XP si leggono peggio.
 
 ## Monete e forzieri (palette del progetto)
 
@@ -626,18 +724,25 @@ Altri pezzi del pannello:
    `columns:`, `rows:` (e `anchor:`) nell'intestazione e un blocco `@ <riga> <colonna>` per
    fotogramma; il build li affianca in un solo PNG.
 2. `python scripts/build-assets.py` → PNG in `assets/` + `assets/manifest.json` (tipo `sprite`,
-   `ui`, `tileset`, `logo`, `illustration`, `mask` o `plate`; per i fogli anche `frame`, `frames`, `columns`,
-   `rows`, `anchor`; per il logo `palette` e `font`; per le illustrazioni `encoding`,
+   `ui`, `tileset`, `decor`, `logo`, `illustration`, `mask` o `plate`; per i fogli anche `frame`, `frames`, `columns`,
+   `rows`, `anchor`; per i tileset e le decorazioni `tile_size` e `tiles`, i nomi nell'ordine
+   dei tile; per il logo e per gli asset con una palette propria `palette`, per il logo anche
+   `font`; per le illustrazioni `encoding`,
    `indexed-256` o `rgb`). Due sorgenti con la stessa uscita fermano il build. Il codice sta
    in `scripts/build-assets.py` (sorgenti `.px`, fogli animati, manifest) e nei moduli
-   accanto: `art_common.py` (percorsi, palette, griglie), `art_tileset.py`, `art_logo.py`,
-   `art_illustration.py`.
+   accanto: `art_common.py` (percorsi, palette, griglie), `art_tileset.py` (prato),
+   `art_forest.py` (bosco, D-068), `art_logo.py`, `art_illustration.py`.
+   Le palette dei biomi e le decorazioni disegnate stanno in `assets-src/biomes/`.
 3. `python scripts/validate-assets.py`: manifest, dimensioni (sprite ≤ 64, UI ≤ 40, logo ≤
    256×128, illustrazioni ≤ 2048 px e ≤ 4 MiB senza controllo di palette; i fogli
    fotogramma per fotogramma, misura multipla intera del fotogramma, nessun fotogramma vuoto,
-   riga di base toccata con l'ancora in basso), naming, solo colori della palette, alpha
-   0/255, licenza; avvisi se un upgrade o un compagno dei dati non ha icona o ritratto.
-4. Anteprima senza compilare: `python scripts/preview-scene.py` → `docs/evidence/art-preview-*`.
+   riga di base toccata con l'ancora in basso; tileset e decorazioni a colonna di tile 16×16
+   con un nome unico per tile, terreno opaco, decorazioni mai vuote e con il bordo di 1 px
+   trasparente), naming, solo colori della palette, alpha
+   0/255, licenza; gli sprite e i tileset citati da `game-data/*.ron` devono essere nel
+   manifest; avvisi se un upgrade o un compagno dei dati non ha icona o ritratto.
+4. Anteprima senza compilare: `python scripts/preview-scene.py [anteprima ...]` →
+   `docs/evidence/art-preview-*` (senza argomenti tutte, `forest` solo il bosco).
 5. Verifica a schermo nel gioco: screenshot + `python scripts/check-pixel-grid.py`.
 
 Strumenti: nessun editor grafico (D-011). Generatori IA solo con il workflow manuale ChatGPT
@@ -673,9 +778,18 @@ script usa e getta fuori dal repository) e poi rifiniti a mano nella griglia.
   sporca occhi, bocche e scintille e lascia il contorno a tratti. A 28×24 i master vanno
   ridisegnati a mano: occhi 2×3 con il riflesso in alto a sinistra, contorno nuovo sulla
   sagoma, effetti piccoli senza contorno.
+- Bosco (D-068): un tappeto di foglie pieno con il muschio ai margini dava quadrati ripetuti a
+  griglia dove il codice ne mette tanti vicini (pallini, se tondo); meglio foglie sparse più
+  fitte al centro. Con l'ocra chiaro (`g`) le foglie sembravano oro e coprivano le monete: le
+  foglie stanno sui toni scuri (`G h D 8`).
+- Bosco: la lastra delle rovine nel tono chiaro della pietra era un rettangolo che saltava
+  all'occhio più degli attori; sul fondo scuro i dettagli a terra vanno tenuti vicini alla
+  luminosità del muschio (`j` con il bordo `r`).
 
 ## Da fare
 
 Nomi definitivi dei compagni con verifica dei marchi; VFX di colpo piccoli; cespugli come ostacolo
 (richiede un tipo nuovo in `src/world/obstacles.rs`). Player: verifica nel gioco vero
 (screenshot e `check-pixel-grid.py`) delle pose a terra con il letterbox.
+Bosco Ombroso: asset definitivi dalla richiesta ART-FOREST-001 (parti A terreno, B decorazioni,
+C ostacoli), poi screenshot del gioco vero con `--stage forest` e `check-pixel-grid.py`.
