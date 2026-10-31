@@ -3,6 +3,7 @@
 //!
 //! Esecuzione: `cargo test --test sim`, oppure `cargo test --test sim combat` per un modulo.
 
+mod audio;
 mod balance;
 mod bot;
 mod chain;

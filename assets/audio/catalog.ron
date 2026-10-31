@@ -1,0 +1,29 @@
+// Catalogo dei suoni (progetto docs/design/AUDIO_SYSTEM.md § 7). Schema in src/audio/catalog.rs
+// (gameplay-engineer), valori del proprietario degli asset audio (pixel-art-director, D-070).
+// Incorporato nel binario e validato da un test: un errore qui ferma ./scripts/check.ps1.
+//
+// AUDIO-1: nessun file audio ancora, quindi nessun cue. Valori di partenza del § 3.4 e § 3.5.
+//
+// Un cue è un one-shot del bus Sfx (gioco) o Ui (interfaccia), con file .wav relativi ad assets/;
+// musica, stinger e ambienti avranno le loro sezioni (AUDIO-3, AUDIO-4). cooldown_ms è un
+// intervallo medio (a credito, vedi src/audio/mixer/start.rs):
+//   "shot.ember": (
+//       bus: Sfx, files: ["audio/sfx/companions/ember_shot_1.wav"], gain: 0.45,
+//       // facoltativi, con il loro default:
+//       gain_jitter_db: 1.5, pitch: (0.95, 1.05), priority: Normal, cooldown_ms: 0,
+//       max_instances: 1, on_limit: Drop, coalesce: Single, cull: Always, length_s: 2.0,
+//   ),
+(
+    version: 1,
+    voices: (
+        max: 24,
+        max_web: 16,
+        reserved_critical: 3,
+        starts_per_frame: 6,
+        starts_per_frame_web: 4,
+        sfx_headroom: 3.0,
+    ),
+    trims: (music: 0.8, sfx: 0.8, ambience: 0.7, ui: 0.6),
+    cues: {},
+    fallbacks: {},
+)

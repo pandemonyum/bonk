@@ -33,7 +33,8 @@ compagni mostriciattolo **originali** in pixel art. Rust + Bevy 0.20, nativo Win
 Opzioni CLI del gioco: `--seed <u64>`, `--autoplay`, `--overlay`, `--screenshot <file>`,
 `--screenshot-after <s>`, `--screenshot-burst <n>`, `--exit-after <s>`, `--window <LxA>`,
 `--scale-factor <f>`, `--god`, `--time-scale <f>`, `--watch`/`--no-watch`,
-`--menu-screen <home|select|options>` (`cargo run -- --help`). All'avvio c'è la pagina
+`--menu-screen <home|select|options>`, `--mute` (audio a zero, senza salvare), `--no-audio`
+(senza `AudioPlugin` di Bevy) (`cargo run -- --help`; sul web `?mute`, `?no-audio`). All'avvio c'è la pagina
 iniziale; Nuova Partita apre la selezione del compagno (frecce, 1–9 o clic, Invio avvia, Esc
 torna indietro; `--autoplay` salta il menu).
 Tasti: WASD/frecce movimento, Esc/P pausa, F5 ricomincia (dai risultati anche Invio, M menu),
@@ -47,9 +48,9 @@ uno screenshot: `python scripts/check-pixel-grid.py <png>` (finestra con bande n
 |---|---|
 | orchestrator | `AGENTS.md`, `CLAUDE.md`, `.claude/agents/`, `docs/agents/`, `docs/PROGRESS.md`, `docs/BACKLOG.md`, `docs/DECISIONS.md`, `Cargo.toml` `[dependencies]`, `Cargo.lock`, `src/main.rs`, `src/lib.rs` |
 | game-designer | `docs/GDD.md`, valori in `game-data/*.ron` (lo schema è del gameplay-engineer) |
-| gameplay-engineer | `src/app.rs`, `src/rng.rs`, `src/gameplay/`, `src/data/` (schema + loader), `src/presentation/` |
+| gameplay-engineer | `src/app.rs`, `src/rng.rs`, `src/gameplay/`, `src/data/` (schema + loader), `src/presentation/`, `src/audio/` (schema del catalogo audio compreso) |
 | world-generation | `src/world/` |
-| pixel-art-director | `docs/ART_BIBLE.md`, `docs/art/`, `assets-src/`, `assets/`, `scripts/build-assets.py` e `scripts/art_*.py`, `scripts/validate-assets.py`, `ASSET_LICENSES.md` |
+| pixel-art-director | `docs/ART_BIBLE.md`, `docs/art/`, `docs/audio/`, `assets-src/`, `assets/` (anche gli asset audio e i valori di `assets/audio/catalog.ron`, D-070), `scripts/build-assets.py`, `scripts/art_*.py` e `scripts/audio_*.py`, `scripts/validate-assets.py`, `ASSET_LICENSES.md` |
 | qa-performance | `docs/QA_REPORT.md`, `src/diagnostics/`, `tests/` (un solo eseguibile: `tests/sim/`), `benches/`, `scripts/check.*`, `scripts/clean-stale.*` |
 | web-release | `web/`, `scripts/build-web.*`, `.github/`, `docs/RELEASE.md`, sezioni `[profile.*]` di `Cargo.toml` |
 | code-reviewer | nessun file: solo lettura, esito nel report |
@@ -76,6 +77,9 @@ nel task. Due agenti non lavorano mai contemporaneamente sugli stessi file.
   richiesta in `docs/art/requests/`, l'utente genera nella sua chat e salva in `.art-inbox/`
   (ignorata da git), poi controllo e promozione nella pipeline solo con la sua approvazione.
   Procedura in `docs/art/CHATGPT_ART_WORKFLOW.md`.
+- Audio solo nel client (D-069): `src/audio/` osserva la simulazione e non le scrive; `app`,
+  `gameplay`, `world` e `data` non lo importano; solo `src/audio/` crea voci (`AudioPlayer`).
+  Progetto in `docs/design/AUDIO_SYSTEM.md`.
 - Moduli piccoli: nessun file Rust oltre ~400 righe senza motivo scritto.
 - Clippy con `-D warnings`; eccezioni ammesse solo in `Cargo.toml [lints]` con motivo.
 

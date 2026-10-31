@@ -498,6 +498,79 @@ sull'anteprima. Nei dati: `frame` 28×24, partenza della palla di fuoco e del fu
 piedi (erano 16), compagni a 19–22 px dietro al player (erano 26–30). I ritratti del menu (40×36)
 restano quelli grandi.
 
+## D-069 Sistema audio solo nel client, `bevy_audio` con Vorbis e WAV *(utente)*
+Progetto approvato dall'utente il 2026-10-31: `docs/design/AUDIO_SYSTEM.md`, con i crate nuovi.
+- **Architettura:** `src/audio/` solo in `client_app`; `headless_app` non cambia. Tre livelli:
+  - ascolto: osservatori e contatori, in sola lettura;
+  - politica: `Mixer` puro, testato senza scheda audio;
+  - riproduzione: l'unico punto che userà `bevy_audio`, da AUDIO-2.
+- **Regole dell'audio:**
+  - la simulazione non lo importa;
+  - l'audio non scrive nella simulazione e ha un suo `Pcg32` (stream `0xA0D1`);
+  - tempo `Time<Real>`;
+  - volumi per voce gestiti da noi, perché `GlobalVolume` vale solo alla nascita del sink
+    (`bevy_audio-0.20.0/src/audio_output.rs:193`).
+- **Dipendenze:** feature `audio` (`bevy_audio` + `vorbis`) e `wav` di Bevy 0.20, uguali in
+  nativo e sul web (nessuna feature del progetto, D-027).
+  - Già nel lockfile: `bevy_audio` 0.20.0 (MIT OR Apache-2.0), `rodio` 0.22.2 (MIT OR
+    Apache-2.0), `cpal` 0.17.3 (Apache-2.0).
+  - Nuovi, licenze lette dai `Cargo.toml` scaricati: `lewton` 0.10.2 (MIT OR Apache-2.0),
+    `ogg` 0.8.0 (BSD-3-Clause), `hound` 3.5.1 (Apache-2.0).
+  - Con `ogg` la nota di copyright va riportata nei pacchetti distribuiti (P3.5).
+  - Non `symphonia-vorbis`: da solo non registra il loader (`bevy_audio/src/lib.rs:97`).
+  - Effetti in WAV, perché sul web la decodifica gira sul thread del gioco; musica e ambienti in
+    Ogg Vorbis, perché pesano meno da scaricare.
+  - Costo misurato (build web da `6cba164` senza audio, poi con AUDIO-1): `.wasm` grezzo 25,8 →
+    26,4 MiB; in `dist` 23,0 → 23,5 MiB (24 068 639 → 24 622 601 byte, +541 KiB); gzip 6,1 →
+    6,2 MiB; `dist` 24,8 → 25,3 MiB. Build `wasm-release` 5 min 35 s → 7 min 15 s, non a
+    parità di cache.
+- **Regole delle voci (dopo la review di AUDIO-1):**
+  - Cooldown medio, non minimo: `next = max(next + cd, now + cd − frame_dt)`, con `frame_dt`
+    limitato a `[0, cd]`. Con il cooldown rigido 35 ms davano 15, 20 e 22 avvii al secondo a 30,
+    60 e 144 FPS; ora 28,5, 28,6 e 28,0. Lo scarto è al massimo 2,1% da 35 a 300 ms.
+  - Prezzo del cooldown medio: l'intervallo minimo è il cooldown meno un fotogramma, mai meno di
+    un fotogramma; dopo un intoppo più lungo del cooldown ci possono essere due avvii in
+    fotogrammi consecutivi. Sotto i 34 ms il limite vero è un avvio per fotogramma a 30 FPS.
+  - Margine `sfx_headroom`: una non-`Critical` perde il boost, poi ruba voci di priorità
+    minore, altrimenti si scarta. Le `Critical` partono sempre, tengono il boost e contano nella
+    somma.
+  - Riserva `Critical` e al massimo un furto per i posti a ogni avvio; le `Critical` non
+    consumano il budget del fotogramma.
+  - Nel catalogo i `cues` sono solo `Sfx` e `Ui`: musica, stinger e ambienti avranno sezioni
+    proprie.
+  - Si toglie per scadenza solo una voce che non ha mai suonato (`Mixer::playing`).
+- **Opzioni:** `--mute` vale solo per la sessione (`session_muted`, mai nel profilo).
+  `--no-audio` toglie l'`AudioPlugin` di Bevy: da AUDIO-2 nessun `load` di `AudioSource`
+  senza `Assets<AudioSource>` (andrebbe in panic, `bevy_asset-0.20.0/src/server/info.rs:855`).
+- **Rischi noti:**
+  - un file corrotto va in panic alla riproduzione (`audio_source.rs:101`): servirà un test
+    di decodifica;
+  - senza dispositivo nessun sink nasce e le voci si ripuliscono da sole;
+  - sul web l'audio gira sul thread principale (buffer da 2048 frame);
+  - se cambia il dispositivo predefinito, Bevy non riapre l'uscita.
+
+## D-070 Asset audio: origine, proprietario, impostazioni predefinite *(utente)*
+Approvato dall'utente il 2026-10-31 con il progetto `docs/design/AUDIO_SYSTEM.md` (§ 13), con i
+consigli del documento:
+- **Effetti:** sintetizzati nel progetto da patch testuali in `assets-src/audio/sfx/` con uno
+  script Python della sola libreria standard, come i `.px` degli sprite: suoni originali,
+  riproducibili, licenza `original`. Il primo arriva in AUDIO-2.
+- **Musica e ambienti:** handoff manuale come per l'arte (D-065): richiesta in
+  `docs/audio/requests/<ID>.md`, file dell'utente in `.audio-inbox/<ID>/` (ignorata da git),
+  integrazione solo dopo l'approvazione esplicita. Si consegnano in Ogg Vorbis: qui non c'è un
+  encoder e installarne uno (`ffmpeg`, `oggenc`) richiede un via a parte.
+- **Librerie CC0:** solo con il via per ogni download, con la licenza salvata accanto.
+- **Licenze ammesse:** `original`, `user-owned`, `CC0-1.0`; `CC-BY-4.0` con attribuzione nei
+  documenti e nei crediti. Escluse `-NC`, `-ND`, licenze senza testo chiaro, estratti di altri
+  giochi, imitazioni di jingle riconoscibili, musica da servizi IA senza diritti chiari.
+- **Proprietario:** il pixel-art-director diventa responsabile anche degli asset audio
+  (`assets/audio/` con i valori di `catalog.ron`, `assets-src/audio/`, `docs/audio/`,
+  `scripts/audio_*.py`, controlli audio del validatore, voci audio del manifest e di
+  `ASSET_LICENSES.md`): ha già manifest, validatore e licenze. Il codice di `src/audio/` è del
+  gameplay-engineer.
+- **Predefiniti:** i loop della home non dipendono dall'interruttore "Animazioni" (li regola il
+  cursore "Ambiente"); audio spento quando la finestra non è attiva.
+
 ## D-068 Mappe a più biomi: tre livelli, un solo generatore, stage scelto a parte *(utente)*
 Richiesta dell'utente del 2026-10-31: sei ambientazioni (Prateria Verde, Bosco Ombroso, Canyon
 Arido, Cime Glaciali, Vulcano Infernale, Rovine Arcane), sempre nella visuale top-down del

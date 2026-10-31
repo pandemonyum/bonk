@@ -13,6 +13,75 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "audio, fondamenta" (2026-10-31)
+
+```text
+Task: AUDIO-0 + AUDIO-1 - progetto approvato del sistema audio e fondamenta senza suoni
+  (D-069, D-070), su richiesta dell'utente
+Owner: orchestrator (progetto docs/design/AUDIO_SYSTEM.md, D-069/D-070, backlog, AGENTS.md,
+  definizioni degli agenti, Cargo.toml/Cargo.lock) + gameplay-engineer (src/audio/,
+  assets/audio/catalog.ron iniziale, lib.rs, options.rs, web.rs, righe di ARCHITECTURE) +
+  qa-performance (tests/sim/audio.rs) + code-reviewer (prima passata RESPINTA, seconda ACCETTATA)
+Stato: DONE (AUDIO-0, AUDIO-1). Ancora nessun suono: la riproduzione è AUDIO-2
+Assunzioni:
+  - origine degli asset, proprietario e impostazioni predefinite come consigliato nel § 13 del
+    progetto (D-070);
+  - test di trasparenza su 2 minuti di gioco invece di 3, per tenerlo sotto ~10 s (§ 12.2
+    aggiornato)
+File: Cargo.toml (feature audio e wav), Cargo.lock (+ lewton 0.10.2, ogg 0.8.0, hound 3.5.1),
+  src/audio/{mod,settings,catalog,cues,mixer}.rs, src/audio/catalog/validate.rs,
+  src/audio/mixer/{start,voices}.rs, src/audio/tests.rs, src/audio/tests/{catalog,margin,mixer,
+  mixer_time,plugin}.rs, assets/audio/catalog.ron (senza cue), src/{lib,options,web}.rs,
+  tests/sim/{audio,main}.rs, AGENTS.md, .claude/agents/{gameplay-engineer,pixel-art-director}.md,
+  docs/{ARCHITECTURE,BACKLOG,DECISIONS,PROGRESS}.md, docs/design/AUDIO_SYSTEM.md
+Comandi eseguiti (risultato):
+  cargo fetch                          3 crate nuovi nel lockfile; licenze dai Cargo.toml scaricati
+  ./scripts/build-web.ps1 su 6cba164   OK: wasm in dist 23,0 MiB (gzip 6,1), dist 24,8 MiB
+  ./scripts/check.ps1 (orchestratore, codice finale)   exit 0: fmt, clippy -D warnings, lib 325 ok
+                                       (276 prima), sim 107 ok + 7 ignorati (103 prima), asset 0 errori
+  cargo clippy --target wasm32-unknown-unknown --lib -- -D warnings   OK (gameplay-engineer e
+                                       code-reviewer)
+  cargo run -- --autoplay / --mute / --no-audio, --exit-after 3-5   exit 0, nessuna riga di audio,
+                                       errore o panic nel log (gameplay-engineer)
+  ./scripts/build-web.ps1 con l'audio  OK: wasm in dist 23,5 MiB (gzip 6,2), dist 25,3 MiB
+  Chromium del pannello su dist/       home a schermo (WebGL2), pannello errori vuoto, console senza
+                                       avvisi dell'audio, attivazione utente presente dopo il clic
+Comportamento verificato:
+  - Mixer, con test che fallirebbero con il codice di prima:
+    - cooldown medio: avvii al secondo a 30/60/144 FPS entro il 2,1% per 11 cooldown da 35 a
+      300 ms (prima con 35 ms: 15/20/22, +46%);
+    - margine: in un flusso casuale di 20000 fotogrammi la somma supera il tetto solo per le
+      Critical;
+    - un solo furto per i posti a ogni avvio;
+    - le Critical fuori dal budget del fotogramma;
+    - scadenza solo per le voci mai suonate; varianti mai ripetute.
+  - Catalogo: ogni regola di validazione con il suo test; quello vero è valido.
+  - Separazione:
+    - headless_app senza nessun pezzo dell'audio dopo 600 passi (con un controllo positivo);
+    - stessa seed per 2 minuti con e senza AudioCorePlugin carico di richieste: stati, contatori
+      e bit delle posizioni identici; il test va rosso se l'audio sposta il player di 1 px;
+    - nessun modulo della simulazione nomina l'audio.
+  - --no-audio toglie l'AudioPlugin di Bevy (log dei plugin); --mute non finisce nel profilo.
+Problemi trovati e risolti:
+  - Il cooldown rigido dipendeva dal frame rate: il test passava solo con 60 ms. Ora il cooldown
+    è medio, con l'intervallo minimo "cooldown meno un fotogramma" (D-069).
+  - Altri rilievi della review:
+    - la scadenza troncava le voci che suonavano;
+    - margine non garantito per le voci Normal e High;
+    - cue di musica che occupavano i posti degli effetti;
+    - un avvio poteva rubare quattro voci;
+    - una Critical poteva perdersi nel budget del fotogramma;
+    - --mute sarebbe finito nel profilo.
+Rischi o bug noti:
+  - nessun suono ancora; lo stato dell'AudioContext nel browser si vedrà con la protezione della
+    pagina (AUDIO-2);
+  - tests/sim/audio.rs ha 484 righe (motivo scritto, da dividere in AUDIO-2);
+  - i tipi audio della prelude di Bevy non sono ancora vietati nella simulazione dal test (AUDIO-2);
+  - una Critical con un boost alto salterebbe il margine (validazione in AUDIO-5)
+Prossimo task: AUDIO-2 (riproduzione, impostazioni nel profilo, cursori delle Opzioni, protezione
+  dell'AudioContext, primi effetti sintetizzati)
+```
+
 ## Report tranche "mappe a più biomi e Bosco Ombroso" (2026-10-31)
 
 ```text

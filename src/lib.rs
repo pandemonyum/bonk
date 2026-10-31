@@ -1,10 +1,11 @@
 //! Companion Survivors (crate `pixel-monster-survivor`) — survivor roguelite 2D in pixel art.
 //!
 //! La simulazione (`app`, `gameplay`, `world`) non dipende dal rendering: i test la eseguono
-//! con [`headless_app`]. [`client_app`] aggiunge finestra, grafica, input, dati da file e
-//! diagnostica.
+//! con [`headless_app`]. [`client_app`] aggiunge finestra, grafica, input, dati da file,
+//! diagnostica e audio.
 
 pub mod app;
+pub mod audio;
 pub mod data;
 pub mod diagnostics;
 pub mod gameplay;
@@ -36,44 +37,51 @@ pub fn client_app(options: LaunchOptions) -> App {
     }
     let mut app = App::new();
     data::loader::register_data_source(&mut app);
-    app.add_plugins(
-        DefaultPlugins
-            .set(ImagePlugin::default_nearest())
-            .set(AssetPlugin {
-                // sul web `assets-<versione>`: niente asset vecchi dalla cache del browser
-                file_path: web::versioned_dir("assets"),
-                watch_for_changes_override: Some(options.watch_files()),
-                // nessun asset ha un file .meta: sul web ognuno costerebbe una richiesta in 404
-                meta_check: AssetMetaCheck::Never,
-                ..default()
-            })
-            .set(WindowPlugin {
-                primary_window: Some(Window {
-                    title: "Companion Survivors".into(),
-                    resolution,
-                    // sul web: il canvas della pagina, grande quanto il suo contenitore, e i
-                    // tasti (frecce, spazio, Tab) al gioco invece che alla pagina
-                    canvas: cfg!(target_arch = "wasm32").then(|| "#game".to_string()),
-                    fit_canvas_to_parent: cfg!(target_arch = "wasm32"),
-                    prevent_default_event_handling: true,
-                    ..default()
-                }),
+    let mut plugins = DefaultPlugins
+        .set(ImagePlugin::default_nearest())
+        .set(AssetPlugin {
+            // sul web `assets-<versione>`: niente asset vecchi dalla cache del browser
+            file_path: web::versioned_dir("assets"),
+            watch_for_changes_override: Some(options.watch_files()),
+            // nessun asset ha un file .meta: sul web ognuno costerebbe una richiesta in 404
+            meta_check: AssetMetaCheck::Never,
+            ..default()
+        })
+        .set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Companion Survivors".into(),
+                resolution,
+                // sul web: il canvas della pagina, grande quanto il suo contenitore, e i
+                // tasti (frecce, spazio, Tab) al gioco invece che alla pagina
+                canvas: cfg!(target_arch = "wasm32").then(|| "#game".to_string()),
+                fit_canvas_to_parent: cfg!(target_arch = "wasm32"),
+                prevent_default_event_handling: true,
                 ..default()
             }),
-    )
-    .add_plugins((
-        app::SimulationPlugin { seed: options.seed },
-        data::loader::DataLoaderPlugin,
-        gameplay::input::PlayerControlsPlugin,
-        world::render::WorldRenderPlugin,
-        presentation::PresentationPlugin,
-        diagnostics::DiagnosticsPlugin,
-    ))
-    .insert_resource(GodMode(options.god))
-    .insert_resource(app::RunSetup {
-        companion: None,
-        stage: options.stage.clone(),
-    });
+            ..default()
+        });
+    // `--no-audio`: niente uscita audio di Bevy (nessun dispositivo aperto); il mixer gira lo
+    // stesso e la riproduzione (AUDIO-2) si spegne da sola senza `Assets<AudioSource>`
+    if options.no_audio {
+        plugins = plugins.disable::<bevy::audio::AudioPlugin>();
+    }
+    app.add_plugins(plugins)
+        .add_plugins((
+            app::SimulationPlugin { seed: options.seed },
+            data::loader::DataLoaderPlugin,
+            gameplay::input::PlayerControlsPlugin,
+            world::render::WorldRenderPlugin,
+            presentation::PresentationPlugin,
+            diagnostics::DiagnosticsPlugin,
+            audio::GameAudioPlugin {
+                muted: options.mute,
+            },
+        ))
+        .insert_resource(GodMode(options.god))
+        .insert_resource(app::RunSetup {
+            companion: None,
+            stage: options.stage.clone(),
+        });
     // il profilo del dispositivo; le run automatiche, invulnerabili o accelerate non lo salvano
     if let Some(path) = profile::default_path() {
         let saves = !options.autoplay && !options.god && options.time_scale == 1.0;

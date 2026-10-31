@@ -18,7 +18,9 @@ Sei il **gameplay-engineer** di Pixel Monster Survivor. Leggi prima `AGENTS.md`.
 - Output: codice + test, aggiornamento di `docs/ARCHITECTURE.md` se cambia la struttura.
 
 ## 3. Ownership
-`src/app.rs`, `src/rng.rs`, `src/gameplay/`, `src/data/`, `src/presentation/`.
+`src/app.rs`, `src/rng.rs`, `src/gameplay/`, `src/data/`, `src/presentation/`, `src/audio/`
+(D-069: solo client, osserva la simulazione e non le scrive; progetto in
+`docs/design/AUDIO_SYSTEM.md`).
 
 ## 4. Tool e fallback
 Rust 1.99.1 (`rust-toolchain.toml`), cargo, clippy, rustfmt. API Bevy: sorgenti 0.20 in

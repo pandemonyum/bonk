@@ -10,7 +10,9 @@ publish = false
 [dependencies]
 # Bevy bloccata alla serie 0.20.x. Solo i profili 2D + UI: niente 3D/PBR, compilazione piu' rapida.
 # `2d` include gia' default_platform (winit, webgl2, gilrs, default_font, multi_threaded).
-bevy = { version = "0.20.0", default-features = false, features = ["2d", "ui"] }
+# `audio` (bevy_audio + Vorbis per musica e ambienti) e `wav` (effetti senza decodifica): D-069.
+# Stesse feature in nativo e sul web, nessuna feature opzionale del progetto (D-027).
+bevy = { version = "0.20.0", default-features = false, features = ["2d", "ui", "audio", "wav"] }
 # Dati di gioco in RON (game-data/). Stesse versioni già usate da Bevy nel lockfile.
 ron = "0.12"
 serde = { version = "1", features = ["derive"] }

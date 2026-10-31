@@ -28,6 +28,8 @@ Uso: pixel-monster-survivor [opzioni]
                            iniziale, anche companions) o options (prove e screenshot)
   --ambient <nomi>         solo queste animazioni della home, separate da virgole (portal,
                            river, ...; none = nessuna; default tutte)
+  --mute                   audio muto per questa sessione (prove automatiche; non si salva)
+  --no-audio               nessuna uscita audio: Bevy non apre il dispositivo (prove, CI)
   -h, --help               mostra questo aiuto";
 
 /// Schermata del menu su cui si apre il gioco (`--menu-screen`).
@@ -81,6 +83,10 @@ pub struct LaunchOptions {
     pub menu_screen: MenuPage,
     /// Animazioni della home da mostrare (`None` = tutte, vuoto = nessuna).
     pub ambient: Option<Vec<String>>,
+    /// Audio muto per la sessione, senza toccare le impostazioni salvate (`--mute`, `?mute`).
+    pub mute: bool,
+    /// Nessuna uscita audio: senza l'`AudioPlugin` di Bevy (`--no-audio`, `?no-audio`).
+    pub no_audio: bool,
 }
 
 impl Default for LaunchOptions {
@@ -101,6 +107,8 @@ impl Default for LaunchOptions {
             watch: None,
             menu_screen: MenuPage::Home,
             ambient: None,
+            mute: false,
+            no_audio: false,
         }
     }
 }
@@ -181,6 +189,8 @@ impl LaunchOptions {
                 "--ambient" => {
                     options.ambient = Some(ambient_list(&value::<String>(&mut args, &flag)?))
                 }
+                "--mute" => options.mute = true,
+                "--no-audio" => options.no_audio = true,
                 "-h" | "--help" => return Ok(None),
                 other => return Err(format!("opzione sconosciuta: {other}")),
             }
@@ -336,6 +346,27 @@ mod tests {
             LaunchOptions::parse(web).unwrap().unwrap().menu_screen,
             MenuPage::Select
         );
+    }
+
+    #[test]
+    fn parses_the_audio_switches() {
+        let default = parse(&[]).unwrap().unwrap();
+        assert!(!default.mute && !default.no_audio);
+        let muted = parse(&["--mute"]).unwrap().unwrap();
+        assert!(muted.mute && !muted.no_audio);
+        let silent = parse(&["--no-audio"]).unwrap().unwrap();
+        assert!(silent.no_audio && !silent.mute);
+        let both = parse(&["--no-audio", "--mute", "--autoplay"])
+            .unwrap()
+            .unwrap();
+        assert!(both.mute && both.no_audio && both.autoplay);
+        assert!(parse(&["--muted"]).is_err());
+        assert!(USAGE.contains("--mute") && USAGE.contains("--no-audio"));
+        // sul web arrivano dall'indirizzo: `?mute&no-audio`
+        let web = LaunchOptions::parse(crate::web::query_args("?mute&no-audio"))
+            .unwrap()
+            .unwrap();
+        assert!(web.mute && web.no_audio);
     }
 
     #[test]

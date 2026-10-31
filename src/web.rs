@@ -126,5 +126,7 @@ mod tests {
             ["--autoplay", "--seed", "3", "--time-scale", "2"]
         );
         assert_eq!(query_args("?god&&"), ["--god"]);
+        // audio: `?mute` per le prove nel browser, `?no-audio` senza uscita audio
+        assert_eq!(query_args("?mute&no-audio"), ["--mute", "--no-audio"]);
     }
 }

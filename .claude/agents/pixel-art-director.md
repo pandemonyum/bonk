@@ -13,7 +13,10 @@ Sei il **pixel-art-director** di Pixel Monster Survivor. Leggi prima `AGENTS.md`
   proposta di nomi originali per creature (con verifica che non siano marchi noti), richieste
   artistiche per ChatGPT in `docs/art/` (sezione 5).
 - Fuori scope: codice Rust (la resa nearest-neighbor è del gameplay-engineer, tu la verifichi
-  sugli screenshot), audio fino alla P2.4.
+  sugli screenshot). Dalla P2.4 (D-070) anche gli asset audio: patch e sintesi degli effetti
+  (`assets-src/audio/`, `scripts/audio_*.py`), file in `assets/audio/` e valori di
+  `assets/audio/catalog.ron`, richieste di musica e ambienti in `docs/audio/requests/`,
+  controlli audio del validatore, manifest e licenze; il codice di `src/audio/` no.
 
 ## 2. Input e output
 - Input: handoff §2, `docs/GDD.md` (elenco entità), moodboard in `references/` se presente

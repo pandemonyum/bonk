@@ -7,7 +7,7 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 
 | Funzione | Plugin | Uso |
 |---|---|---|
-| `client_app(options)` | `DefaultPlugins` (nearest) + simulazione + input + render mondo + presentazione + diagnostica | gioco desktop/web |
+| `client_app(options)` | `DefaultPlugins` (nearest; `AudioPlugin` di Bevy tolto con `--no-audio`) + simulazione + input + render mondo + presentazione + audio (`GameAudioPlugin`) + diagnostica | gioco desktop/web |
 | `headless_app(seed)` | `MinimalPlugins` + `StatesPlugin` + simulazione; `TimeUpdateStrategy::FixedTimesteps(1)` | test, benchmark, futura simulazione di run complete |
 
 ## Moduli
@@ -17,7 +17,7 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `app` | `AppState` (`Loading`, `MainMenu`, `InRun`), sottostato `RunPhase` (`Playing`, `Paused`, `LevelUp`, `Defeated`, `Victory`), `RunSeed`, `RunSetup` (compagno scelto), `AfterLoading` (menu o run dopo il caricamento), `restart_run`, `back_to_menu`, `try_start_run` (avvio dal menu solo con un compagno iniziale disponibile, altrimenti `StartRefused` e nulla cambia), `SimulationPlugin` | no |
 | `data` | schema dei file `game-data/*.ron`, `GameConfig` validata, `DataStatus`, `DataId`, copia incorporata per headless | no |
 | `data::loader` | sorgente `data://`, loader di testo, primo caricamento e ricarica a caldo | AssetServer (client) |
-| `options` | parsing CLI (`--seed`, `--autoplay`, `--overlay`, `--screenshot*`, `--exit-after`, `--window`, `--scale-factor`, `--god`, `--time-scale`, `--watch`, `--menu-screen home/select/options`, `--ambient <nomi|none>`) | no |
+| `options` | parsing CLI (`--seed`, `--autoplay`, `--overlay`, `--screenshot*`, `--exit-after`, `--window`, `--scale-factor`, `--god`, `--time-scale`, `--watch`, `--menu-screen home/select/options`, `--ambient <nomi|none>`, `--mute`, `--no-audio`) | no |
 | `profile` | profilo sul dispositivo: esperienza e talenti dei compagni, schermo intero, compagni iniziali sbloccati (`unlocked`); esperienza a fine run | no |
 | `profile::unlocks` | regole degli sblocchi (D-066) in un solo posto: `unlock` dei dati (`Start`/`Locked`) più `unlocked` del profilo → `UnlockStatus`; `first_unlocked`, `proposed_starter`, `Profile::grant`. Nessuna run sblocca nulla | no |
 | `rng` | PCG32, SplitMix64, `hash2` per coordinate | no |
@@ -65,6 +65,11 @@ binario sottile (`src/main.rs`). Niente workspace finché non serve.
 | `presentation::telegraphs` | punti rossi in fila o in cerchio, figli del `Telegraph`, che lampeggiano verso lo scadere | sì |
 | `presentation::draft` | schermata del draft: carte con rarità, testo e stack, evidenziate al passaggio, clic → `ChooseUpgrade` | sì |
 | `diagnostics` | overlay F3, screenshot F12/programmati, autoplay, uscita automatica | sì |
+| `audio` | audio del client (D-069, progetto `docs/design/AUDIO_SYSTEM.md`): `AudioSet` in `Update` (`Listen` → `Decide` → `Music` → `Ambience` → `Apply`); `AudioCorePlugin` (catalogo, `CueQueue`, mixer, `VoiceCommands`, `AudioStats`; va anche con `MinimalPlugins`); `GameAudioPlugin` solo in `client_app` (più `AudioSettings`, muto con `--mute`). Osserva la simulazione e non le scrive; tempo `Time<Real>`. In AUDIO-1 nessuna riproduzione: le decisioni restano in `VoiceCommands` | no |
+| `audio::settings` | `AudioSettings` (tacche 0–10 per generale, musica, effetti e ambiente, muto, audio fuori fuoco; `serde(default)` per il profilo; `session_muted` di `--mute` mai serializzato), `step_gain` = (tacche / 10)², `bus_gain` | no |
+| `audio::catalog` | schema di `assets/audio/catalog.ron` (incorporato, `deny_unknown_fields`): limiti delle voci nativi e web, trim dei bus, cue one-shot in WAV (bus `Sfx` o `Ui`, varianti, guadagno, pitch, priorità, cooldown, istanze, coalescenza, cull, durata stimata), ripieghi per prefisso; validazione con errori leggibili; `CueId` = posizione in ordine di nome. Non valido nel gioco: errore nel log e catalogo vuoto | no |
+| `audio::cues` | `CueRequest` (cue, quantità, posizione), `CueQueue`, `AudioManager` (`SystemParam`: senza le risorse dell'audio non fa nulla; un nome sconosciuto dà un avviso, mai un panic) | no |
+| `audio::mixer` | politica pura delle voci a tempo reale: scadenza delle voci mai suonate (`playing`, `finished`), coalescenza con boost, cull fuori vista, priorità, budget del fotogramma (le `Critical` non lo consumano), cooldown a credito (intervallo medio, uguale a ogni frame rate; `start`), istanze (`Drop`/`Restart`), posti con la riserva `Critical` e al più un furto, margine `sfx_headroom` (via il boost, poi furti di priorità minore; solo le `Critical` lo superano); `VariantPicker` senza ripetizioni; `Pcg32` proprio (seed e stream dell'audio); `Decision::{Start, Stop}`, `MixerStats` | no |
 
 ## Flusso di un frame
 
