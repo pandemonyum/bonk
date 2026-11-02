@@ -78,6 +78,11 @@ nel task. Due agenti non lavorano mai contemporaneamente sugli stessi file.
   richiesta in `docs/art/requests/`, l'utente genera nella sua chat e salva in `.art-inbox/`
   (ignorata da git), poi controllo e promozione nella pipeline solo con la sua approvazione.
   Procedura in `docs/art/CHATGPT_ART_WORKFLOW.md`.
+- Musica e ambienti solo con l'handoff manuale di D-070: il pixel-art-director prepara la
+  richiesta in `docs/audio/requests/`, l'utente consegna l'Ogg con la provenienza in
+  `.audio-inbox/` (ignorata da git), poi controllo e promozione solo con la sua approvazione.
+  Gli effetti si sintetizzano nel progetto (`scripts/audio_sfx.py`). Procedura in
+  `docs/audio/AUDIO_HANDOFF_WORKFLOW.md`.
 - Audio solo nel client (D-069): `src/audio/` osserva la simulazione e non le scrive; `app`,
   `gameplay`, `world` e `data` non lo importano; solo `src/audio/` crea voci (`AudioPlayer`).
   Progetto in `docs/design/AUDIO_SYSTEM.md`.

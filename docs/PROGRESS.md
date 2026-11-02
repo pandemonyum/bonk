@@ -13,6 +13,40 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "richieste di musica e ambienti" (2026-11-02)
+
+```text
+Task: AUDIO-REQ - procedura dell'handoff manuale audio e richieste di musica e ambienti (D-070),
+  su richiesta dell'utente
+Owner: pixel-art-director (docs/audio/) + orchestrator (AGENTS.md, CLAUDE.md, backlog, progress)
+Stato: DONE; sei richieste REQUESTED, nessun file audio prodotto
+Assunzioni (del pixel-art-director, rilette dall'orchestratore):
+  - tonalità e tempi: run e orda Re dorico a 120 BPM, home Fa lidio a 80, boss Re minore a 144,
+    stinger su Re, ronzio del portale su Fa;
+  - estremi del loop con |x| <= 0,01 ottenuti ruotando il loop, mai con una dissolvenza;
+  - loudness: musica -16 LUFS, cascate -22, portale -24; true peak <= -1 dBTP
+File: docs/audio/{AUDIO_HANDOFF_WORKFLOW.md, AUDIO_REQUEST_TEMPLATE.md, AUDIO_BIBLE.md},
+  docs/audio/requests/{README, MUSIC-RUN-001, MUSIC-HORDE-001, MUSIC-HOME-001, MUSIC-BOSS-001,
+  MUSIC-STING-001, AMB-HOME-001}.md, AGENTS.md, CLAUDE.md, docs/{BACKLOG,PROGRESS}.md
+Comandi eseguiti (risultato):
+  conti dei campioni con Python        home 3 175 200, run 4 233 600, orda 2 116 800, boss 3 528 000,
+                                       portale 1 411 200, cascate 1 190 700: nessuna discrepanza
+                                       con i numeri dei documenti
+  budget                               5,60 MiB al tetto, 6,55 MiB con gli effetti: sotto 8 MiB
+  comando di controllo dell'Ogg (solo libreria standard, nel workflow)   provato su 6 Ogg
+                                       sintetici (buono, campioni in più, CRC alterato, mono 48 kHz,
+                                       due flussi, senza EOS), in Git Bash e PowerShell; poi cancellati
+  ricerca di nomi di giochi o franchise nei file nuovi   nessuno
+Comportamento verificato: nessuno nel gioco (non ci sono ancora file da suonare)
+Rischi o bug noti:
+  - AUDIO-3 non può avere tracce provvisorie senza una consegna dell'utente o un encoder Ogg;
+  - sul web 4 flussi Vorbis per ~1,5 s nella dissolvenza home → run (criterio di AUDIO-4);
+  - picco, loudness e continuità dell'Ogg si misurano solo dopo la promozione (test in Rust) o sul
+    master WAV
+Prossimo task: consegna dell'utente, consigliata MUSIC-RUN-001 ("MUSIC-RUN-001 pronto"), poi
+  AUDIO-3
+```
+
 ## Report tranche "audio, riproduzione e Opzioni" (2026-10-31)
 
 ```text

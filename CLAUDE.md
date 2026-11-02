@@ -13,3 +13,5 @@ Specifico per Claude Code:
   Per il web (dalla P1) è disponibile il server MCP Playwright.
 - Arte con ChatGPT (D-065): skill `.claude/skills/chatgpt-art-bridge/` (`/chatgpt-art-bridge`).
   Quando l'utente scrive `<ID> pronto` (es. `ART-HOME-001 pronto`) riprendi da quella richiesta.
+- Musica e ambienti (D-070): stesso schema con `docs/audio/AUDIO_HANDOFF_WORKFLOW.md`; per
+  `MUSIC-…` o `AMB-… pronto` riprendi da `docs/audio/requests/<ID>.md` con il pixel-art-director.

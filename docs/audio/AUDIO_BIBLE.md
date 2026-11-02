@@ -36,6 +36,12 @@ gameplay-engineer.
 - **Musica e ambienti in Ogg:** pesano meno da scaricare. Qui non c'è un encoder, quindi li
   consegna l'utente con l'handoff manuale (D-070): richiesta in `docs/audio/requests/<ID>.md`,
   file in `.audio-inbox/<ID>/`, integrazione solo dopo la sua approvazione esplicita.
+  - Procedura: `docs/audio/AUDIO_HANDOFF_WORKFLOW.md`.
+  - Indice, tonalità, tempi e budget: `docs/audio/requests/README.md`.
+- **Qualità e peso dei file Ogg:**
+  - Vorbis qualità 3 (circa 112 kbps nominali, a bitrate variabile);
+  - tetto per file: durata × 16 000 byte (128 kbps medi);
+  - tutto l'audio in `dist/` entro 8 MiB (`docs/design/AUDIO_SYSTEM.md` § 3.11).
 
 ## 3. Loudness e picchi
 
@@ -53,23 +59,56 @@ gameplay-engineer.
     (predefinite 2 ms all'inizio e 5 ms alla fine);
   - il silenzio finale si taglia sotto −60 dB dal picco;
   - il quadrato è a media nulla, così l'inviluppo non dà gradini di continua.
-- **Musica e ambienti** (obiettivi, da misurare con uno strumento in AUDIO-7: il validatore
-  oggi legge solo l'header Vorbis):
-  - picco reale ≤ −1 dBTP;
-  - musica intorno a −16 LUFS integrati;
-  - ambienti 6–8 dB sotto la musica.
+- **Musica e ambienti:**
+  - musica: −16 LUFS integrati, ±1 LU;
+  - stinger: −16 LUFS integrati sull'intero file, ±1,5 LU. Suonano sopra la musica abbassata;
+  - ambienti 6–8 dB sotto la musica: cascate −22 LUFS, portale −24 LUFS, ±1,5 LU. La misura
+    pesa poco i bassi, e il ronzio del portale è soprattutto grave;
+  - picco reale ≤ −1 dBTP sull'Ogg; sul master ≤ −1,5 dBTP, perché la codifica Vorbis alza un
+    po' i picchi;
+  - niente infrabassi sotto i 30–35 Hz; compatibili in mono.
+- **Come si misurano** (`docs/audio/AUDIO_HANDOFF_WORKFLOW.md`, INGEST):
+  - all'arrivo, sul master WAV, con la libreria standard: picco, stima tra i campioni, loudness
+    BS.1770;
+  - dopo la promozione, sull'Ogg decodificato, nel test di decodifica esteso in AUDIO-3 e
+    AUDIO-4: picco di campione;
+  - il validatore legge solo l'header Vorbis;
+  - senza master WAV, quei valori restano "non misurati" fino al test.
 
 ## 4. Regole dei loop (musica e ambienti)
 
 - **Loop senza stacco:** l'ultimo campione si raccorda al primo (stessa fase, nessun gradino),
   e il file non ha silenzio né dissolvenze all'inizio o alla fine. Le dissolvenze le fa il
   gioco (`fades` e `fade_in_s` del catalogo).
-- **Code:** la coda del riverbero si ripiega all'inizio del loop, non si taglia.
-- **Durata:** in battute intere. BPM, tonalità e punto di loop vanno in una nota in
-  `assets-src/audio/music/<id>.md` (o `ambience/`).
-- **Tonalità:** run, orda e boss nella stessa tonalità o in una relativa, così le dissolvenze
-  tra i deck non stonano.
-- **Stinger:** one-shot con la loro coda naturale, entro 5 s.
+- **Code:** la coda del riverbero si ripiega all'inizio del loop, non si taglia. Si esporta il
+  brano due volte di seguito e si tiene il secondo giro, oppure si somma all'inizio la coda che
+  supera la fine.
+- **Estremi:** il primo e l'ultimo campione vicini allo zero (|x| ≤ 0,01, cioè −40 dBFS) in
+  tutti e due i canali.
+  - Ci si arriva ruotando il loop di pochi campioni, senza cambiare la lunghezza, mai con una
+    dissolvenza.
+  - Così un eventuale vuoto al giro diventa un silenzio brevissimo e non un clic.
+- **Durata:** in battute intere, con la lunghezza esatta in campioni e una tolleranza di ±1
+  campione.
+  - I BPM devono dare campioni interi per battito: 2 646 000 / BPM intero.
+  - BPM, tonalità e punto di loop vanno in una nota in `assets-src/audio/music/<id>.md` (o
+    `ambience/`).
+- **Ambienti:**
+  - l'incrocio che chiude il loop sta dentro il file, mai agli estremi;
+  - tolleranza ±0,5 s dalla lunghezza della richiesta;
+  - i due loop della home hanno lunghezze diverse e non multiple (32 e 27 s);
+  - nessun evento riconoscibile che faccia sentire il giro.
+- **Tonalità** (tabella in `docs/audio/requests/README.md`):
+  - run e orda nella stessa tonalità, modo e tempo, perché si incrociano per 2 s con i battiti
+    non allineati;
+  - boss su una tonalità vicina, al massimo un'alterazione di differenza;
+  - home con la stessa collezione di note della run;
+  - stinger sulla tonica della traccia che interrompono;
+  - il ronzio del portale sulla tonica della home.
+- **Stinger:**
+  - one-shot con la loro coda naturale, entro 5 s;
+  - attacco immediato: primo campione vicino allo zero, oltre −40 dBFS entro 10 ms;
+  - ultimi 10 ms sotto −60 dBFS.
 - **Da verificare in AUDIO-3:** che la riproduzione in loop di Bevy 0.20 con Vorbis non apra
   un vuoto al giro. Non è ancora provato.
 
@@ -121,6 +160,9 @@ Altre regole:
 - **Approvazione:** `approved` resta `null` finché l'utente non ha ascoltato il suono nel
   gioco. Con il suo via si scrive a mano data e chi (per esempio
   `"2026-11-02, utente"`), e `audio_sfx.py` lo conserva finché lo `sha256` non cambia.
+  - Vale anche per musica e ambienti consegnati: la conferma della versione (stato `APPROVED`
+    della richiesta) permette la promozione; `approved` nel manifest si scrive dopo l'ascolto
+    nel gioco (`INTEGRATED`).
 
 ## 7. Effetti attuali
 
