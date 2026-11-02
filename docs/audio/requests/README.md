@@ -11,7 +11,7 @@ dipendenze, tonalità, tempi e peso.
 |---|---|---|---|---|---|---|
 | 1 | [`MUSIC-RUN-001`](MUSIC-RUN-001.md) | `music/run_meadow.ogg` | partita nella Prateria Verde, e ripiego per ogni stage | — | AUDIO-3b | `REQUESTED` |
 | 2 | [`MUSIC-HORDE-001`](MUSIC-HORDE-001.md) | `music/horde.ogg` | orde delle 5:00 e delle 10:00 | RUN: tonalità, tempo, suoni | AUDIO-3b | `REQUESTED` |
-| 3 | [`MUSIC-HOME-001`](MUSIC-HOME-001.md) | `music/home.ogg` | pagina iniziale e menu | RUN: stesse sette note | AUDIO-3 | `APPROVED` (v1, 2026-11-02, D-071): promossa in `assets/`, il gioco non la suona ancora |
+| 3 | [`MUSIC-HOME-001`](MUSIC-HOME-001.md) | `music/home.ogg` | pagina iniziale e menu | RUN: stesse sette note | AUDIO-3 | `INTEGRATED` (v1, 2026-11-02, AUDIO-3): suona nei menu, ascoltata dall'utente |
 | — | [`AMB-HOME-001`](AMB-HOME-001.md) | nessuno (erano `ambience/home_portal.ogg`, `ambience/home_falls.ogg`) | portale; cascate e fiume | — | ~~AUDIO-4~~ annullato | `REJECTED` (2026-11-02, D-071): niente ambienti nella home |
 | 5 | [`MUSIC-BOSS-001`](MUSIC-BOSS-001.md) | `music/boss.ogg` | boss delle 15:00 | RUN: suoni, tonica | AUDIO-3b | `REQUESTED` |
 | 6 | [`MUSIC-STING-001`](MUSIC-STING-001.md) | `music/stinger_boss.ogg`, `stinger_victory.ogg`, `stinger_defeat.ogg` | arrivo del boss, vittoria, sconfitta | RUN e BOSS: tonalità, suoni | AUDIO-3b | `REQUESTED` |
