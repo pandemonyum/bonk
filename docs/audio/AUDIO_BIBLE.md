@@ -30,7 +30,7 @@ gameplay-engineer.
 |---|---|---|---|---|---|
 | Effetti, bus `Sfx` e `Ui` (i `cues` del catalogo) | WAV PCM 16 bit, header canonico | mono | 44 100 Hz | ≤ 1,5 s | `assets/audio/sfx/<gruppo>/` |
 | Musica e stinger (AUDIO-3) | Ogg Vorbis | stereo | 44 100 Hz | loop 45–120 s, stinger 2–5 s | `assets/audio/music/` |
-| Ambienti della home (AUDIO-4) | Ogg Vorbis | stereo | 44 100 Hz | loop 20–40 s | `assets/audio/ambience/` |
+| Ambienti (quelli della home e AUDIO-4 ritirati, D-071: un ambiente nuovo solo su richiesta dell'utente) | Ogg Vorbis | stereo | 44 100 Hz | loop 20–40 s | `assets/audio/ambience/` |
 
 - **Effetti in WAV:** sul web la decodifica gira sul thread del gioco (D-069).
 - **Musica e ambienti in Ogg:** pesano meno da scaricare. Qui non c'è un encoder, quindi li
@@ -63,16 +63,17 @@ gameplay-engineer.
   - musica: −16 LUFS integrati, ±1 LU;
   - stinger: −16 LUFS integrati sull'intero file, ±1,5 LU. Suonano sopra la musica abbassata;
   - ambienti 6–8 dB sotto la musica: cascate −22 LUFS, portale −24 LUFS, ±1,5 LU. La misura
-    pesa poco i bassi, e il ronzio del portale è soprattutto grave;
+    pesa poco i bassi, e il ronzio del portale è soprattutto grave (portale e cascate della
+    home ritirati, D-071: i livelli restano come riferimento per un ambiente nuovo);
   - picco reale ≤ −1 dBTP sull'Ogg; sul master ≤ −1,5 dBTP, perché la codifica Vorbis alza un
     po' i picchi;
   - niente infrabassi sotto i 30–35 Hz; compatibili in mono.
 - **Come si misurano** (`docs/audio/AUDIO_HANDOFF_WORKFLOW.md`, INGEST):
   - all'arrivo, sul master WAV, con la libreria standard: picco, stima tra i campioni, loudness
     BS.1770;
-  - dopo la promozione, sull'Ogg decodificato, nel test di decodifica esteso in AUDIO-3 e
-    AUDIO-4: picco di campione;
-  - il validatore legge solo l'header Vorbis;
+  - dopo la promozione, sull'Ogg decodificato, nel test di decodifica esteso in AUDIO-3 (AUDIO-4
+    annullato, D-071): picco di campione;
+  - il validatore legge l'header Vorbis e il granule finale, non decodifica;
   - senza master WAV, quei valori restano "non misurati" fino al test.
 
 ## 4. Regole dei loop (musica e ambienti)
@@ -96,7 +97,8 @@ gameplay-engineer.
 - **Ambienti:**
   - l'incrocio che chiude il loop sta dentro il file, mai agli estremi;
   - tolleranza ±0,5 s dalla lunghezza della richiesta;
-  - i due loop della home hanno lunghezze diverse e non multiple (32 e 27 s);
+  - due loop che suonano insieme hanno lunghezze diverse e non multiple (per la home erano 32 e
+    27 s; ritirati, D-071);
   - nessun evento riconoscibile che faccia sentire il giro.
 - **Tonalità** (tabella in `docs/audio/requests/README.md`):
   - run e orda nella stessa tonalità, modo e tempo, perché si incrociano per 2 s con i battiti
@@ -104,7 +106,7 @@ gameplay-engineer.
   - boss su una tonalità vicina, al massimo un'alterazione di differenza;
   - home con la stessa collezione di note della run;
   - stinger sulla tonica della traccia che interrompono;
-  - il ronzio del portale sulla tonica della home.
+  - ~~il ronzio del portale sulla tonica della home~~ (ritirato, D-071).
 - **Stinger:**
   - one-shot con la loro coda naturale, entro 5 s;
   - attacco immediato: primo campione vicino allo zero, oltre −40 dBFS entro 10 ms;
@@ -150,8 +152,16 @@ Il validatore rifiuta:
 - file senza riga in `ASSET_LICENSES.md`;
 - effetti non PCM 16 bit mono 44 100 Hz, oltre 1,5 s o con il picco oltre −1 dBFS, o diversi
   dalla voce del manifest (durata, `sha256`);
-- Ogg senza header Vorbis;
+- Ogg senza header Vorbis, con una pagina senza `OggS` o troncata (i CRC li controlla
+  `scripts/audio_inbox.py`);
+- Ogg diversi dalla voce del manifest: canali, frequenza, campioni (granule finale), durata,
+  byte, `sha256`; voci senza `samples`, `bytes` o `sha256`, o senza la nota in `assets-src/`;
+- Ogg oltre il tetto del peso (durata × 16 000 byte);
+- `assets/audio/` oltre gli 8 MiB in tutto;
 - percorsi `"audio/…wav|ogg"` di `catalog.ron` assenti dal manifest.
+
+Un file audio con la sua voce che il catalogo non cita è solo un avviso: un file approvato può
+stare in `assets/` prima della sua sezione del catalogo, e intanto il gioco non lo suona.
 
 Altre regole:
 

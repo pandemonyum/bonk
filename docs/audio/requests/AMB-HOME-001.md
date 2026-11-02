@@ -10,11 +10,16 @@ suoni e bastano da sole; le altre servono al progetto.
 | Tipo | `ambience_loop` |
 | File nel gioco | `assets/audio/ambience/home_portal.ogg`, `assets/audio/ambience/home_falls.ogg` |
 | Canali ammessi | sintesi dell'utente; registrazioni CC0 (o CC-BY con attribuzione) scaricate dall'utente, con la licenza salvata, e montate da lui; commissione a una persona; servizio IA solo con nome, termini e via esplicito per ciascun file |
-| Stato | `REQUESTED` (2026-11-02), per tutte e due le parti |
+| Stato | `REJECTED` (2026-11-02, D-071), per tutte e due le parti: rifiutata dall'utente, niente ambienti nella home. Nessun file promosso; le v1 restano solo nell'inbox dell'utente, fuori dal repository |
 | Owner | pixel-art-director (richiesta, controllo, promozione) + utente (consegna e approvazione) |
-| Tranche che lo usa | AUDIO-4 |
-| Decisioni | D-069, D-070 |
-| Legata a | `MUSIC-HOME-001`: il ronzio del portale è intonato sul Fa della musica della home |
+| Tranche che lo usa | AUDIO-4, annullato (D-071) |
+| Decisioni | D-069, D-070, D-071 |
+| Legata a | `MUSIC-HOME-001`: il ronzio del portale è intonato sul Fa della musica della home (legame caduto con questa richiesta, D-071) |
+
+> **Richiesta chiusa (D-071).** L'utente non vuole ambienti nella home: "Apporvo soltanto la
+> musica del menu mentre i suoni home portale e cascate non le voglio che ci siano in generale".
+> Il testo sotto resta com'era alla consegna delle v1, come archivio. Un ambiente nuovo, per
+> esempio di uno stage, si fa solo su una nuova richiesta dell'utente, con un ID nuovo.
 
 ## Il gioco in breve
 
@@ -257,27 +262,41 @@ di vento. Ogni evento che si distingue fa sentire il giro dei 27 s.
 
 ## 9. Controlli dell'agente e criteri di accettazione
 
+Spuntate solo le caselle verificate in modo definitivo per tutte e due le parti. Tra parentesi
+l'esito delle v1 dove manca ancora qualcosa: il master dice com'era il file prima della
+codifica, il controllo definitivo si fa sull'Ogg decodificato (AUDIO-4).
+
 Per ogni parte:
 - [ ] nome, sezioni `[file]` e `[fonte]` in `PROVENANCE.txt`, licenza ammessa, licenze salvate
-      in `licenses/`
-- [ ] Ogg Vorbis valido: un solo flusso, BOS ed EOS, pagine consecutive, CRC giusti
-- [ ] 2 canali, 44 100 Hz
-- [ ] lunghezza: portale 1 411 200 ±22 050, cascate 1 190 700 ±22 050; le due lunghezze sono
+      in `licenses/` (v1: nomi giusti; una sezione `[file]` completa e una `[fonte]` per parte;
+      `licenza: user-owned`; nessuna registrazione di terzi, quindi `licenses/` non serve;
+      provenienza: sintesi da codice scritto con ChatGPT, canale, piano e termini da confermare
+      dall'utente)
+- [x] Ogg Vorbis valido: un solo flusso, BOS ed EOS, pagine consecutive, CRC giusti
+- [x] 2 canali, 44 100 Hz
+- [x] lunghezza: portale 1 411 200 ±22 050, cascate 1 190 700 ±22 050; le due lunghezze sono
       diverse e nessuna è multipla dell'altra
-- [ ] peso: portale ≤ 512 000 byte, cascate ≤ 432 000 byte
-- [ ] picco ≤ −1 dBTP (master ≤ −1,5)
-- [ ] loudness: portale −24 LUFS ±1,5, cascate −22 LUFS ±1,5
-- [ ] estremi vicini allo zero, nessun silenzio né dissolvenza agli estremi
-- [ ] continuità del giro
+- [x] peso: portale ≤ 512 000 byte, cascate ≤ 432 000 byte
+- [ ] picco ≤ −1 dBTP (master ≤ −1,5) (v1, master: portale −11,51 e cascate −8,50 dBTP, OK;
+      Ogg non misurato)
+- [ ] loudness: portale −24 LUFS ±1,5, cascate −22 LUFS ±1,5 (v1, master: −23,97 e −21,95
+      LUFS, OK; Ogg non misurato)
+- [ ] estremi vicini allo zero, nessun silenzio né dissolvenza agli estremi (v1: master OK per
+      tutte e due; Ogg non misurato)
+- [ ] continuità del giro (v1: master OK per tutte e due; Ogg non misurato)
 - [ ] stereo: RMS destro sopra il sinistro di 6–10 dB (portale) e di 3–6 dB (cascate);
-      correlazione positiva
+      correlazione positiva (v1, master: +9,54 dB e +0,999; +5,57 dB e +0,915, OK; Ogg non
+      misurato)
 - [ ] niente melodia; portale intonato su Fa, senza ronzio elettrico; nessun evento
-      riconoscibile
+      riconoscibile (v1, euristica sul master del portale: sotto i 100 Hz solo Fa1 e Fa2; il
+      resto all'ascolto)
 - [ ] ascolto dell'utente in loop, i due insieme e sotto la musica della home se c'è già:
       nessuno stacco, posizione credibile rispetto all'illustrazione
 - [ ] conferma esplicita dell'utente su quella parte
 
-Ogg, header, pagine, CRC, granule e peso si misurano all'arrivo, con il comando della procedura:
+Tutti i controlli dell'arrivo, sull'Ogg e sui master, si fanno con
+`python -I scripts/audio_inbox.py AMB-HOME-001 --save`. Per i soli Ogg basta anche il comando
+della procedura:
 - `... AMB-HOME-001_portal_v1.ogg 1411200 22050`;
 - `... AMB-HOME-001_falls_v1.ogg 1190700 22050`.
 
@@ -290,8 +309,8 @@ Quello che non si misura si scrive "non misurato".
 ## 10. Piano di verifica
 
 - **INGEST:**
-  - comando per l'Ogg su ogni parte;
-  - analisi dei master (con il bilanciamento destra/sinistra);
+  - `python -I scripts/audio_inbox.py AMB-HOME-001 --save`: Ogg di ogni parte e analisi dei
+    master, con il bilanciamento destra/sinistra;
   - ascolto in loop dell'utente, i due insieme.
 - **VERIFY:**
   - `python -I scripts/validate-assets.py`;
@@ -305,7 +324,8 @@ Quello che non si misura si scrive "non misurato".
 
 | Parte | Versione | File | Data | Controlli | Decisione dell'utente |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| `portal` | v1 | `AMB-HOME-001_portal_v1.ogg`, 179 325 byte, sha256 `e516dcd778c6…`; master `AMB-HOME-001_portal_v1.wav` (PCM 24 bit) | 2026-11-02 | **Ogg:** contenitore OK (34 pagine, 1 flusso, CRC giusti, BOS ed EOS); Vorbis 2 canali 44 100 Hz OK; granule 1 411 200, scarto 0, OK; peso 179 325 ≤ 512 000 OK (44,8 kbps medi, nominale 112); encoder OK (tag `ENCODER=Lavc61.19.101 libvorbis`, fornitore `Lavf61.7.103` di FFmpeg); picco, loudness, estremi, giro e stereo non misurati. **Master:** 1 411 200 frame, uguali all'Ogg, OK; true peak −11,51 dBTP OK; −23,97 LUFS OK; estremi OK (primo e ultimo campione ≤ 0,0001; primi e ultimi 50 ms da +0,3 a +0,4 dB sul secondo vicino); continuità OK (salto L 0,00017 e R 0,00013, contro un 99,9° percentile di 0,0026 e 0,0073); stereo R − L +9,54 dB, correlazione +0,999, OK; sotto i 100 Hz solo Fa1 (−24,1 dBFS) e Fa2 (−27,6 dBFS), in tutte le 32 finestre da 1 s; altre note sotto i 100 Hz al massimo −77,5 dBFS (Sol2); fino a 30 Hz −78,6 dB sul totale. **Provenienza:** sintesi da codice scritto con ChatGPT; canale, piano e termini da confermare dall'utente. Uscita completa: `.audio-inbox/AMB-HOME-001/check/v1.txt` | **rifiutata dall'utente** il 2026-11-02 (D-071): niente ambienti nella home. Frase: "Apporvo soltanto la musica del menu mentre i suoni home portale e cascate non le voglio che ci siano in generale". Non promossa |
+| `falls` | v1 | `AMB-HOME-001_falls_v1.ogg`, 215 615 byte, sha256 `118b46d73ab4…`; master `AMB-HOME-001_falls_v1.wav` (PCM 24 bit) | 2026-11-02 | **Ogg:** contenitore OK (29 pagine, 1 flusso, CRC giusti, BOS ed EOS); Vorbis 2 canali 44 100 Hz OK; granule 1 190 700, scarto 0, OK; 1 190 700 diverso da 1 411 200 e non suo multiplo; peso 215 615 ≤ 432 000 OK (63,9 kbps medi, nominale 112); encoder OK (come sopra); picco, loudness, estremi, giro e stereo non misurati. **Master:** 1 190 700 frame, uguali all'Ogg, OK; true peak −8,50 dBTP OK; −21,95 LUFS OK; estremi OK (primo e ultimo campione ≤ 0,0008; primi e ultimi 50 ms da −0,8 a +0,3 dB sul secondo vicino); continuità OK (salto L 0,00046 e R 0,00043, contro un 99,9° percentile di 0,0087 e 0,0174); stereo R − L +5,57 dB, correlazione +0,915, OK; fino a 30 Hz −92,3 dB e fino a 100 Hz −12,6 dB sul totale. **Provenienza:** come sopra. Uscita completa: `.audio-inbox/AMB-HOME-001/check/v1.txt` | **rifiutata dall'utente** il 2026-11-02 (D-071): niente ambienti nella home. Frase: come sopra. Non promossa |
 
 ## Revisioni
 
@@ -313,11 +333,11 @@ Quello che non si misura si scrive "non misurato".
 
 ## Provenienza e licenza (dopo la promozione)
 
-- **Versioni promosse e file:** …
-- **Consegnate il / approvate il:** … / … (frase dell'utente: "…")
-- **Canale, autore e fonti:** …
-- **Licenza (`license` del manifest):** …
-- **Attribuzione:** … / non serve
-- **Note in `assets-src/audio/ambience/home_portal.md` e `home_falls.md`:** sì / no
-- **Licenze delle fonti in `assets-src/audio/licenses/`:** sì / no / non servono
-- **Voci in `ASSET_LICENSES.md`:** sì / no
+Nessuna promozione: la richiesta è `REJECTED` (2026-11-02, D-071).
+- **Versioni promosse e file:** nessuna. `AMB-HOME-001_portal_v1` e `AMB-HOME-001_falls_v1`
+  (Ogg e master) restano solo in `.audio-inbox/AMB-HOME-001/`, fuori dal repository.
+- **Consegnate il / rifiutate il:** 2026-11-02 / 2026-11-02 (frase dell'utente: "Apporvo
+  soltanto la musica del menu mentre i suoni home portale e cascate non le voglio che ci siano in
+  generale").
+- **Note in `assets-src/audio/ambience/`, licenze, voci nel manifest e in `ASSET_LICENSES.md`:**
+  nessuna, non servono.

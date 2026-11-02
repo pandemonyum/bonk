@@ -84,8 +84,14 @@ ne tiene l'elenco e fa seguire il suo stato alla scheda. Nessun cambiamento in R
   continuerebbe da sola. Su `visibilitychange` la pagina chiama `suspend()` (nascosta) e
   `resume()` (visibile). Se il contesto diventa `running` con la scheda nascosta (cpal chiama
   `resume()` appena lo crea, e il download può finire con la scheda in secondo piano), la pagina
-  lo sospende di nuovo al suo `statechange`. Una finestra senza fuoco ma ancora visibile non
-  conta come nascosta: lì decide il gioco.
+  lo sospende di nuovo in due momenti: a ogni suo `statechange` e, una volta, subito dopo la
+  creazione (riga `suspend() (creato)`), per un contesto che nasce già `running` senza altri
+  `statechange` da aspettare. Il controllo alla creazione gira in un microtask: cpal costruisce il
+  contesto e chiama `resume()` nella stessa pila (`build_output_stream`, poi `play()`), quindi nel
+  costruttore la pagina sospenderebbe prima di quel `resume()`, che la annullerebbe; nel microtask
+  il `suspend()` arriva dopo. Alla creazione la pagina sospende soltanto: non riprende mai (lo
+  fa già cpal, e prima di un gesto darebbe avvisi di autoplay). Una finestra senza fuoco ma
+  ancora visibile non conta come nascosta: lì decide il gioco.
 - **Safari** non è un obiettivo della P1. Se un contesto resta sospeso, lo riprende il primo
   `pointerdown`, `keydown` o `touchend` con la pagina visibile (ascoltati in cattura su
   `window`, prima del gioco).
@@ -144,8 +150,20 @@ ne tiene l'elenco e fa seguire il suo stato alla scheda. Nessun cambiamento in R
    ```
 
    dà `[true, true]`, con le righe `audio: contesto 0 creato (suspended, …)` e
-   `audio: contesto 0: closed` (e l'avviso di Chrome sull'autoplay: nessun clic ancora). Poi
-   ricaricare la pagina, altrimenti quel contesto resta nell'elenco come numero 0.
+   `audio: contesto 0: closed` (e l'avviso di Chrome sull'autoplay: nessun clic ancora), senza
+   righe `resume()`: alla creazione la pagina non riprende. Poi ricaricare la pagina, altrimenti
+   quel contesto resta nell'elenco come numero 0.
+8. Facoltativo, sospensione alla creazione (non ancora eseguita nel browser). Prima del clic su
+   "Clicca per giocare", un clic sul pannello fuori dal pulsante (serve un gesto vero, così il
+   contesto nasce `running`), poi in console:
+
+   ```js
+   Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true });
+   const c = new AudioContext();   // se nasce "running": riga `suspend() (creato)`
+   ```
+
+   Se il contesto nasce `suspended` non c'è nulla da sospendere e la riga non compare. Chiudere
+   con `c.close()`, `delete document.visibilityState` e ricaricare la pagina.
 
 ## Salvataggi sul web
 

@@ -1,7 +1,8 @@
 """Costanti, lettori di WAV e Ogg e manifest condivisi dagli script audio (D-070).
 
-Usato da audio_sfx.py (sintesi), build-assets.py (conserva le voci audio del manifest) e
-validate-assets.py (controlli audio). Solo libreria standard: niente numpy, soundfile, audioop.
+Usato da audio_sfx.py (sintesi), audio_inbox.py (controlli delle consegne in .audio-inbox/),
+build-assets.py (conserva le voci audio del manifest) e validate-assets.py (controlli audio).
+Solo libreria standard: niente numpy, soundfile, audioop.
 Regole e numeri: docs/audio/AUDIO_BIBLE.md e docs/design/AUDIO_SYSTEM.md (§ 3.13, § 4, § 5).
 """
 
@@ -38,6 +39,11 @@ AUDIO_KINDS = {
     "ambience": ("audio/ambience/", ".ogg"),
 }
 AUDIO_EXTENSIONS = (".wav", ".ogg")
+# Musica, stinger e ambienti in Ogg (AUDIO_BIBLE § 2): tetto del peso di un file = durata x
+# 16 000 byte (128 kbps medi); tutto l'audio entro 8 MiB, perché build-web copia assets/
+# così com'è (AUDIO_SYSTEM § 3.11).
+OGG_MAX_BYTES_PER_S = 16_000
+AUDIO_BUDGET_BYTES = 8 * 2**20
 AUDIO_NAME_RE = re.compile(r"^[a-z0-9_]+\.(wav|ogg)$")
 FOLDER_RE = re.compile(r"^[a-z0-9_]+$")
 # Licenze ammesse senza chiedere (D-070); CC-BY-4.0 vuole anche il campo "attribution".
@@ -91,19 +97,21 @@ def wav_bytes(samples: list[int], sample_rate: int = SAMPLE_RATE) -> bytes:
     return header + data
 
 
-def parse_wav(data: bytes) -> WavInfo:
-    """Header e picco di un WAV letto chunk per chunk (non dipende dal modulo wave)."""
+def wav_parts(data: bytes) -> tuple[int, int, int, int, int, memoryview]:
+    """(formato, canali, frequenza, block align, bit, PCM) di un WAV letto chunk per chunk (non
+    dipende dal modulo wave). Il PCM è una vista su `data`, senza copia."""
     if len(data) < 12 or data[:4] != b"RIFF" or data[8:12] != b"WAVE":
         raise AudioFileError("non è un file RIFF/WAVE")
+    view = memoryview(data)
     fmt = pcm = None
     pos = 12
     while pos + 8 <= len(data):
         chunk, size = data[pos : pos + 4], struct.unpack_from("<I", data, pos + 4)[0]
-        body = data[pos + 8 : pos + 8 + size]
+        body = view[pos + 8 : pos + 8 + size]
         if len(body) < size:
             raise AudioFileError(f"chunk {chunk.decode('latin-1')!r} troncato")
         if chunk == b"fmt ":
-            fmt = body
+            fmt = bytes(body)
         elif chunk == b"data":
             pcm = body
         pos += 8 + size + (size & 1)
@@ -116,12 +124,36 @@ def parse_wav(data: bytes) -> WavInfo:
         tag = struct.unpack_from("<H", fmt, 24)[0]  # primi 2 byte del GUID del sottoformato
     if align == 0:
         raise AudioFileError("block align 0")
+    return tag, channels, rate, align, bits, pcm
+
+
+def parse_wav(data: bytes) -> WavInfo:
+    """Header e picco di un WAV letto chunk per chunk (non dipende dal modulo wave)."""
+    tag, channels, rate, align, bits, pcm = wav_parts(data)
     frames = len(pcm) // align
     peak = 0
     if tag == WAVE_FORMAT_PCM and bits == 16 and pcm:
         samples = struct.unpack(f"<{len(pcm) // 2}h", pcm[: len(pcm) // 2 * 2])
         peak = max(max(samples), -min(samples))
     return WavInfo(tag, channels, rate, bits, frames, peak)
+
+
+TRUE_PEAK_TAPS = 8  # mezza lunghezza del filtro sinc della stima del picco reale (4x)
+
+
+def true_peak_kernels(taps: int = TRUE_PEAK_TAPS) -> list[list[float]]:
+    """Filtri della stima del picco reale con interpolazione 4x: sinc a finestra di Hann per le
+    posizioni 0,25, 0,5 e 0,75 fra due campioni. L'elemento j pesa il campione n - taps + 1 + j
+    e il risultato è il valore in n + p (audio_sfx.py, audio_inbox.py)."""
+    kernels = []
+    for p in (0.25, 0.5, 0.75):
+        kernel = []
+        for k in range(-taps + 1, taps + 1):
+            u = k - p
+            kernel.append(math.sin(math.pi * u) / (math.pi * u)
+                          * (0.5 + 0.5 * math.cos(math.pi * u / taps)))
+        kernels.append(kernel)
+    return kernels
 
 
 def read_wav(path: Path) -> WavInfo:
@@ -139,6 +171,28 @@ def read_ogg_vorbis(path: Path) -> tuple[int, int]:
         raise AudioFileError("la prima pagina non è l'header di identificazione Vorbis")
     _, channels, rate = struct.unpack_from("<IBI", packet, 7)
     return channels, rate
+
+
+def read_ogg_samples(path: Path) -> int:
+    """Campioni per canale di un Ogg: il granule dell'ultima pagina che ne ha uno, cioè quanti
+    campioni decodifica rodio (AUDIO_HANDOFF_WORKFLOW, "Controlli", riga "Lunghezza"). Scorre le
+    pagine senza controllare i CRC: quelli, con BOS, EOS e flussi, li controlla audio_inbox.py."""
+    data = path.read_bytes()
+    pos, granule = 0, None
+    while pos < len(data):
+        if pos + 27 > len(data) or data[pos : pos + 4] != b"OggS":
+            raise AudioFileError(f"byte {pos}: manca l'inizio di una pagina Ogg")
+        page_granule = struct.unpack_from("<q", data, pos + 6)[0]
+        segments = data[pos + 26]
+        size = 27 + segments + sum(data[pos + 27 : pos + 27 + segments])
+        if pos + size > len(data):
+            raise AudioFileError(f"byte {pos}: pagina Ogg troncata")
+        if page_granule >= 0:  # -1: nessun pacchetto finisce in questa pagina
+            granule = page_granule
+        pos += size
+    if granule is None:
+        raise AudioFileError("nessuna pagina Ogg con il granule")
+    return granule
 
 
 def load_manifest() -> dict:

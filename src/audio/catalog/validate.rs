@@ -1,6 +1,7 @@
 //! Regole del catalogo audio oltre alla sintassi. Ogni errore nomina il campo:
 //! `catalog.ron: cues."shot.ember".gain = 1.5: deve stare in (0, 1]`.
 
+use super::music::{MUSIC_EXTENSION, MusicFile};
 use super::{CATALOG_VERSION, CUE_EXTENSION, CatalogFile, Coalesce, CueData};
 
 /// Regola dei nomi di cue e ripieghi, per i messaggi.
@@ -90,6 +91,76 @@ pub(super) fn validate(file: &CatalogFile) -> Vec<String> {
             ));
         }
     }
+    for message in music_errors(&file.music) {
+        push(message);
+    }
+    errors
+}
+
+/// La sezione `music`: tracce Ogg con un guadagno in (0, 1], riferimenti a tracce che esistono,
+/// durate finite e ≥ 0.
+fn music_errors(music: &MusicFile) -> Vec<String> {
+    let mut errors = Vec::new();
+    if music.tracks.len() > usize::from(u16::MAX) + 1 {
+        errors.push(format!(
+            "music.tracks: {} tracce, al massimo {}",
+            music.tracks.len(),
+            usize::from(u16::MAX) + 1
+        ));
+    }
+    for (name, track) in &music.tracks {
+        let at = format!("music.tracks.\"{name}\"");
+        if !valid_cue_name(name) {
+            errors.push(format!("{at}: {NAME_RULE}"));
+        }
+        if !unit_gain(track.gain) {
+            errors.push(format!("{at}.gain = {}: deve stare in (0, 1]", track.gain));
+        }
+        let file = &track.file;
+        if !valid_file_name(file) {
+            errors.push(format!(
+                "{at}.file = \"{file}\": serve un percorso relativo ad assets/ con minuscole, \
+                 cifre, _ e / (es. \"audio/music/home.ogg\")"
+            ));
+        } else if !file.ends_with(&format!(".{MUSIC_EXTENSION}")) {
+            errors.push(format!(
+                "{at}.file = \"{file}\": la musica vuole file .{MUSIC_EXTENSION} (Ogg Vorbis)"
+            ));
+        }
+    }
+    for (stage, track) in &music.run_by_stage {
+        if !valid_cue_name(stage) {
+            errors.push(format!(
+                "music.run_by_stage.\"{stage}\": id di stage non valido (minuscole, cifre e _, \
+                 come in game-data/stages.ron)"
+            ));
+        }
+        if !music.tracks.contains_key(track) {
+            errors.push(format!(
+                "music.run_by_stage.\"{stage}\" = \"{track}\": la traccia non esiste in \
+                 music.tracks"
+            ));
+        }
+    }
+    if let Some(track) = &music.run_default
+        && !music.tracks.contains_key(track)
+    {
+        errors.push(format!(
+            "music.run_default = \"{track}\": la traccia non esiste in music.tracks"
+        ));
+    }
+    let fades = &music.fades;
+    for (field, value) in [
+        ("to_run", fades.to_run),
+        ("to_home", fades.to_home),
+        ("focus", fades.focus),
+    ] {
+        if !(value.is_finite() && value >= 0.0) {
+            errors.push(format!(
+                "music.fades.{field} = {value}: deve essere >= 0 (secondi)"
+            ));
+        }
+    }
     errors
 }
 
@@ -163,7 +234,7 @@ fn unit_gain(value: f32) -> bool {
 }
 
 /// `^[a-z0-9_/]+\.(wav|ogg)$`, relativo (niente `/` iniziale o finale, niente cartelle vuote). I
-/// cue vogliono `.wav`; `.ogg` servirà a musica e ambienti (AUDIO-3, AUDIO-4).
+/// cue vogliono `.wav`, la musica `.ogg`.
 fn valid_file_name(path: &str) -> bool {
     let Some((stem, extension)) = path.rsplit_once('.') else {
         return false;

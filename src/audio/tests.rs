@@ -1,9 +1,11 @@
-//! Test dell'audio: catalogo (`tests/catalog.rs`), decodifica dei file del catalogo vero
-//! (`tests/decode.rs`), mixer (`tests/mixer.rs`, `tests/margin.rs` e `tests/mixer_time.rs`),
-//! plugin, `AudioManager` e impostazioni dal profilo in un'app con `MinimalPlugins`
-//! (`tests/plugin.rs`), riproduzione senza dispositivo (`tests/playback.rs`, `tests/playback_time.rs`). Qui gli aiuti
-//! comuni: i cataloghi di prova si costruiscono nel codice, il catalogo vero si controlla per la
-//! validità e per i suoi file.
+//! Test dell'audio: catalogo (`tests/catalog.rs`, `tests/music_catalog.rs`), decodifica dei file
+//! del catalogo vero (`tests/decode.rs`, anche la musica e il giro del suo loop), mixer
+//! (`tests/mixer.rs`, `tests/margin.rs` e `tests/mixer_time.rs`), plugin, `AudioManager` e
+//! impostazioni dal profilo in un'app con `MinimalPlugins` (`tests/plugin.rs`), riproduzione
+//! senza dispositivo (`tests/playback.rs`, `tests/playback_time.rs`), musica: traccia voluta
+//! (`tests/music.rs`), curve e deck (`tests/music_decks.rs`) senza Bevy, il direttore con gli
+//! stati veri (`tests/music_app.rs`) e il caricamento delle tracce (`tests/music_load.rs`). Qui gli aiuti comuni: i cataloghi di prova si costruiscono nel codice,
+//! il catalogo vero si controlla per la validità e per i suoi file.
 
 use std::collections::BTreeMap;
 
@@ -14,6 +16,11 @@ mod decode;
 mod margin;
 mod mixer;
 mod mixer_time;
+mod music;
+mod music_app;
+mod music_catalog;
+mod music_decks;
+mod music_load;
 mod playback;
 mod playback_time;
 mod plugin;
@@ -58,6 +65,7 @@ pub(super) fn file_with(cues: Vec<(&str, CueData)>) -> CatalogFile {
             .map(|(name, cue)| (name.to_string(), cue))
             .collect(),
         fallbacks: BTreeMap::new(),
+        music: MusicFile::default(),
     }
 }
 

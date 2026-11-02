@@ -1,6 +1,7 @@
 //! Audio con la finestra non attiva (progetto § 3.11, D-070): con `play_unfocused = false`, su
-//! `WindowFocused(false)` il volume generale scende a zero in [`FOCUS_FADE_S`] secondi di tempo
-//! reale e risale nello stesso tempo al ritorno del fuoco. È una dissolvenza della riproduzione
+//! `WindowFocused(false)` il volume generale scende a zero in `music.fades.focus` secondi di tempo
+//! reale (catalogo, [`MusicFades::focus`]: 0,25 s) e risale nello stesso tempo al ritorno del
+//! fuoco. Vale per tutte le voci e per i deck della musica. È una dissolvenza della riproduzione
 //! ([`FocusFade::level`] moltiplica il volume di ogni voce): non tocca `AudioSettings` né il
 //! profilo. Sul desktop il gioco continua a girare senza fuoco (`WinitSettings::game`), quindi la
 //! dissolvenza avanza; nel browser la pagina sospende anche l'`AudioContext` quando la scheda è
@@ -9,10 +10,10 @@
 use bevy::prelude::*;
 use bevy::window::WindowFocused;
 
+use super::catalog::AudioCatalog;
+#[cfg(doc)]
+use super::catalog::MusicFades;
 use super::settings::AudioSettings;
-
-/// Durata della dissolvenza in uscita e in entrata, in secondi di tempo reale.
-pub const FOCUS_FADE_S: f32 = 0.25;
 
 /// Fuoco della finestra e livello della dissolvenza (0 silenzio, 1 pieno).
 #[derive(Resource, Debug, Clone, Copy, PartialEq)]
@@ -50,10 +51,12 @@ pub fn fade_toward(level: f32, target: f32, dt: f32, duration: f32) -> f32 {
     }
 }
 
-/// Legge i cambi di fuoco e fa avanzare la dissolvenza con il tempo reale.
+/// Legge i cambi di fuoco e fa avanzare la dissolvenza con il tempo reale, nella durata del
+/// catalogo.
 pub(super) fn follow_focus(
     mut focus: MessageReader<WindowFocused>,
     settings: Res<AudioSettings>,
+    catalog: Res<AudioCatalog>,
     time: Res<Time<Real>>,
     mut fade: ResMut<FocusFade>,
 ) {
@@ -63,7 +66,8 @@ pub(super) fn follow_focus(
         fade.focused = last.focused;
     }
     let target = focus_target(fade.focused, settings.play_unfocused);
-    let level = fade_toward(fade.level, target, time.delta_secs(), FOCUS_FADE_S);
+    let duration = catalog.music.fades.focus;
+    let level = fade_toward(fade.level, target, time.delta_secs(), duration);
     if level != fade.level {
         fade.level = level;
     }
@@ -72,6 +76,10 @@ pub(super) fn follow_focus(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Una durata di prova: quella del progetto (§ 3.11). Quella del gioco è nel catalogo, e
+    /// `tests/music_app.rs` prova che `follow_focus` usa quella.
+    const FOCUS_FADE_S: f32 = 0.25;
 
     #[test]
     fn the_fade_takes_a_quarter_of_a_second_each_way_and_never_overshoots() {

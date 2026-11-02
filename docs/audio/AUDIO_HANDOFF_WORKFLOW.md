@@ -49,9 +49,10 @@ account, non legge chat.
   - il **master**, facoltativo ma consigliato: stesso nome con `.wav` o `.flac`
     (`<ID>_v<N>.wav`). Non entra mai nel repository. Serve a:
     - ricodificare con un'altra qualità o con un encoder installato più avanti;
-    - misurare picco, loudness e continuità con la libreria standard di Python. Il modulo
-      `wave` legge il WAV PCM intero a 16 e 24 bit, non il WAV a virgola mobile ("unknown
-      format: 3", provato con Python 3.14) né il FLAC;
+    - misurare picco, loudness e continuità con la libreria standard di Python.
+      `scripts/audio_inbox.py` legge il WAV PCM a 16, 24 e 32 bit e il WAV float a 32 bit con
+      un suo lettore dei chunk (il modulo `wave` non legge il float: "unknown format: 3",
+      provato con Python 3.14). Il FLAC non lo legge nessuno dei due;
   - `licenses/`: pagine o testi delle licenze dei file scaricati;
   - `check/`: le uscite dei controlli dell'agente, in testo.
 - Le bozze non entrano mai nel repository. Ci entra solo la versione approvata, alla PROMOTE.
@@ -161,33 +162,46 @@ Alla ripresa l'agente apre davvero i file in `.audio-inbox/<ID>/`:
 
 | Controllo | Criterio | Ogg, libreria standard (oggi) | Master WAV, libreria standard | Dopo la promozione (Rust) |
 |---|---|---|---|---|
-| Nome e provenienza | nome della richiesta; `PROVENANCE.txt` completo; licenza ammessa; licenze dei file scaricati in `licenses/` | a vista | — | — |
+| Nome e provenienza | nome della richiesta; `PROVENANCE.txt` completo; licenza ammessa; licenze dei file scaricati in `licenses/` | a vista; la forma (sezioni, chiavi, licenza, master, licenze salvate) la controlla `audio_inbox.py` | — | — |
 | Contenitore | `OggS`, un solo flusso logico (niente file concatenati), BOS sulla prima pagina ed EOS sull'ultima, pagine consecutive, CRC giusti | sì, con il comando sotto | — | Il crate `ogg` rifiuta una pagina con il CRC sbagliato (`ogg-0.8.0/src/reading.rs:296`). Negli header il decoder di Bevy va in panic; a metà file rodio smette di decodificare (`rodio-0.22.2/src/decoder/vorbis.rs:111-132`), il brano finisce prima e il loop salta. Il test vede i due casi come panic o campioni mancanti |
-| Codec, canali, frequenza | Vorbis, 2 canali, 44 100 Hz | sì, dall'header di identificazione (lo legge anche `validate-assets.py`) | `wave`: canali, frequenza, bit | sì |
-| Lunghezza | loop: granule finale uguale ai campioni attesi, tolleranza ±1 campione; ambienti: ±22 050 campioni (0,5 s) dalla lunghezza della richiesta; stinger: entro il massimo | sì: il granule dell'ultima pagina è il numero di campioni per canale | `wave`: frame | sì: campioni decodificati. Rodio usa `read_dec_packet_generic` (`rodio-0.22.2/src/decoder/vorbis.rs:35`), che taglia l'ultimo pacchetto al granule finale (`lewton-0.10.2/src/inside_ogg.rs:193`) |
+| Codec, canali, frequenza | Vorbis, 2 canali, 44 100 Hz | sì, dall'header di identificazione (lo legge anche `validate-assets.py`) | sì: canali, frequenza, bit | sì |
+| Lunghezza | loop: granule finale uguale ai campioni attesi, tolleranza ±1 campione; ambienti: ±22 050 campioni (0,5 s) dalla lunghezza della richiesta; stinger: entro il massimo | sì: il granule dell'ultima pagina è il numero di campioni per canale | sì: frame, e uguali al granule dell'Ogg | sì: campioni decodificati. Rodio usa `read_dec_packet_generic` (`rodio-0.22.2/src/decoder/vorbis.rs:35`), che taglia l'ultimo pacchetto al granule finale (`lewton-0.10.2/src/inside_ogg.rs:193`) |
 | Peso e bitrate | entro il tetto della richiesta | sì: byte e bitrate medio | — | — |
-| Encoder | stringa del fornitore nell'header dei commenti: libVorbis o una sua variante | sì | — | — |
+| Encoder | libVorbis o una sua variante: nella stringa del fornitore dell'header dei commenti, oppure, per i file di FFmpeg, nel tag `ENCODER` (`Lavc… libvorbis`). FFmpeg scrive come fornitore la firma del suo muxer (`Lavf…`); il codificatore Vorbis interno di FFmpeg (tag senza `lib`) non è ammesso | sì | — | — |
 | Picco | ≤ −1 dBTP sull'Ogg; master ≤ −1,5 dBTP, perché la codifica alza un po' i picchi | no: serve decodificare | sì: picco di campione e stima tra i campioni con interpolazione 4×, come `audio_sfx.py` | picco di campione del decodificato ≤ −1 dBFS |
-| Loudness | musica e stinger −16 LUFS integrati (±1 LU, stinger ±1,5); cascate −22 LUFS e portale −24 LUFS (±1,5) | no | sì: BS.1770 (filtro K, blocchi da 400 ms, gate a −70 LUFS e a −10 LU) con `wave` e `math` | facoltativa |
+| Loudness | musica e stinger −16 LUFS integrati (±1 LU, stinger ±1,5); ambienti come nella richiesta (per la home erano cascate −22 LUFS e portale −24 LUFS, ±1,5; ritirati, D-071) | no | sì: BS.1770 (filtro K, blocchi da 400 ms, gate a −70 LUFS e a −10 LU) con `wave` e `math` | facoltativa |
 | Estremi | loop: nessun silenzio iniziale, nessuna dissolvenza (RMS dei primi e degli ultimi 50 ms non oltre 6 dB sotto il secondo vicino), primo e ultimo campione con \|x\| ≤ 0,01 (−40 dBFS); stinger: primo campione con \|x\| ≤ 0,01, oltre −40 dBFS entro 10 ms, ultimi 10 ms sotto −60 dBFS | no | sì | sì |
 | Continuità del giro | il salto tra l'ultimo e il primo campione di ogni canale non supera il 99,9° percentile delle differenze tra campioni vicini nel file: il punto di giro deve sembrare un passaggio qualunque | no | sì | sì |
-| Stereo degli ambienti | RMS del canale destro sopra il sinistro come nella richiesta (portale 6–10 dB, cascate 3–6 dB); correlazione positiva, cioè compatibile in mono | no | sì | facoltativo |
+| Stereo degli ambienti | RMS del canale destro sopra il sinistro come nella richiesta (per la home erano portale 6–10 dB e cascate 3–6 dB; ritirati, D-071); correlazione positiva, cioè compatibile in mono | no | sì | facoltativo |
 | Ascolto | nessun clic, buco, salto di volume o di ritmo al giro; carattere e divieti della richiesta | l'agente non ascolta: ascolta l'utente | — | — |
 
 Note sui controlli:
-- **Comando per l'Ogg, sotto.** Funziona già oggi, con la sola libreria standard.
-- **Controlli sul master WAV.** Picco, loudness, estremi, continuità e stereo saranno in
-  `scripts/audio_inbox.py` (proprietario: pixel-art-director). Lo script si scrive alla prima
-  consegna con un master WAV, con la sola libreria standard, e si prova su quel file. Il master
-  dice com'era il file prima della codifica: il controllo definitivo si fa sull'Ogg decodificato.
+- **Comando per l'Ogg, sotto.** Funziona con la sola libreria standard; lo script fa gli stessi
+  controlli e stampa le stesse righe.
+- **Controlli sul master WAV.** Picco, loudness, estremi, continuità e stereo sono in
+  `scripts/audio_inbox.py` (proprietario: pixel-art-director), sotto. Scritto alla prima
+  consegna con un master WAV (MUSIC-HOME-001 e AMB-HOME-001, 2026-11-02) e provato su quei file.
+  Il master dice com'era il file prima della codifica: il controllo definitivo si fa sull'Ogg
+  decodificato.
+- **Estremi, sul primo file vero.** La soglia dei 6 dB non distingue una dissolvenza al giro dal
+  modo in cui finisce ogni battuta. Nel master di MUSIC-HOME-001 v1 gli ultimi 50 ms stanno a
+  −19,8 dB dal secondo prima, come alla fine di tutte le 23 battute interne (da −17,0 a
+  −20,9 dB): il NO è letterale. Lo script stampa anche le stesse misure alle stanghette interne:
+  se gli estremi stanno nella fascia delle altre battute, il giro non ha una dissolvenza sua.
+  Decide l'ascolto dell'utente, che può accettare il NO (il NO accettato si annota).
+- **Continuità, limite del criterio.** Un loop perfetto che gira nel punto più ripido (per
+  esempio un passaggio per lo zero dove tutte le componenti salgono insieme) ha il salto al
+  giro più grande del 99,9° percentile e fallisce: provato su un WAV sintetico. Lo script stampa
+  anche, informativa, la seconda differenza a cavallo del giro, che quel caso lo passa e un clic
+  lo fallisce. Il criterio resta quello della tabella.
 - **Senza master WAV** (oppure con il solo FLAC, che la libreria standard non legge):
   - picco, loudness, estremi e continuità restano "non misurati" nel registro, mai supposti;
   - si misurano dopo la promozione con il test di decodifica, oppure con `ffmpeg` se l'utente
     ne autorizza l'installazione.
 - **Test di decodifica.** Oggi `src/audio/tests/decode.rs` decodifica solo i `cues` del
-  catalogo. Quando AUDIO-3 e AUDIO-4 aggiungono le sezioni di musica, stinger e ambienti, il
+  catalogo. Quando AUDIO-3 e AUDIO-3b aggiungono le sezioni di musica e stinger, il
   gameplay-engineer (proprietario di `src/audio/`) lo estende a quei file con i criteri della
-  colonna "Dopo la promozione":
+  colonna "Dopo la promozione" (AUDIO-4, ambienti, è annullato: D-071):
   - decodifica senza panic, 2 canali, 44 100 Hz;
   - campioni decodificati uguali alla lunghezza attesa, ±1;
   - picco di campione ≤ −1 dBFS;
@@ -204,7 +218,17 @@ Legge header, commenti, pagine, CRC e granule finale. Non decodifica l'audio.
   concatenati, senza EOS. Ogni caso ha dato l'esito atteso. Il CRC è controllato con `cksum`,
   che usa lo stesso polinomio.
 - **Tempo:** 1,3 s per 1,5 MB.
-- **Da rifare** sul primo file vero.
+- **Sui primi file veri** (2026-11-02, gli Ogg v1 di MUSIC-HOME-001 e di AMB-HOME-001,
+  codificati con FFmpeg e libvorbis):
+  - in Git Bash su tutti e tre, in PowerShell 5.1 su MUSIC-HOME-001;
+  - nessun problema; granule uguali ai campioni attesi, scarto 0;
+  - 3,4 s per i tre file insieme (0,86 MB), compreso l'avvio di Python;
+  - il fornitore stampato è `Lavf61.7.103` e libvorbis compare solo nel commento
+    `encoder=Lavc61.19.101 libvorbis`: è il caso FFmpeg della riga "Encoder" della tabella;
+  - `scripts/audio_inbox.py` stampa le stesse sei righe: confrontate con `diff`, uguali a meno
+    del fine riga, anche su tre copie guaste nella scratchpad (un byte cambiato: CRC errato;
+    1 000 byte tagliati: pagina troncata e niente EOS; file concatenato due volte: pagine e
+    granule non in ordine).
 
 ```text
 python -I -c "
@@ -291,6 +315,115 @@ buono.ogg: 25678 byte (0.02 MiB), 42 pagine
 Per gli ambienti si passa la tolleranza: per esempio `... AMB-HOME-001_falls_v1.ogg 1190700
 22050`.
 
+### Script per Ogg e master: `scripts/audio_inbox.py`
+
+```text
+python -I scripts/audio_inbox.py MUSIC-HOME-001 --save
+python -I scripts/audio_inbox.py AMB-HOME-001 --version 1 --save
+python -I scripts/audio_inbox.py <file.ogg o .wav> [--kind loop|ambience|stinger --samples N
+    --tol N --max-bytes N --lufs X --lufs-tol X --bpm X --right-over-left MIN MAX
+    --low-notes criterio|info] [--out <file>]
+```
+
+- **Con l'ID** cerca in `.audio-inbox/<ID>/` l'ultima versione di ogni parte, o quella di
+  `--version`, con l'Ogg e il master. Segnala i file con un nome fuori schema.
+- **Con un file già promosso** (`assets/audio/music/home.ogg`) prende i criteri dalla richiesta
+  scritta in `request` nella sua voce del manifest; in una richiesta con più parti, la parte è
+  la fine del nome (`stinger_boss.ogg` → `boss`).
+- **Criteri:** quelli della tabella sopra. I numeri di ogni richiesta (campioni, tolleranza,
+  tetto del peso, loudness, BPM, fascia dello stereo) stanno nella tabella `REQUESTS` dello
+  script, copiati dalle richieste: una richiesta nuova va aggiunta lì. Per un file fuori tabella
+  si passano con le opzioni, che valgono anche sopra la tabella.
+- **Uscita:** una riga per controllo, poi un riepilogo con OK, NO, non misurato, a vista
+  (`PROVENANCE.txt`) e info.
+  - `--save` la scrive in `.audio-inbox/<ID>/check/v<N>.txt`, in UTF-8;
+  - `--out` in un file a scelta;
+  - exit code 0 senza NO (i "non misurato" non contano), 1 con almeno un NO, 2 se un file
+    manca o non si legge.
+- **Solo libreria standard**, nessuna decodifica Vorbis: sull'Ogg picco, loudness, estremi,
+  giro e stereo restano "non misurato".
+- **`PROVENANCE.txt`:** controlla solo la forma:
+  - una sezione `[file]` completa per ogni Ogg;
+  - la licenza in una forma ammessa dal manifest;
+  - il master citato e presente;
+  - le sezioni `[fonte]` e le licenze salvate delle fonti CC0 o CC-BY.
+
+  Il canale e i diritti li conferma l'utente.
+
+Come misura il master:
+- **Lettura:** PCM 16, 24 e 32 bit e float 32, con lo stesso fondo scala, quindi un 16 bit dà i
+  numeri del 24 bit. Il 24 bit si allarga a 32 bit spostando i byte (`bytearray` e
+  `array('i')`), in meno di 0,1 s per 19 MB.
+- **True peak:**
+  - interpolazione 4× con i filtri di `audio_sfx.py` (in `audio_common.true_peak_kernels`);
+  - sui loop la finestra gira attorno al punto di giro, sugli stinger fuori dal file ci sono
+    zeri;
+  - per non interpolare ogni posizione si guardano prima i blocchi più forti e ci si ferma
+    quando il limite (somma dei coefficienti per il massimo del blocco) scende sotto il picco
+    trovato. È esatto: sui tre master veri, uguale al calcolo su tutte le posizioni.
+- **Loudness:** BS.1770-4.
+  - filtro K a due stadi ricalcolato per la frequenza del file, con le formule di libebur128:
+    a 48 kHz dà i coefficienti della norma a tutte le cifre stampate;
+  - blocchi da 400 ms con passo di 100 ms;
+  - gate assoluto a −70 LUFS e relativo a −10 LU.
+- **Estremi:**
+  - loop: primo e ultimo campione, poi RMS dei primi e degli ultimi 50 ms contro il secondo
+    vicino. Con il BPM anche le stesse misure alle stanghette interne, informative (vedi le
+    note sui controlli);
+  - stinger: attacco e coda come nella tabella.
+- **Continuità:**
+  - il salto ultimo → primo contro il 99,9° percentile delle differenze, per canale (percentile
+    a rango più vicino);
+  - informativa, la seconda differenza a cavallo del giro.
+- **Stereo:** RMS dei canali, destro meno sinistro, correlazione di Pearson e componente continua.
+- **Banda grave**, informativa:
+  - potenza del mono fino a 30 Hz e fino a 100 Hz, rispetto al totale;
+  - è la somma dei bin di una DFT con finestra di Hann, finestre di un battito o di 1 s, sul mono
+    decimato con un FIR di Blackman da 1 023 coefficienti (700 Hz con il battito a 80 BPM, 630 Hz
+    con le finestre di 1 s);
+  - selettiva: il Fa1 del portale a 43,65 Hz pesa −78,6 dB fino a 30 Hz, mentre un Butterworth
+    del 4° ordine lo lascerebbe passare a −13 dB.
+- **Note gravi tenute:** euristica, criterio solo per MUSIC-HOME-001 e informativa per il portale.
+  - **Metodo:**
+    - per ogni battito (33 075 campioni a 80 BPM, 525 sul mono decimato a 700 Hz) e per ogni
+      nota temperata fra 30 e 100 Hz (Si0–Sol2, La = 440 Hz), DFT a quella sola frequenza con
+      finestra di Hann: è lo stesso numero di Goertzel;
+    - una nota "suona" se è un massimo locale fra le note vicine, entro 20 dB dalla nota grave
+      più forte del file e sopra −50 dBFS;
+    - è "tenuta" se suona in almeno 2 battiti di fila, anche a cavallo del giro.
+  - **Limiti:**
+    - con un battito di finestra la risoluzione è di 1,33 Hz, e sotto i 50 Hz due semitoni
+      vicini suonati insieme non si separano;
+    - un'armonica cade su un'altra nota (la terza di un Do1 è un Sol2) e conta come quella nota;
+    - le note che cominciano a metà battito si spalmano su due finestre;
+    - un'intonazione lontana dal La = 440 Hz si vede ancora per il lobo della finestra, ma più
+      debole;
+    - non dice se il registro è "leggero": quello lo dicono la banda fino a 100 Hz e l'ascolto.
+- **Prove** (WAV sintetici nella scratchpad, 2026-11-02, tutte con l'esito atteso):
+
+  | Caso | Risultato |
+  |---|---|
+  | seno stereo a 997 Hz, ampiezza 0,5, 0,1, 0,01 | −6,02, −20,00, −40,00 LUFS; un canale solo −9,03 (−3,01 come da norma) |
+  | gate: 10 s di seno a −20 dBFS e 10 s di silenzio, oppure a −60 dBFS | −20,06 LUFS tutti e due (atteso −20,066: i 3 blocchi a cavallo restano dentro; senza gate sarebbe circa −23) |
+  | seno a fs/4 sfasato di 45° in un loop | picco di campione −9,03 dBFS, true peak stimato −6,01 dBTP (vero −6,02) |
+  | loop buono, 16 e 24 bit | stessi numeri (−14,71 LUFS, −9,13 dBTP, estremi e giro OK) |
+  | un altro loop in 16 bit, 24 bit e float 32 | stessi numeri nei tre formati (−14,30 LUFS, −9,13 dBTP, R − L −0,04 dB) |
+  | clic al giro (estremi a ±0,009) | estremi OK, giro NO: salto 0,018 contro un 99,9° percentile di 0,0019 |
+  | loop accorciato di 37 campioni | estremi NO, giro NO |
+  | dissolvenza finale di 2 s | estremi NO (ultimi 50 ms a −27 dB), giro OK |
+  | stereo con il destro 8 dB sopra, in fase e in controfase | +8,00 dB e correlazione +1,000 OK; −1,000 NO |
+  | Fa1, Do2 e Re2 tenuti, Sol2 per un battito | Re2 tenuto (4 battiti di fila) NO; Sol2 non tenuto |
+  | 20, 43,65 e 1 000 Hz (ampiezze 0,1, 0,3, 0,3) | fino a 30 Hz −12,8 dB, fino a 100 Hz −2,8 dB (attesi −12,79 e −2,79) |
+  | stinger buono, con 50 ms di silenzio, con la coda tagliata | OK; attacco NO (50,14 ms); coda NO (−6,02 dBFS) |
+  | silenzio, WAV a 8 bit, file che non è un WAV | loudness NO; illeggibile, exit 2 |
+
+- **Tempo**, per tutta la richiesta (Ogg, `PROVENANCE.txt` e master), tempo reale su più prove:
+  - MUSIC-HOME-001 (3 175 200 frame stereo) fra 13 e 18 s;
+  - AMB-HOME-001 (due parti) fra 10 e 20 s.
+
+  I tempi cambiano con il carico del computer. In PowerShell 5.1 AMB-HOME-001 ha dato exit 0 in
+  10,3 s.
+
 ### Ascolto e approvazione
 
 L'agente mostra all'utente:
@@ -352,17 +485,26 @@ l'utente lo dice, e si annota.
 5. **`ASSET_LICENSES.md`**, sezione "Audio": una riga per file, con asset, origine (richiesta,
    versione, canale, autore), licenza, data e note (attribuzione se serve).
 6. **`assets/audio/catalog.ron`:**
-   - musica e stinger vanno nelle sezioni che arrivano con AUDIO-3, ambienti in quelle di
-     AUDIO-4. Lo schema è del gameplay-engineer, i valori (guadagni, dissolvenze) del
-     pixel-art-director;
-   - prima di AUDIO-3 o AUDIO-4 il file può stare in `assets/` con manifest e licenza, ma il
-     gioco non lo suona e la richiesta resta `APPROVED`.
-7. **Validatore** (`scripts/validate-assets.py`). Oggi controlla per gli Ogg: header Vorbis,
-   canali e frequenza uguali al manifest, licenza, riga in `ASSET_LICENSES.md`. Alla prima
-   promozione il pixel-art-director aggiunge:
-   - `sha256` e campioni (granule finale) uguali al manifest;
-   - peso entro il tetto;
-   - somma dell'audio entro gli 8 MiB.
+   - musica e stinger vanno nelle sezioni che arrivano con AUDIO-3 e AUDIO-3b. Gli ambienti non
+     hanno una sezione: AUDIO-4 è annullato (D-071), e un ambiente nuovo arriva solo con una
+     richiesta nuova dell'utente. Lo schema è del gameplay-engineer, i valori (guadagni,
+     dissolvenze) del pixel-art-director;
+   - prima della sua sezione il file può stare in `assets/` con manifest e licenza, ma il
+     gioco non lo suona e la richiesta resta `APPROVED`. Il validatore lo segnala con un
+     avviso, non con un errore.
+7. **Validatore** (`scripts/validate-assets.py`). Per gli Ogg controlla: header Vorbis, canali
+   e frequenza uguali al manifest, licenza, riga in `ASSET_LICENSES.md`. Dalla prima
+   promozione (`home.ogg`, 2026-11-02) anche:
+   - campioni (granule finale, da `audio_common.read_ogg_samples`), durata, byte e `sha256`
+     uguali al manifest; `samples`, `bytes` e `sha256` obbligatori;
+   - `source` uguale alla nota in `assets-src/`, che deve esistere;
+   - peso entro il tetto: durata × 16 000 byte;
+   - somma dei file di `assets/audio/` entro gli 8 MiB.
+
+   Provati su copie guaste nella scratchpad (2026-11-02): un byte cambiato (`sha256`), 1 000
+   byte tagliati (pagina troncata), granule finale portato a 10 s (tetto, durata, campioni),
+   `samples` sbagliato nel manifest, `source` fuori da `assets-src/`, nota assente, voce senza
+   `sha256` e `bytes`, un file da 9 000 000 byte (budget). Ogni caso ha dato l'errore atteso.
 
 Il manifest, `ASSET_LICENSES.md` e i validatori non si saltano mai.
 

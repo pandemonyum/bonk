@@ -10,11 +10,11 @@ bastano da sole; le altre servono al progetto.
 | Tipo | `music_loop` |
 | File nel gioco | `assets/audio/music/home.ogg` |
 | Canali ammessi | composizione dell'utente, commissione a una persona, file CC0 o CC-BY scelti dall'utente; servizio IA solo con nome, termini e via esplicito per questo file |
-| Stato | `REQUESTED` (2026-11-02) |
+| Stato | `APPROVED` (2026-11-02, D-071): v1 approvata dall'utente e promossa in `assets/audio/music/home.ogg`; il gioco non la suona ancora. Diventa `INTEGRATED` quando suona nel gioco (AUDIO-3) e l'utente l'ha sentita |
 | Owner | pixel-art-director (richiesta, controllo, promozione) + utente (consegna e approvazione) |
 | Tranche che lo usa | AUDIO-3 |
-| Decisioni | D-069, D-070 |
-| Legata a | `MUSIC-RUN-001` (stesse sette note) e `AMB-HOME-001` (il ronzio del portale è intonato sul Fa di questa traccia) |
+| Decisioni | D-069, D-070, D-071 |
+| Legata a | `MUSIC-RUN-001` (stesse sette note). Il legame con `AMB-HOME-001` (ronzio del portale sul Fa di questa traccia) non c'è più: ambienti della home rifiutati dall'utente, `REJECTED` (D-071) |
 
 ## Il gioco in breve
 
@@ -39,6 +39,9 @@ bastano da sole; le altre servono al progetto.
   La musica non deve coprirli né litigarci:
   - registro grave leggero;
   - niente note gravi tenute sotto i 100 Hz diverse da Fa e Do.
+
+  *(Ritirati, D-071: l'utente non vuole ambienti nella home, e questa traccia ci suona da sola.
+  Il brief resta com'era quando è stata fatta la v1.)*
 - **Interfaccia:** nelle opzioni ogni tacca del volume suona un breve "blip" di onda quadra
   intorno a 1–1,3 kHz. La melodia non deve stare sempre in quella zona con timbri duri.
 - **Quanto si sente:** si può restare nei menu a lungo, a scegliere il compagno o leggere i
@@ -110,7 +113,7 @@ Progressione di esempio, generica: | Fa | Sol/Fa | Fa | Sol/Fa | Rem | Mim | Fa 
   di 1,5 s non stona.
   - 80 BPM sono i 2/3 di 120: le terzine di crome di questa traccia vanno alla stessa velocità
     delle crome della partita.
-- **Ronzio del portale:** su Fa, la tonica di questa traccia.
+- **Ronzio del portale:** su Fa, la tonica di questa traccia. *(Ritirato, D-071.)*
 
 ## 5. Regole del loop
 
@@ -188,23 +191,37 @@ Progressione di esempio, generica: | Fa | Sol/Fa | Fa | Sol/Fa | Rem | Mim | Fa 
 
 ## 9. Controlli dell'agente e criteri di accettazione
 
-- [ ] nome, `PROVENANCE.txt` completo, licenza ammessa, licenze delle fonti salvate
-- [ ] Ogg Vorbis valido: un solo flusso, BOS ed EOS, pagine consecutive, CRC giusti
-- [ ] 2 canali, 44 100 Hz
-- [ ] granule finale 3 175 200 ±1
-- [ ] peso ≤ 1 152 000 byte
-- [ ] picco ≤ −1 dBTP (master ≤ −1,5)
-- [ ] −16 LUFS ±1
-- [ ] estremi vicini allo zero, nessun silenzio né dissolvenza agli estremi
-- [ ] continuità del giro
-- [ ] registro grave leggero e senza note gravi tenute fuori da Fa e Do (sta sopra il ronzio del
-      portale)
-- [ ] ascolto dell'utente per almeno tre giri: nessuno stacco, carattere giusto, niente di
-      riconoscibile
-- [ ] conferma esplicita dell'utente su questa versione
+Spuntate solo le caselle verificate in modo definitivo. Tra parentesi l'esito della v1 dove
+manca ancora qualcosa: il master dice com'era il file prima della codifica, il controllo
+definitivo si fa sull'Ogg decodificato (AUDIO-3).
 
-Ogg, header, pagine, CRC, granule e peso si misurano all'arrivo, con il comando della procedura
-(`... MUSIC-HOME-001_v1.ogg 3175200`). Picco, loudness, estremi e continuità si misurano:
+- [ ] nome, `PROVENANCE.txt` completo, licenza ammessa, licenze delle fonti salvate (v1: nome
+      giusto, sezione `[file]` completa, `licenza: user-owned`, nessuna fonte di terzi
+      dichiarata. Canale confermato dall'utente il 2026-11-02 (D-071): sintesi da codice Python
+      scritto con ChatGPT. **Piano ChatGPT e data dei termini non indicati:** da completare prima
+      di una pubblicazione)
+- [x] Ogg Vorbis valido: un solo flusso, BOS ed EOS, pagine consecutive, CRC giusti
+- [x] 2 canali, 44 100 Hz
+- [x] granule finale 3 175 200 ±1
+- [x] peso ≤ 1 152 000 byte
+- [ ] picco ≤ −1 dBTP (master ≤ −1,5) (v1: master −5,64 dBTP, OK; Ogg non misurato)
+- [ ] −16 LUFS ±1 (v1: master −15,95 LUFS, OK; Ogg non misurato)
+- [ ] estremi vicini allo zero, nessun silenzio né dissolvenza agli estremi (v1, sul master:
+      primo e ultimo campione OK; ultimi 50 ms NO, **accettato dall'utente** il 2026-11-02,
+      D-071; Ogg non misurato)
+- [ ] continuità del giro (v1: master OK; Ogg non misurato)
+- [ ] registro grave leggero e senza note gravi tenute fuori da Fa e Do (v1, euristica sul
+      master: sotto i 100 Hz suona solo Fa2. Il ronzio del portale, che lo motivava, è ritirato:
+      D-071)
+- [ ] ascolto dell'utente per almeno tre giri: nessuno stacco, carattere giusto, niente di
+      riconoscibile (l'approvazione non dice quanti giri ha ascoltato: si conferma
+      all'ascolto nel gioco, per `INTEGRATED`)
+- [x] conferma esplicita dell'utente su questa versione (2026-11-02, frase nel registro)
+
+Tutti i controlli dell'arrivo, sull'Ogg e sul master, si fanno con
+`python -I scripts/audio_inbox.py MUSIC-HOME-001 --save`. Per il solo Ogg basta anche il comando
+della procedura (`... MUSIC-HOME-001_v1.ogg 3175200`). Picco, loudness, estremi e continuità si
+misurano:
 - sul master WAV, se c'è;
 - sull'Ogg decodificato, nel test di decodifica esteso in AUDIO-3.
 
@@ -213,22 +230,23 @@ Quello che non si misura si scrive "non misurato".
 ## 10. Piano di verifica
 
 - **INGEST:**
-  - comando per l'Ogg con 3 175 200;
-  - analisi del master;
+  - `python -I scripts/audio_inbox.py MUSIC-HOME-001 --save`: Ogg con 3 175 200 e analisi del
+    master;
   - ascolto in loop dell'utente.
 - **VERIFY:**
   - `python -I scripts/validate-assets.py`;
   - `cargo test --lib audio`;
   - `cargo run`, senza `--autoplay`, fermi nella home per almeno tre giri (circa 4 minuti), poi
     selezione, opzioni (con i blip delle tacche) e avvio della partita (dissolvenza di 1,5 s);
-  - con AUDIO-4 anche insieme al portale e alle cascate;
+  - ~~con AUDIO-4 anche insieme al portale e alle cascate~~ (ritirato, D-071: AUDIO-4
+    annullato);
   - ascolto dell'utente nel gioco.
 
 ## Registro delle versioni
 
 | Versione | File | Data | Controlli | Decisione dell'utente |
 |---|---|---|---|---|
-| — | — | — | — | — |
+| v1 | `MUSIC-HOME-001_v1.ogg`, 465 651 byte, sha256 `92392ab03c59…`; master `MUSIC-HOME-001_v1.wav` (PCM 24 bit) | 2026-11-02 | **Ogg:** contenitore OK (73 pagine, 1 flusso, CRC giusti, BOS ed EOS); Vorbis 2 canali 44 100 Hz OK; granule 3 175 200, scarto 0, OK; peso 465 651 ≤ 1 152 000 OK (51,7 kbps medi, nominale 112); encoder OK (tag `ENCODER=Lavc61.19.101 libvorbis`; il fornitore è `Lavf61.7.103`, la firma del muxer di FFmpeg); picco, loudness, estremi e giro non misurati. **Master:** 3 175 200 frame, uguali all'Ogg, OK; true peak −5,64 dBTP OK; −15,95 LUFS OK; estremi **NO**: primo e ultimo campione ≤ 0,0016 OK, ma ultimi 50 ms −19,8 dB (L) e −16,8 dB (R) sotto il secondo prima (soglia −6); le 23 stanghette interne finiscono tutte così (da −17,0 a −20,9 dB in L), quindi è il modo in cui finisce ogni battuta e non una dissolvenza al giro: da giudicare all'ascolto; continuità OK (salto L 0,0020 e R 0,0006, contro un 99,9° percentile di 0,0235 e 0,0222); stereo R − L −0,97 dB, correlazione +0,948; note gravi tenute fuori da Fa e Do: nessuna (euristica: sotto i 100 Hz solo Fa2, al massimo −31 dBFS; banda fino a 100 Hz −17,8 dB sul totale). **Provenienza:** sintesi da codice scritto con ChatGPT; canale, piano e termini da confermare dall'utente. Uscita completa: `.audio-inbox/MUSIC-HOME-001/check/v1.txt` | **approvata** il 2026-11-02 (D-071), dopo aver ricevuto l'esito dei controlli, compreso il NO degli estremi, e la richiesta di confermare canale, piano e termini. Frase dell'utente: "Apporvo soltanto la musica del menu mentre i suoni home portale e cascate non le voglio che ci siano in generale". **NO degli estremi accettato dall'utente.** Canale: sintesi da codice Python scritto con ChatGPT; l'approvazione vale come via esplicito per questo file. Piano ChatGPT e data dei termini non indicati: da completare prima di una pubblicazione. Promossa lo stesso giorno in `assets/audio/music/home.ogg` (sha256 uguale). `INTEGRATED` solo quando suona nel gioco e l'utente l'ha sentita |
 
 ## Revisioni
 
@@ -236,10 +254,23 @@ Quello che non si misura si scrive "non misurato".
 
 ## Provenienza e licenza (dopo la promozione)
 
-- **Versione promossa e file:** …
-- **Consegnata il / approvata il:** … / … (frase dell'utente: "…")
-- **Canale e autore:** …
-- **Licenza (`license` del manifest):** …
-- **Attribuzione:** … / non serve
-- **Nota in `assets-src/audio/music/home.md`:** sì / no
-- **Voce in `ASSET_LICENSES.md`:** sì / no
+- **Versione promossa e file:** v1, `MUSIC-HOME-001_v1.ogg` → `assets/audio/music/home.ogg`,
+  copiato byte per byte il 2026-11-02. 465 651 byte, sha256
+  `92392ab03c59abe3a30e8cd62e37d457708057182068680e854ed890e6bb92ba`, uguale nei due file. Il
+  master WAV resta all'utente, fuori dal repository.
+- **Consegnata il / approvata il:** 2026-11-02 / 2026-11-02 (frase dell'utente: "Apporvo
+  soltanto la musica del menu mentre i suoni home portale e cascate non le voglio che ci siano in
+  generale"). NO degli estremi accettato.
+- **Canale e autore:** suono sintetizzato da codice Python scritto con ChatGPT su richiesta
+  dell'utente (D-071). Autore dichiarato in `PROVENANCE.txt`: "ChatGPT
+  (composizione e script originale su richiesta dell'utente)". Nessuna fonte di terzi
+  dichiarata. **Piano ChatGPT e data dei termini non indicati dall'utente:** da completare prima
+  di una pubblicazione.
+- **Licenza (`license` del manifest):** `user-owned (generated by the user with ChatGPT, terms
+  not indicated)`; `approved: null` fino a `INTEGRATED`.
+- **Attribuzione:** non serve.
+- **Nota in `assets-src/audio/music/home.md`:** sì, con `PROVENANCE.txt` copiato per intero.
+- **Voce in `ASSET_LICENSES.md`:** sì, sezione "Audio".
+- **Catalogo:** la sezione `music` di `assets/audio/catalog.ron` arriva con AUDIO-3
+  (gameplay-engineer). Fino ad allora il validatore dà l'avviso "non citato in
+  assets/audio/catalog.ron".

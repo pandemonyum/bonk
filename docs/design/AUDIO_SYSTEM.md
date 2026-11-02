@@ -249,6 +249,9 @@ AppState::InRun:
 
 ### 3.8 Ambienti della home (portale e cascate)
 
+> **Ritirato dall'utente il 2026-11-02 (D-071):** niente ambienti nella home; AUDIO-4 annullato.
+> Il bus `Ambience` resta per eventuali ambienti futuri, solo su richiesta dell'utente.
+
 - Due loop sul bus dell'ambiente: `home_portal` (ronzio e vortice) e `home_falls` (cascate e
   fiume), già mixati in stereo con la posizione nell'illustrazione, così non serve l'audio
   spaziale.
@@ -409,6 +412,8 @@ nemici `blob`, `swarm`, `armored`, `elite_blob`, `boss_king`.
 | `stinger_defeat` | sconfitta | 2–4 s | one-shot |
 
 ### 5.2 Ambienti della home (bus Ambience, Vorbis stereo)
+
+> Ritirati (D-071).
 
 | ID | Contenuto | Durata del loop |
 |---|---|---|

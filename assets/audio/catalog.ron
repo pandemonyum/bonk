@@ -5,10 +5,12 @@
 // AUDIO-1: valori di partenza del § 3.4 e § 3.5. AUDIO-2: i due cue delle Opzioni, sintetizzati
 // da assets-src/audio/sfx/ui_*.json con scripts/audio_sfx.py (docs/audio/AUDIO_BIBLE.md). Senza
 // variazione di guadagno né di altezza: la tacca è l'anteprima del volume, deve suonare uguale.
+// AUDIO-3: la sezione music con la traccia della home (MUSIC-HOME-001 v1, D-071), le dissolvenze
+// e quella del fuoco della finestra.
 //
 // Un cue è un one-shot del bus Sfx (gioco) o Ui (interfaccia), con file .wav relativi ad assets/;
-// musica, stinger e ambienti avranno le loro sezioni (AUDIO-3, AUDIO-4). cooldown_ms è un
-// intervallo medio (a credito, vedi src/audio/mixer/start.rs):
+// la musica ha la sua sezione in fondo, gli stinger l'avranno (AUDIO-3b); niente ambienti
+// (D-071). cooldown_ms è un intervallo medio (a credito, vedi src/audio/mixer/start.rs):
 //   "shot.ember": (
 //       bus: Sfx, files: ["audio/sfx/companions/ember_shot_1.wav"], gain: 0.45,
 //       // facoltativi, con il loro default:
@@ -41,4 +43,20 @@
         ),
     },
     fallbacks: {},
+    // Musica (progetto § 3.7): tracce Ogg Vorbis in loop sul bus Music, con file relativi ad
+    // assets/ e un guadagno in (0, 1] sotto trims.music. Il menu suona "home" in ogni schermata;
+    // in partita la traccia dello stage (run_by_stage: { "meadow": "run_meadow" }, altrimenti
+    // run_default: Some("run_meadow")). Una traccia che manca è silenzio: oggi la partita e i
+    // risultati (orda, boss, risultati e stinger con AUDIO-3b).
+    music: (
+        tracks: {
+            // loop di 72 s (3 175 200 campioni), 80 bpm, picco sotto -1 dBFS
+            "home": (file: "audio/music/home.ogg", gain: 0.8),
+        },
+        run_by_stage: {},
+        // secondi di tempo reale (0 è un cambio secco): verso la partita, anche quando la
+        // partita è silenzio; verso il menu; focus: finestra non attiva, vale per tutto l'audio
+        // (§ 3.11), anche per gli effetti
+        fades: (to_run: 1.5, to_home: 1.5, focus: 0.25),
+    ),
 )

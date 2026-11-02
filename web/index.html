@@ -50,9 +50,9 @@
         console.info(`audio: contesto ${contexts.indexOf(ctx)} ${method}() (${why})`);
         ctx[method]().catch((e) => console.warn(`audio: ${method}() rifiutato:`, e));
       }
-      function follow(ctx, why) {
+      function follow(ctx, why, mayResume = true) {
         if (ctx.state === "running" && hidden()) change(ctx, "suspend", why);
-        if (ctx.state === "suspended" && !hidden()) change(ctx, "resume", why);
+        if (mayResume && ctx.state === "suspended" && !hidden()) change(ctx, "resume", why);
       }
       for (const name of ["AudioContext", "webkitAudioContext"]) {
         if (typeof window[name] !== "function") continue;
@@ -67,6 +67,12 @@
               console.info(`audio: contesto ${id}: ${ctx.state}`);
               follow(ctx, "statechange");
             });
+            // un contesto nato già "running" a scheda nascosta può non avere uno statechange da
+            // aspettare. Il controllo gira in un microtask: cpal crea il contesto e chiama
+            // resume() nella stessa pila (build, poi play()), quindi nel costruttore il suspend()
+            // verrebbe annullato da quel resume(); dopo la pila arriva per ultimo. Qui solo
+            // sospendere: riprendere lo fa già cpal, e senza un gesto darebbe avvisi di autoplay
+            queueMicrotask(() => follow(ctx, "creato", false));
             return ctx;
           },
         });

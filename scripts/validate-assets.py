@@ -22,8 +22,12 @@ assets/audio/ solo catalog.ron, .wav e .ogg; ogni file con nome ^[a-z0-9_]+\\.(w
 voce audio nel manifest (sfx, music, ambience: cartella e formato del tipo), una licenza
 ammessa, una riga in ASSET_LICENSES.md e la sorgente se è in assets-src/. Gli effetti sono WAV
 PCM 16 bit mono 44 100 Hz, al massimo 1,5 s, con il picco entro -1 dBFS, e coincidono con la
-voce del manifest (durata, canali, frequenza, sha256); gli Ogg hanno l'header Vorbis. Ogni
-percorso "audio/...wav|ogg" citato in assets/audio/catalog.ron è nel manifest.
+voce del manifest (durata, canali, frequenza, sha256). Gli Ogg (musica e ambienti consegnati,
+AUDIO_HANDOFF_WORKFLOW § 4) hanno l'header Vorbis, la nota in assets-src/ e coincidono con la
+voce del manifest (canali, frequenza, campioni dal granule finale, durata, byte, sha256), con
+il peso entro durata x 16 000 byte. Tutti i file di assets/audio/ insieme stanno entro 8 MiB.
+Ogni percorso "audio/...wav|ogg" citato in assets/audio/catalog.ron è nel manifest; un file
+audio che il catalogo non cita è un avviso (il gioco non lo suona ancora).
 
 Uso: python scripts/validate-assets.py   (exit code 1 se ci sono errori)
 """
@@ -173,9 +177,28 @@ def check_audio_file(rel: str, entry: dict, licenses: str) -> list[str]:
     if rel.endswith(".ogg"):
         try:
             channels, rate = audio.read_ogg_vorbis(path)
+            samples = audio.read_ogg_samples(path)
         except audio.AudioFileError as e:
             return errors + [f"{rel}: Ogg Vorbis non valido: {e}"]
-        found = {"channels": channels, "sample_rate": rate}
+        # la nota in assets-src/ è l'unica fonte della provenienza (procedura § 4, punto 2)
+        if not source.startswith("assets-src/"):
+            errors.append(f"{rel}: 'source' deve essere la nota in assets-src/audio/")
+        missing = [f for f in ("samples", "bytes", "sha256") if f not in entry]
+        if missing:
+            errors.append(f"{rel}: mancano {missing} nella voce del manifest")
+        size = path.stat().st_size
+        duration = samples / rate if rate else 0.0
+        limit = round(duration * audio.OGG_MAX_BYTES_PER_S)
+        if size > limit:
+            errors.append(f"{rel}: {size} byte, oltre il tetto di {limit} "
+                          f"({duration:.3f} s x {audio.OGG_MAX_BYTES_PER_S} byte)")
+        found = {"channels": channels, "sample_rate": rate, "samples": samples, "bytes": size}
+        if "duration_s" in entry and abs(entry["duration_s"] - duration) > 0.0005:
+            errors.append(f"{rel}: durata {duration:.4f} s (dal granule) diversa dal manifest "
+                          f"{entry['duration_s']}")
+        if "sha256" in entry and hashlib.sha256(path.read_bytes()).hexdigest() != entry["sha256"]:
+            errors.append(f"{rel}: contenuto diverso dallo sha256 del manifest (un file approvato "
+                          "si copia byte per byte; una ricodifica è una versione nuova)")
     else:
         try:
             info = audio.read_wav(path)
@@ -209,12 +232,17 @@ def check_audio_file(rel: str, entry: dict, licenses: str) -> list[str]:
     return errors
 
 
-def check_audio(entries: dict, licenses: str) -> tuple[list[str], list[str], int]:
-    """Errori, file audio su disco e numero di percorsi citati in catalog.ron."""
+def check_audio(entries: dict, licenses: str) -> tuple[list[str], list[str], list[str], int]:
+    """Errori, avvisi, file audio su disco e numero di percorsi citati in catalog.ron."""
     errors: list[str] = []
     voices = {p: e for p, e in entries.items() if audio.is_audio(e)}
     found: list[str] = []
-    for file in sorted(p for p in audio.AUDIO.rglob("*") if p.is_file()):
+    files = sorted(p for p in audio.AUDIO.rglob("*") if p.is_file())
+    total = sum(p.stat().st_size for p in files)
+    if total > audio.AUDIO_BUDGET_BYTES:
+        errors.append(f"assets/audio/: {total} byte in tutto, oltre il budget di "
+                      f"{audio.AUDIO_BUDGET_BYTES} (8 MiB, AUDIO_SYSTEM § 3.11)")
+    for file in files:
         rel = file.relative_to(ASSETS).as_posix()
         if file == audio.CATALOG:
             continue
@@ -242,7 +270,12 @@ def check_audio(entries: dict, licenses: str) -> tuple[list[str], list[str], int
     for line_no, path in cited:
         if path not in voices:
             errors.append(f"assets/audio/catalog.ron:{line_no}: \"{path}\" assente dal manifest")
-    return errors, found, len(cited)
+    # un file approvato e promosso può stare in assets/ prima della sua sezione del catalogo
+    # (procedura § 4, punto 6): il gioco non lo suona ancora, quindi è solo un avviso
+    named = {path for _, path in cited}
+    warnings = [f"{rel}: non citato in assets/audio/catalog.ron (il gioco non lo suona)"
+                for rel in found if rel in voices and rel not in named]
+    return errors, warnings, found, len(cited)
 
 
 def main() -> int:
@@ -339,13 +372,14 @@ def main() -> int:
         if f"assets/{rel}" not in licenses:
             errors.append(f"{rel}: font senza riga in ASSET_LICENSES.md")
 
-    audio_errors, audio_files, cited = check_audio(entries, licenses)
+    audio_errors, audio_warnings, audio_files, cited = check_audio(entries, licenses)
     errors += audio_errors
     wavs = sum(1 for f in audio_files if f.endswith(".wav"))
+    audio_bytes = sum(p.stat().st_size for p in audio.AUDIO.rglob("*") if p.is_file())
 
     # Icone attese dall'interfaccia per ogni upgrade e ritratti per ogni compagno: solo avvisi,
     # così un upgrade nuovo nei dati non blocca nessuno finché l'icona non è disegnata.
-    warnings: list[str] = []
+    warnings: list[str] = list(audio_warnings)
     for data_file, prefix in (("upgrades.ron", "upgrade"), ("companions.ron", "portrait")):
         for line in (GAME_DATA / data_file).read_text(encoding="utf-8").splitlines():
             match = DATA_ID_RE.match(line)
@@ -359,8 +393,9 @@ def main() -> int:
     print(
         f"{'FALLITO' if errors else 'OK'}: {len(on_disk)} PNG e {len(fonts)} font controllati, "
         f"{referenced} sprite citati in game-data/, {len(audio_files)} file audio "
-        f"({wavs} WAV, {len(audio_files) - wavs} Ogg), {cited} citati in catalog.ron, "
-        f"{len(errors)} errori"
+        f"({wavs} WAV, {len(audio_files) - wavs} Ogg; assets/audio/ {audio_bytes} byte, "
+        f"{audio_bytes / audio.AUDIO_BUDGET_BYTES:.1%} degli 8 MiB), {cited} citati in "
+        f"catalog.ron, {len(errors)} errori"
     )
     return 1 if errors else 0
 

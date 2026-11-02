@@ -1,14 +1,15 @@
 //! Riproduzione (progetto § 3.2, § 3.4, § 3.9, § 3.11): l'unico punto del gioco che crea voci di
-//! `bevy_audio` (`AudioPlayer`). In `AudioSet::Apply` esegue le decisioni del mixer
+//! `bevy_audio` (`AudioPlayer`): gli effetti qui sotto e i deck della musica ([`spawn_deck`], che
+//! il direttore di `music` chiama). In `AudioSet::Apply` esegue le decisioni del mixer
 //! ([`VoiceCommands`]):
 //! - `Start` con il file pronto: un'entità con `AudioPlayer`, `PlaybackSettings` in modo
 //!   `Despawn` (volume e velocità) e [`PlaybackVoice`]. Con il file non pronto il suono si scarta
 //!   (un colpo sentito un secondo dopo è peggio di nessun suono) e il mixer libera subito la voce;
 //! - `Stop`: despawn dell'entità.
 //!
-//! Quando nasce il sink la voce suona (`Mixer::playing`, e la prima volta per cue un `info!`): si
-//! segna in `AudioSet::Listen`, prima che il mixer decida le scadenze, così un fotogramma lungo
-//! subito dopo l'avvio non fa scadere una voce che suona già;
+//! Le voci vive ([`voices`]): quando nasce il sink la voce suona (`Mixer::playing`, e la prima
+//! volta per cue un `info!`): si segna in `AudioSet::Listen`, prima che il mixer decida le
+//! scadenze, così un fotogramma lungo subito dopo l'avvio non fa scadere una voce che suona già;
 //! quando l'entità sparisce, tolta da Bevy a fine suono o da noi, la voce è finita
 //! (`Mixer::finished`). Il volume di ogni voce viva si ricalcola a ogni fotogramma (generale × bus
 //! × trim × guadagno della voce × dissolvenza del fuoco) e si riscrive nel sink solo se cambia:
@@ -21,20 +22,21 @@
 
 use std::collections::BTreeSet;
 
-use bevy::audio::{
-    AudioPlayer, AudioSink, AudioSinkPlayback, AudioSource, PlaybackSettings, Volume,
-};
-use bevy::ecs::component::Mutable;
+use bevy::audio::{AudioPlayer, AudioSink, AudioSource, PlaybackSettings, Volume};
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
 
 use super::catalog::{AudioCatalog, CueBus, CueId};
-use super::mixer::{Decision, VoiceId, expiry_time};
+use super::mixer::{Decision, VoiceId};
+use super::music::MusicDeck;
 use super::{AudioMixer, AudioSet, VoiceCommands};
 
+mod voices;
 mod volume;
+pub(crate) use voices::{apply_volumes, notice_sinks};
+use voices::{note_silent, voice_gone};
 pub(crate) use volume::Mix;
-pub use volume::{VOLUME_EPSILON, needs_volume, voice_volume};
+pub use volume::{VOLUME_EPSILON, bus_volume, needs_volume, voice_volume};
 
 /// Gli handle di tutti i file dei cue, caricati all'avvio (gli effetti sono piccoli, § 3.9).
 #[derive(Resource, Debug, Clone, Default)]
@@ -123,7 +125,7 @@ pub enum PlaybackStep {
 }
 
 /// La riproduzione gira: c'è la libreria, quindi `Assets<AudioSource>`.
-fn backend_on(
+pub(crate) fn backend_on(
     library: Option<Res<AudioLibrary>>,
     sources: Option<Res<Assets<AudioSource>>>,
 ) -> bool {
@@ -288,83 +290,24 @@ fn execute(
     }
 }
 
-/// Uno `Stop` per scadenza: la voce non ha mai suonato e il suo termine è passato. Il mixer toglie
-/// le voci scadute prima di ogni furto o `Restart`, con lo stesso orologio e lo stesso termine
-/// ([`expiry_time`]), quindi una voce oltre il termine è ferma per scadenza e una prima no. Un
-/// avviso solo, poi i contatori.
-fn note_silent(
-    playback: &PlaybackVoice,
-    now: f64,
-    catalog: &AudioCatalog,
-    stats: &mut PlaybackStats,
-) {
-    let Some(cue) = catalog.cue(playback.cue) else {
-        return;
-    };
-    if playback.sounding || now < expiry_time(playback.started_s, cue.data.length_s) {
-        return; // fermata per un furto o un `Restart`, non scaduta
-    }
-    stats.silent_expired += 1;
-    if stats.silent_warnings == 0 {
-        stats.silent_warnings = 1;
-        warn!(
-            "audio: {} non ha suonato (file caricato, nessun sink: manca il dispositivo audio?); \
-             non lo ripeto",
-            cue.name
-        );
-    }
-}
-
-/// Il sink `S` è nato: la voce suona. Gira in `AudioSet::Listen`, prima delle scadenze del mixer.
-/// Generico per le prove, che non hanno un dispositivo.
-pub(crate) fn notice_sinks<S: Component>(
-    mut voices: Query<&mut PlaybackVoice, Added<S>>,
-    mut mixer: ResMut<AudioMixer>,
-    catalog: Res<AudioCatalog>,
-    mut stats: ResMut<PlaybackStats>,
-) {
-    for mut playback in &mut voices {
-        if playback.sounding {
-            continue;
-        }
-        playback.sounding = true;
-        mixer.0.playing(playback.voice);
-        stats.sounding += 1;
-        if stats.heard.insert(playback.cue) {
-            let name = catalog
-                .cue(playback.cue)
-                .map_or("?", |cue| cue.name.as_str());
-            info!("audio: primo suono di {name}");
-        }
-    }
-}
-
-/// Il volume di ogni voce viva, riscritto nel sink `S` solo se cambia ([`needs_volume`]).
-pub(crate) fn apply_volumes<S: Component<Mutability = Mutable> + AudioSinkPlayback>(
-    mut voices: Query<(&mut PlaybackVoice, Option<&mut S>)>,
-    mix: Mix,
-) {
-    for (mut playback, sink) in &mut voices {
-        let volume = mix.volume(playback.bus, playback.gain);
-        if playback.volume != volume {
-            playback.volume = volume;
-        }
-        if let Some(mut sink) = sink
-            && needs_volume(sink.volume().to_linear(), volume)
-        {
-            sink.set_volume(Volume::Linear(volume));
-        }
-    }
-}
-
-/// L'entità di una voce sparisce (Bevy a fine suono, o uno `Stop`): la voce è finita. Una voce
-/// già tolta dal mixer (furto, scadenza, file non pronto) non c'è più e va bene.
-fn voice_gone(
-    remove: On<Remove<PlaybackVoice>>,
-    voices: Query<&PlaybackVoice>,
-    mixer: Option<ResMut<AudioMixer>>,
-) {
-    if let (Ok(playback), Some(mut mixer)) = (voices.get(remove.entity), mixer) {
-        mixer.0.finished(playback.voice);
-    }
+/// Un deck della musica: un'entità con `AudioPlayer` in `PlaybackMode::Loop`, a volume zero, e
+/// [`MusicDeck`]. Bevy crea il sink quando il file è caricato; poi il direttore (`music`) porta su
+/// il livello con la dissolvenza e la riproduzione ne scrive il volume. In loop Bevy ripete il
+/// sorgente con `repeat_infinite` (`audio_output.rs:235`), che tiene in memoria tutti i campioni
+/// già decodificati (`rodio-0.22.2/src/source/repeat.rs`, `buffered.rs`): vedi `music`.
+pub(crate) fn spawn_deck(
+    commands: &mut Commands,
+    handle: Handle<AudioSource>,
+    deck: MusicDeck,
+) -> Entity {
+    commands
+        .spawn((
+            AudioPlayer::new(handle),
+            PlaybackSettings {
+                volume: Volume::Linear(0.0),
+                ..PlaybackSettings::LOOP
+            },
+            deck,
+        ))
+        .id()
 }

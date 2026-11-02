@@ -19,7 +19,7 @@ nome di giochi, franchise, compositori o brani da imitare.
 | Canali ammessi | composizione dell'utente, commissione a una persona, file CC0 o CC-BY scelti dall'utente; servizio IA solo con nome, termini e via esplicito per questo file |
 | Stato | `REQUESTED` |
 | Owner | pixel-art-director (richiesta, controllo, promozione) + utente (consegna e approvazione) |
-| Tranche che lo usa | AUDIO-3 (musica, stinger) / AUDIO-4 (ambienti) |
+| Tranche che lo usa | AUDIO-3 o AUDIO-3b (musica, stinger) / ambienti: la tranche che li porta (AUDIO-4, ambienti della home, annullato: D-071) |
 | Decisioni | D-069, D-070 |
 
 ## Il gioco in breve
@@ -186,7 +186,8 @@ Quello che non si misura si scrive "non misurato".
   c'è; ascolto in loop dell'utente.
 - **VERIFY:**
   - `python -I scripts/validate-assets.py`;
-  - `cargo test --lib audio` (test di decodifica esteso in AUDIO-3 e AUDIO-4);
+  - `cargo test --lib audio` (test di decodifica esteso in AUDIO-3, e per gli ambienti nella
+    tranche che li porta);
   - prova nel gioco nello stato giusto, con la traccia corrente nel log o nell'overlay F3;
   - ascolto dell'utente nel gioco.
 

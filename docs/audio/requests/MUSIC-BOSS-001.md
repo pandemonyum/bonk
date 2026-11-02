@@ -12,7 +12,7 @@ bastano da sole; le altre servono al progetto.
 | Canali ammessi | composizione dell'utente, commissione a una persona, file CC0 o CC-BY scelti dall'utente; servizio IA solo con nome, termini e via esplicito per questo file |
 | Stato | `REQUESTED` (2026-11-02) |
 | Owner | pixel-art-director (richiesta, controllo, promozione) + utente (consegna e approvazione) |
-| Tranche che lo usa | AUDIO-3 |
+| Tranche che lo usa | AUDIO-3b (D-071: AUDIO-3 porta solo la musica della home) |
 | Decisioni | D-069, D-070 |
 | Dipende da | `MUSIC-RUN-001`: stessa famiglia di suoni, stessa tonica Re |
 

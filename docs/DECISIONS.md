@@ -570,7 +570,40 @@ consigli del documento:
   `ASSET_LICENSES.md`): ha già manifest, validatore e licenze. Il codice di `src/audio/` è del
   gameplay-engineer.
 - **Predefiniti:** i loop della home non dipendono dall'interruttore "Animazioni" (li regola il
-  cursore "Ambiente"); audio spento quando la finestra non è attiva.
+  cursore "Ambiente"); audio spento quando la finestra non è attiva. *(Loop della home ritirati:
+  D-071.)*
+
+## D-071 Musica della home approvata, niente ambienti nella home *(utente)*
+Decisione dell'utente del 2026-11-02, dopo i controlli delle prime consegne:
+"Apporvo soltanto la musica del menu mentre i suoni home portale e cascate non le voglio che ci
+siano in generale".
+- **`MUSIC-HOME-001` v1 approvata**, compreso il NO del controllo degli estremi: gli ultimi 50 ms
+  sono 19,8 dB sotto il secondo prima, come la fine di ogni battuta. Va in
+  `assets/audio/music/home.ogg`.
+- **Canale:** suono sintetizzato da codice Python scritto con ChatGPT. Vale come via esplicito
+  dell'utente per questo file. Il piano ChatGPT e la data dei termini non sono stati indicati:
+  vanno aggiunti alla provenienza prima di una pubblicazione.
+- **Niente ambienti nella home.**
+  - Il punto 6 della richiesta iniziale (portale e cascate) è ritirato.
+  - `AMB-HOME-001` passa a `REJECTED`; AUDIO-4 è annullato.
+  - I file consegnati restano solo nell'inbox dell'utente, fuori dal repository.
+- **Bus `Ambience`:** resta nel codice e nel profilo. Un ambiente nuovo, per esempio di uno
+  stage, si fa solo su una nuova richiesta dell'utente.
+- **Web:** senza ambienti i flussi Vorbis sono al massimo 2, i due deck della musica durante una
+  dissolvenza. Il limite di 3 del § 3.11 di `docs/design/AUDIO_SYSTEM.md` è rispettato.
+- **AUDIO-3 diviso in due:**
+  - AUDIO-3 subito, con la sola traccia della home: direttore, due deck, dissolvenze. Gli stati
+    senza traccia sono silenzio;
+  - AUDIO-3b quando arrivano le tracce della partita: ducking, stinger, pausa della traccia
+    della run.
+- **Memoria del loop (misurata in AUDIO-3):** in loop Bevy usa `repeat_infinite()`
+  (`bevy_audio-0.20.0/src/audio_output.rs:235`), che in rodio 0.22.2 diventa un `Buffered`.
+  - Tiene tutti i campioni decodificati in `f32`: per `home.ogg` sono 24,2 MiB per deck, liberati
+    quando il deck si toglie.
+  - Sul web la memoria wasm non torna indietro. Con le tracce di 90–120 s una dissolvenza può
+    arrivare a 60–80 MiB.
+  - Da decidere in AUDIO-3b, per esempio con un `Decodable` che ridecodifica in loop senza
+    buffer.
 
 ## D-068 Mappe a più biomi: tre livelli, un solo generatore, stage scelto a parte *(utente)*
 Richiesta dell'utente del 2026-10-31: sei ambientazioni (Prateria Verde, Bosco Ombroso, Canyon

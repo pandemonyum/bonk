@@ -1,5 +1,6 @@
 //! Catalogo dei suoni (`assets/audio/catalog.ron`, progetto § 7): limiti delle voci, trim dei
-//! bus e i cue con file, priorità, cooldown, istanze, coalescenza e cull. I valori sono del
+//! bus, i cue con file, priorità, cooldown, istanze, coalescenza e cull, e la musica
+//! ([`music`]: tracce, traccia della partita per stage, dissolvenze). I valori sono del
 //! proprietario degli asset audio (D-070), lo schema è qui. Incorporato nel binario come
 //! `assets/ui/home_ambient.ron`: nessun caricamento, e un catalogo non valido nel gioco dà un
 //! errore nel log e un catalogo vuoto (mai un panic); il test `the_real_audio_catalog_is_valid`
@@ -16,7 +17,10 @@ use serde::Deserialize;
 
 use super::settings::Bus;
 
+pub mod music;
 mod validate;
+
+pub use music::{MusicCatalog, MusicFades, MusicFile, Track, TrackData, TrackId};
 
 /// Versione dello schema del catalogo supportata da questo codice.
 pub const CATALOG_VERSION: u32 = 1;
@@ -44,6 +48,9 @@ pub struct CatalogFile {
     /// prefissi fino al punto (`"shot"`), e suona il cue indicato.
     #[serde(default)]
     pub fallbacks: BTreeMap<String, String>,
+    /// Musica (AUDIO-3): facoltativa, senza è tutto silenzio.
+    #[serde(default)]
+    pub music: MusicFile,
 }
 
 /// Limiti delle voci effetto vive insieme (progetto § 3.5), per il desktop e per il web.
@@ -74,8 +81,8 @@ pub struct Trims {
 }
 
 /// Bus di un cue: gli effetti di gioco o l'interfaccia (lo stesso cursore "Effetti", trim
-/// diversi). I cue sono one-shot in WAV (nessuna decodifica); musica, stinger e ambienti avranno
-/// le loro sezioni del catalogo (AUDIO-3, AUDIO-4).
+/// diversi). I cue sono one-shot in WAV (nessuna decodifica); la musica ha la sua sezione
+/// ([`MusicFile`]), gli stinger l'avranno (AUDIO-3b).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize)]
 pub enum CueBus {
     Sfx,
@@ -212,6 +219,7 @@ pub struct AudioCatalog {
     cues: Vec<Cue>,
     /// Ripieghi già risolti in id.
     fallbacks: BTreeMap<String, CueId>,
+    pub music: MusicCatalog,
 }
 
 impl AudioCatalog {
@@ -238,6 +246,7 @@ impl AudioCatalog {
             trims: file.trims,
             cues,
             fallbacks: BTreeMap::new(),
+            music: MusicCatalog::compile(file.music),
         };
         for (from, to) in file.fallbacks {
             // la validazione garantisce che il cue esista
@@ -263,7 +272,8 @@ impl AudioCatalog {
         }
     }
 
-    /// Nessun cue: nessuna richiesta può partire, quindi i limiti non contano (valori minimi).
+    /// Nessun cue e nessuna traccia: nessuna richiesta può partire, quindi i limiti non contano
+    /// (valori minimi); dissolvenze predefinite.
     pub fn empty() -> Self {
         Self {
             voices: VoiceLimits {
@@ -282,6 +292,7 @@ impl AudioCatalog {
             },
             cues: Vec::new(),
             fallbacks: BTreeMap::new(),
+            music: MusicCatalog::default(),
         }
     }
 

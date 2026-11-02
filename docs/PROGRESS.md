@@ -13,6 +13,76 @@ Prossimo task eseguibile: **gate P0** (10 minuti giocabili end-to-end: serve la 
 del bilanciamento, vedi `docs/BACKLOG.md`), poi **P1** (web). Art pass v1, font pixel e P0.7
 sono integrati in `main`.
 
+## Report tranche "musica della home" (2026-11-02)
+
+```text
+Task: AUDIO-3 - musica della home (MUSIC-HOME-001 v1 approvata), AMB-HOME-001 rifiutata, D-071
+Owner: pixel-art-director (promozione, validatore, richieste) + gameplay-engineer (src/audio/,
+  sezione music di catalog.ron, ARCHITECTURE) + web-release (follow() alla creazione del
+  contesto) + orchestrator (D-071, backlog, progress, AGENTS, design)
+Stato: DONE nel codice; mancano l'ascolto dell'utente nel gioco (poi INTEGRATED) e la prova nel
+  browser, rimandata alla prossima build web (modalità veloce chiesta dall'utente)
+File: assets/audio/music/home.ogg (sha256 92392ab0… uguale all'Ogg approvato), manifest,
+  ASSET_LICENSES.md, assets-src/audio/music/home.md, scripts/validate-assets.py (controlli Ogg),
+  src/audio/{music.rs, music/, catalog/music.rs, playback/voices.rs, tests/music*.rs, ...},
+  assets/audio/catalog.ron, web/index.html, docs/
+Comandi eseguiti (risultato):
+  ./scripts/check.ps1 (gameplay-engineer)   exit 0: 383 test della libreria, sim 109 + 7 ignorati
+  cargo clippy --target wasm32-unknown-unknown --lib --locked -- -D warnings   exit 0
+  cargo test --lib audio (orchestratore)    102 passati in 0,87 s, compreso il giro del loop di
+                                            home.ogg in Bevy (nessun vuoto, salto 0,0015 contro un
+                                            99,9° percentile di 0,0234)
+  python -I scripts/validate-assets.py      OK, 3 file audio, 3 citati nel catalogo
+  cargo run -- --exit-after 12              "deck A home: sink nato dopo 0.13 s, dissolvenza
+                                            equal-power di 1.5 s", poi "a pieno"
+  cargo run -- --autoplay --mute --exit-after 8   silenzio in partita, nessun deck
+  cargo run -- --no-audio --exit-after 5    nessun load, nessun panic
+Comportamento verificato: musica nella home dal log del gioco vero; transizioni menu → partita →
+  menu solo nei test (nessun input simulato alle finestre del sistema)
+Rischi o bug noti:
+  - 24,2 MiB per deck in memoria (Buffered di rodio), da decidere in AUDIO-3b per il web;
+  - ogni ritorno nel menu ridecodifica la traccia da capo;
+  - provenienza senza piano ChatGPT e data dei termini (prima di pubblicare)
+Prossimo task: ascolto dell'utente nel gioco; poi AUDIO-5 (effetti di gioco) o le tracce della
+  partita (AUDIO-3b)
+```
+
+## Report tranche "prime consegne audio, controlli" (2026-11-02)
+
+```text
+Task: INGEST di MUSIC-HOME-001 v1 e AMB-HOME-001 v1 (portale, cascate), D-070, consegnati
+  dall'utente; script dei controlli scripts/audio_inbox.py
+Owner: pixel-art-director (script, docs/audio/) + orchestrator (AGENTS.md, progress, copia AMB)
+Stato: DONE; richieste DELIVERED, decisione dell'utente in attesa; niente promosso in assets/
+Assunzioni:
+  - AMB-HOME-001 era estratto in AMB-HOME-001_delivery/ nella radice: copiato byte per byte in
+    .audio-inbox/AMB-HOME-001/ (sha256 uguali), originale non toccato
+  - provenienza: sintesi da codice Python scritto con ChatGPT, user-owned dichiarato; canale,
+    piano e termini li conferma l'utente
+File: scripts/audio_inbox.py (nuovo), scripts/{audio_common,audio_sfx}.py (kernel del true peak in
+  comune), docs/audio/{AUDIO_HANDOFF_WORKFLOW.md, requests/README.md, requests/MUSIC-HOME-001.md,
+  requests/AMB-HOME-001.md}, AGENTS.md, docs/PROGRESS.md
+Comandi eseguiti (risultato), rieseguiti dall'orchestratore:
+  python -I scripts/audio_inbox.py MUSIC-HOME-001   exit 1, 14 s: Ogg valido, 3 175 200 campioni
+                                       (scarto 0), 465 651 byte; master -15,95 LUFS, -5,64 dBTP,
+                                       giro continuo; un NO: RMS degli ultimi 50 ms -19,8 dB sotto
+                                       il secondo prima (ogni battuta finisce così, stanghette
+                                       interne da -17,0 a -20,9 dB)
+  python -I scripts/audio_inbox.py AMB-HOME-001     exit 0, 12 s: portale 1 411 200, -23,97 LUFS,
+                                       R-L +9,54 dB; cascate 1 190 700, -21,95 LUFS, R-L +5,57 dB
+  prove sintetiche dello script        26 su 26 (seno a 997 Hz: -20,00 LUFS con A = 0,1)
+  python -I scripts/audio_sfx.py --check   OK: 2 patch, 0 file diversi
+  python -I scripts/validate-assets.py     OK, 0 errori
+Comportamento verificato: nessuno nel gioco; sugli Ogg picco, loudness, estremi e giro restano
+  "non misurato" fino al test di decodifica (AUDIO-3, AUDIO-4)
+Rischi o bug noti:
+  - l'encoder di FFmpeg firma "Lavf61.7.103"; libvorbis è nel tag ENCODER (ammesso nella procedura)
+  - scripts/audio_inbox.py ~1 020 righe; i numeri delle richieste sono nella tabella REQUESTS
+  - AMB-HOME-001_delivery/ e i due zip nella radice non sono ignorati da git
+Prossimo task: ascolto in loop e decisione dell'utente, conferma del canale; poi PROMOTE e
+  AUDIO-3 (musica della home) / AUDIO-4 (ambienti)
+```
+
 ## Report tranche "richieste di musica e ambienti" (2026-11-02)
 
 ```text

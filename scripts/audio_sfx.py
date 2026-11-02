@@ -71,11 +71,13 @@ from audio_common import (  # noqa: E402
     SFX_GENERATOR,
     SFX_LICENSE,
     SFX_SRC,
+    TRUE_PEAK_TAPS,
     dbfs,
     is_audio,
     load_manifest,
     manifest_text,
     parse_wav,
+    true_peak_kernels,
     wav_bytes,
 )
 
@@ -91,7 +93,6 @@ SWEEP_KEYS = {"to_hz", "time_ms", "shape"}
 VIBRATO_KEYS = {"rate_hz", "depth_cents", "delay_ms"}
 DEFAULT_PEAK_DBFS = -3.0
 MIN_FADE_MS = 1.0
-TRUE_PEAK_TAPS = 8  # mezza lunghezza del filtro sinc della stima del picco reale (4x)
 
 
 class PatchError(Exception):
@@ -329,14 +330,7 @@ def synthesize(patch: dict) -> list[int]:
 def true_peak_dbfs(samples: list[int]) -> float:
     """Stima del picco reale tra i campioni: interpolazione 4x con un sinc a finestra di Hann."""
     taps = TRUE_PEAK_TAPS
-    kernels = []
-    for p in (0.25, 0.5, 0.75):
-        kernel = []
-        for k in range(-taps + 1, taps + 1):
-            u = k - p
-            kernel.append(math.sin(math.pi * u) / (math.pi * u)
-                          * (0.5 + 0.5 * math.cos(math.pi * u / taps)))
-        kernels.append(kernel)
+    kernels = true_peak_kernels(taps)
     padded = [0] * taps + samples + [0] * taps
     peak = max(abs(s) for s in samples)
     for n in range(len(samples) + 1):
