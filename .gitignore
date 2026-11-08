@@ -13,3 +13,7 @@ Thumbs.db
 /.art-inbox/
 # Musica e ambienti consegnati dall'utente e non ancora approvati (D-070): mai nel repository
 /.audio-inbox/
+# Consegne grezze ed esperimenti locali: non servono per lavorare o buildare
+/*_delivery/
+/*_delivery.zip
+/experiments/
